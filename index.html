@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reportar un problema · Soporte Trilce</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1b2333;
+    --muted: #5c677d;
+    --brand: #1f4fd8;
+    --brand-dark: #173ba3;
+    --ok: #12805c;
+    --err: #b42318;
+    --line: #d9dfeb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10141f;
+      --card: #1a2030;
+      --text: #eef1f8;
+      --muted: #a2adc4;
+      --brand: #5b86ff;
+      --brand-dark: #7d9fff;
+      --ok: #3ccf9b;
+      --err: #ff8a7a;
+      --line: #2c3550;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 16px; }
+  header { padding: 8px 0 16px; }
+  header h1 { margin: 0; font-size: 1.25rem; }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card h2 { margin: 0 0 10px; font-size: 1rem; }
+  .equipo { font-size: 1.15rem; font-weight: 600; }
+  .ubicacion { color: var(--muted); font-size: .92rem; }
+  .opciones { display: grid; gap: 8px; }
+  .opcion {
+    display: flex; align-items: center; gap: 10px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    min-height: 52px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .opcion input { width: 20px; height: 20px; accent-color: var(--brand); flex: none; }
+  .opcion:has(input:checked) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  textarea, input[type="email"], input[type="text"] {
+    width: 100%;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    font: inherit;
+    background: var(--card);
+    color: var(--text);
+  }
+  label.campo { display: block; font-size: .9rem; color: var(--muted); margin: 10px 0 4px; }
+  button.principal {
+    width: 100%;
+    min-height: 54px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.principal:disabled { opacity: .55; cursor: not-allowed; }
+  button.principal:hover:not(:disabled) { background: var(--brand-dark); }
+  .aviso { color: var(--muted); font-size: .9rem; }
+  .error { color: var(--err); font-weight: 600; }
+  .ok-titulo { color: var(--ok); font-size: 1.2rem; font-weight: 700; margin: 0 0 6px; }
+  .estado {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    font-weight: 700; font-size: .9rem; border: 2px solid var(--line);
+  }
+  .estado.nuevo { color: var(--err); border-color: var(--err); }
+  .estado.en_atencion { color: var(--brand); border-color: var(--brand); }
+  .estado.resuelto { color: var(--ok); border-color: var(--ok); }
+  dl { margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: .95rem; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .oculto { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Soporte técnico · Trilce</h1>
+    <p>Reporta un problema con este equipo</p>
+  </header>
+
+  <!-- Pantalla: cargando -->
+  <section id="cargando" class="card">
+    <p id="msg-cargando" class="aviso">Conectando con el sistema…</p>
+  </section>
+
+  <!-- Pantalla: error -->
+  <section id="error" class="card oculto">
+    <p id="msg-error" class="error"></p>
+    <p class="aviso">Si el problema continúa, avisa directamente al área de Soporte.</p>
+  </section>
+
+  <!-- Pantalla: formulario -->
+  <form id="formulario" class="oculto" novalidate>
+    <div class="card">
+      <div class="equipo" id="equipo"></div>
+      <div class="ubicacion" id="ubicacion"></div>
+    </div>
+
+    <div class="card">
+      <h2>¿Estás dando clase ahora?</h2>
+      <div class="fila">
+        <label class="opcion"><input type="radio" name="clase" value="si"> Sí</label>
+        <label class="opcion"><input type="radio" name="clase" value="no"> No</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>¿Qué le pasa al equipo?</h2>
+      <div class="opciones" id="fallas"></div>
+      <div id="bloque-otro" class="oculto">
+        <label class="campo" for="descripcion">Cuéntanos brevemente qué pasa</label>
+        <textarea id="descripcion" rows="3" maxlength="300"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Aviso cuando esté resuelto <span class="aviso">(opcional)</span></h2>
+      <label class="campo" for="contacto">Tu correo institucional</label>
+      <input id="contacto" type="email" autocomplete="email" inputmode="email" placeholder="nombre@colegio.edu.pe">
+    </div>
+
+    <p id="error-form" class="error oculto"></p>
+    <button id="enviar" class="principal" type="submit">Registrar problema</button>
+  </form>
+
+  <!-- Pantalla: reporte enviado -->
+  <section id="enviado" class="card oculto">
+    <p class="ok-titulo">¡Problema registrado!</p>
+    <p>Soporte técnico ya recibió tu reporte. Guarda este enlace para ver cómo avanza:</p>
+    <p><input id="enlace" type="text" readonly aria-label="Enlace de seguimiento"></p>
+    <button id="copiar" class="principal" type="button">Copiar enlace</button>
+    <p style="margin-top:12px"><a id="ver-seguimiento" href="#">Ver estado de mi reporte</a></p>
+  </section>
+
+  <!-- Pantalla: seguimiento -->
+  <section id="seguimiento" class="card oculto">
+    <h2>Estado de tu reporte</h2>
+    <span id="seg-estado" class="estado"></span>
+    <dl>
+      <dt>Equipo</dt><dd id="seg-equipo"></dd>
+      <dt>Problema</dt><dd id="seg-falla"></dd>
+      <dt>Registrado</dt><dd id="seg-creado"></dd>
+      <dt>En atención</dt><dd id="seg-atendido"></dd>
+      <dt>Resuelto</dt><dd id="seg-resuelto"></dd>
+    </dl>
+    <p class="aviso" style="margin-top:12px">Esta página se actualiza sola cada 30 segundos.</p>
+  </section>
+</main>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN: cambia esta URL si tu API cambia de dirección
+// ============================================================
+const API = "https://soporte-trilce.onrender.com";
+
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const tokenQR = params.get("t");            // ?t=demo-pc-001  (viene en el QR)
+const tokenSeg = params.get("s");           // ?s=...          (enlace de seguimiento)
+
+const ETIQUETAS = { nuevo: "Nuevo", en_atencion: "En atención", resuelto: "Resuelto" };
+
+function mostrar(id) {
+  for (const s of ["cargando", "error", "formulario", "enviado", "seguimiento"]) {
+    $(s).classList.toggle("oculto", s !== id);
+  }
+}
+
+function fallo(texto) {
+  $("msg-error").textContent = texto;
+  mostrar("error");
+}
+
+// Llamada a la API con reintentos: el servidor gratuito puede tardar ~1 min en despertar.
+async function llamar(ruta, opciones, intentos = 4) {
+  let ultimo;
+  for (let i = 0; i < intentos; i++) {
+    try {
+      const r = await fetch(API + ruta, opciones);
+      if (r.status === 404 || r.status === 400) return r; // errores "normales": no reintentar
+      if (r.ok) return r;
+      ultimo = new Error("HTTP " + r.status);
+    } catch (e) {
+      ultimo = e;
+    }
+    if (i === 0) $("msg-cargando").textContent = "Despertando el sistema, puede tardar hasta 1 minuto…";
+    await new Promise((res) => setTimeout(res, 8000));
+  }
+  throw ultimo;
+}
+
+function fechaLocal(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
+}
+
+// ---------------- Formulario del docente ----------------
+let fallas = [];
+
+async function iniciarFormulario() {
+  mostrar("cargando");
+  let r;
+  try {
+    r = await llamar("/qr/" + encodeURIComponent(tokenQR));
+  } catch (e) {
+    return fallo("No se pudo conectar con el sistema. Inténtalo de nuevo en un momento.");
+  }
+  if (r.status === 404) return fallo("Este código QR no es válido o fue desactivado.");
+  if (!r.ok) return fallo("Ocurrió un problema al leer el código QR.");
+
+  const datos = await r.json();
+  fallas = datos.fallas;
+  $("equipo").textContent = datos.equipo.equipo + " (" + datos.equipo.tipo_equipo + ")";
+  $("ubicacion").textContent =
+    datos.equipo.sede + " · " + datos.equipo.ambiente + (datos.equipo.piso ? " · Piso " + datos.equipo.piso : "");
+
+  const cont = $("fallas");
+  cont.replaceChildren();
+  for (const f of fallas) {
+    const label = document.createElement("label");
+    label.className = "opcion";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "falla";
+    input.value = f.id;
+    input.dataset.otro = f.es_otro ? "1" : "0";
+    label.append(input, document.createTextNode(f.descripcion));
+    cont.append(label);
+  }
+  mostrar("formulario");
+}
+
+$("fallas").addEventListener("change", (e) => {
+  $("bloque-otro").classList.toggle("oculto", e.target.dataset.otro !== "1");
+});
+
+$("formulario").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("error-form");
+  err.classList.add("oculto");
+
+  const clase = document.querySelector('input[name="clase"]:checked');
+  const falla = document.querySelector('input[name="falla"]:checked');
+  if (!clase) return mensajeForm("Indica si estás dando clase.");
+  if (!falla) return mensajeForm("Elige qué problema tiene el equipo.");
+
+  const esOtro = falla.dataset.otro === "1";
+  const descripcion = $("descripcion").value.trim();
+  if (esOtro && !descripcion) return mensajeForm("Cuéntanos brevemente qué pasa.");
+
+  const boton = $("enviar");
+  boton.disabled = true;
+  boton.textContent = "Enviando…";
+
+  try {
+    const r = await llamar("/tickets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token_qr: tokenQR,
+        tipo_falla_id: Number(falla.value),
+        en_clase: clase.value === "si",
+        descripcion: esOtro ? descripcion : null,
+        contacto: $("contacto").value.trim() || null,
+      }),
+    }, 2);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const ticket = await r.json();
+    const enlace = location.origin + location.pathname + "?s=" + encodeURIComponent(ticket.token_seguimiento);
+    $("enlace").value = enlace;
+    $("ver-seguimiento").href = enlace;
+    mostrar("enviado");
+  } catch (_) {
+    mensajeForm("No se pudo registrar el problema. Inténtalo otra vez.");
+    boton.disabled = false;
+    boton.textContent = "Registrar problema";
+  }
+});
+
+function mensajeForm(texto) {
+  const err = $("error-form");
+  err.textContent = texto;
+  err.classList.remove("oculto");
+}
+
+$("copiar").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("enlace").value);
+    $("copiar").textContent = "¡Copiado!";
+  } catch (_) {
+    $("enlace").select();
+  }
+});
+
+// ---------------- Seguimiento ----------------
+async function cargarSeguimiento() {
+  let r;
+  try {
+    r = await llamar("/seguimiento/" + encodeURIComponent(tokenSeg));
+  } catch (e) {
+    return fallo("No se pudo consultar el estado. Inténtalo de nuevo en un momento.");
+  }
+  if (r.status === 404) return fallo("No encontramos ese reporte.");
+  const t = await r.json();
+  const est = $("seg-estado");
+  est.className = "estado " + t.estado;
+  est.textContent = ETIQUETAS[t.estado] || t.estado;
+  $("seg-equipo").textContent = t.equipo;
+  $("seg-falla").textContent = t.falla;
+  $("seg-creado").textContent = fechaLocal(t.creado_en);
+  $("seg-atendido").textContent = fechaLocal(t.atendido_en);
+  $("seg-resuelto").textContent = fechaLocal(t.resuelto_en);
+  mostrar("seguimiento");
+}
+
+// ---------------- Arranque ----------------
+if (tokenSeg) {
+  cargarSeguimiento();
+  setInterval(cargarSeguimiento, 30000);
+} else if (tokenQR) {
+  iniciarFormulario();
+} else {
+  fallo("Escanea el código QR pegado en el equipo para reportar un problema.");
+}
+</script>
+</body>
+</html>
