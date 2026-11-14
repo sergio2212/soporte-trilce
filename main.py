@@ -27,8 +27,10 @@ ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 # Charter: la prioridad depende de si hay una clase activa; el objetivo de
 # primera respuesta en clase activa es menor a 8 minutos.
 # ------------------------------------------------------------------
-PLAZO_EN_CLASE_MIN = 8
-PLAZO_FUERA_CLASE_MIN = 60  # PROVISIONAL: definir con la Jefatura de TI
+# El docente ya no indica si está en clase: todo ticket nace con prioridad "media" y
+# este plazo de primera respuesta (PROVISIONAL). El equipo de Soporte ajusta la urgencia.
+PLAZO_RESPUESTA_MIN = 15
+PRIORIDAD_INICIAL = "media"
 
 app = FastAPI(title="Soporte Trilce")
 app.add_middleware(
@@ -56,11 +58,9 @@ def conexion():
         conn.close()
 
 
-def calcular_prioridad(tipo_falla_id: int, en_clase: bool):
+def calcular_prioridad(tipo_falla_id: int):
     """Devuelve (prioridad, plazo_en_minutos). Regla provisional: ver arriba."""
-    if en_clase:
-        return "alta", PLAZO_EN_CLASE_MIN
-    return "media", PLAZO_FUERA_CLASE_MIN
+    return PRIORIDAD_INICIAL, PLAZO_RESPUESTA_MIN
 
 
 # ------------------------------------------------------------------
@@ -139,56 +139,62 @@ def salud_db():
 # ------------------------------------------------------------------
 # Página del docente (sin login)
 # ------------------------------------------------------------------
+ORDEN_EQUIPOS = ["PC", "Internet", "Impresora", "Proyector"]
+
+
 @app.get("/qr/{token}")
 def leer_qr(token: str):
-    """El docente escanea el QR: devuelve el equipo, su ubicación y las fallas comunes."""
+    """El docente escanea el QR: devuelve la sede y el catálogo de equipos con sus fallas."""
     with conexion() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.id, e.nombre AS equipo, te.id AS tipo_equipo_id,
-                   te.nombre AS tipo_equipo, a.nombre AS ambiente, a.piso,
-                   s.nombre AS sede
-            FROM equipos e
-            JOIN tipos_equipo te ON te.id = e.tipo_equipo_id
-            JOIN ambientes a ON a.id = e.ambiente_id
-            JOIN sedes s ON s.id = e.sede_id
+            SELECT e.id, s.nombre AS sede
+            FROM equipos e JOIN sedes s ON s.id = e.sede_id
             WHERE e.token_qr = %s AND e.activo
             """,
             (token,),
         )
-        equipo = cur.fetchone()
-        if not equipo:
+        qr = cur.fetchone()
+        if not qr:
             raise HTTPException(status_code=404, detail="QR no válido")
         cur.execute(
             """
-            SELECT id, descripcion, es_otro
-            FROM tipos_falla
-            WHERE tipo_equipo_id = %s AND activo
-            ORDER BY orden, id
-            """,
-            (equipo["tipo_equipo_id"],),
+            SELECT te.id AS tipo_id, te.nombre AS tipo, f.id, f.descripcion, f.es_otro
+            FROM tipos_falla f JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+            WHERE f.activo
+            ORDER BY te.id, f.orden, f.id
+            """
         )
-        fallas = cur.fetchall()
-    return {"equipo": equipo, "fallas": fallas}
+        filas = cur.fetchall()
+    tipos = {}
+    for f in filas:
+        t = tipos.setdefault(f["tipo_id"], {"id": f["tipo_id"], "nombre": f["tipo"], "fallas": []})
+        t["fallas"].append({"id": f["id"], "descripcion": f["descripcion"], "es_otro": f["es_otro"]})
+    lista = sorted(
+        tipos.values(),
+        key=lambda t: ORDEN_EQUIPOS.index(t["nombre"]) if t["nombre"] in ORDEN_EQUIPOS else 99,
+    )
+    return {"sede": qr["sede"], "tipos": lista}
 
 
 class TicketNuevo(BaseModel):
     token_qr: str
     tipo_falla_id: int
-    en_clase: bool
-    descripcion: Optional[str] = None
-    contacto: Optional[str] = None
+    aula: str = Field(min_length=1, max_length=40)
+    piso: str = Field(min_length=1, max_length=20)
+    descripcion: Optional[str] = Field(default=None, max_length=300)
+    contacto: Optional[str] = Field(default=None, max_length=200)
 
 
 @app.post("/tickets", status_code=201)
 def crear_ticket(datos: TicketNuevo):
     """El docente presiona 'Registrar problema'."""
+    aula, piso = datos.aula.strip(), datos.piso.strip()
+    if not aula or not piso:
+        raise HTTPException(status_code=400, detail="Indica el aula y el piso")
     with conexion() as conn, conn.cursor() as cur:
         cur.execute(
-            """
-            SELECT id, sede_id, tipo_equipo_id
-            FROM equipos WHERE token_qr = %s AND activo
-            """,
+            "SELECT id, sede_id FROM equipos WHERE token_qr = %s AND activo",
             (datos.token_qr,),
         )
         equipo = cur.fetchone()
@@ -196,33 +202,37 @@ def crear_ticket(datos: TicketNuevo):
             raise HTTPException(status_code=404, detail="QR no válido")
 
         cur.execute(
-            "SELECT id FROM tipos_falla WHERE id = %s AND tipo_equipo_id = %s AND activo",
-            (datos.tipo_falla_id, equipo["tipo_equipo_id"]),
+            "SELECT id, tipo_equipo_id FROM tipos_falla WHERE id = %s AND activo",
+            (datos.tipo_falla_id,),
         )
-        if not cur.fetchone():
-            raise HTTPException(status_code=400, detail="Falla no válida para este equipo")
+        falla = cur.fetchone()
+        if not falla:
+            raise HTTPException(status_code=400, detail="Falla no válida")
 
-        prioridad, plazo_min = calcular_prioridad(datos.tipo_falla_id, datos.en_clase)
+        prioridad, plazo_min = calcular_prioridad(datos.tipo_falla_id)
         token_seguimiento = secrets.token_urlsafe(16)
 
         cur.execute(
             """
             INSERT INTO tickets (sede_id, equipo_id, tipo_falla_id, descripcion,
                                  en_clase, contacto_docente, prioridad, token_seguimiento,
-                                 plazo_atencion)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(mins => %s))
+                                 plazo_atencion, aula_reportada, piso_reportado, tipo_equipo_id)
+            VALUES (%s, %s, %s, %s, FALSE, %s, %s, %s,
+                    now() + make_interval(mins => %s), %s, %s, %s)
             RETURNING id, estado, prioridad, token_seguimiento
             """,
             (
                 equipo["sede_id"],
                 equipo["id"],
                 datos.tipo_falla_id,
-                datos.descripcion,
-                datos.en_clase,
-                datos.contacto,
+                (datos.descripcion or "").strip() or None,
+                (datos.contacto or "").strip() or None,
                 prioridad,
                 token_seguimiento,
                 plazo_min,
+                aula,
+                piso,
+                falla["tipo_equipo_id"],
             ),
         )
         ticket = cur.fetchone()
@@ -244,10 +254,11 @@ def seguimiento(token: str):
         cur.execute(
             """
             SELECT t.estado, t.prioridad, t.creado_en, t.atendido_en, t.resuelto_en,
-                   e.nombre AS equipo, f.descripcion AS falla
+                   te.nombre AS equipo, f.descripcion AS falla,
+                   t.aula_reportada AS aula, t.piso_reportado AS piso
             FROM tickets t
-            JOIN equipos e ON e.id = t.equipo_id
             JOIN tipos_falla f ON f.id = t.tipo_falla_id
+            JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
             WHERE t.token_seguimiento = %s
             """,
             (token,),
@@ -302,15 +313,16 @@ def quien_soy(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
 SQL_TICKETS = """
 SELECT t.id, t.estado, t.prioridad, t.en_clase, t.descripcion,
        t.creado_en, t.atendido_en, t.resuelto_en, t.plazo_atencion,
-       e.nombre AS equipo, te.nombre AS tipo_equipo,
-       a.nombre AS ambiente, a.piso, s.nombre AS sede,
+       te.nombre AS equipo, te.nombre AS tipo_equipo,
+       COALESCE(t.aula_reportada, a.nombre) AS ambiente,
+       COALESCE(t.piso_reportado, a.piso::text) AS piso, s.nombre AS sede,
        f.descripcion AS falla, u.nombre AS tecnico
 FROM tickets t
 JOIN equipos e ON e.id = t.equipo_id
-JOIN tipos_equipo te ON te.id = e.tipo_equipo_id
 JOIN ambientes a ON a.id = e.ambiente_id
 JOIN sedes s ON s.id = t.sede_id
 JOIN tipos_falla f ON f.id = t.tipo_falla_id
+JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
 LEFT JOIN usuarios u ON u.id = t.tecnico_id
 """
 
@@ -514,7 +526,7 @@ def indicadores(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
               ((avg(extract(epoch FROM (t.resuelto_en - t.creado_en)))
                  FILTER (WHERE t.resuelto_en IS NOT NULL)) / 60)::float8 AS mttr_min,
               (count(*) FILTER (
-                 WHERE t.en_clase AND COALESCE(t.atendido_en, now()) > t.plazo_atencion
+                 WHERE COALESCE(t.atendido_en, now()) > t.plazo_atencion
               ))::int AS en_clase_fuera_de_plazo
             FROM tickets t {filtro}
             """,
@@ -534,14 +546,17 @@ def indicadores(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
 
         cur.execute(
             f"""
-            SELECT e.nombre AS equipo, a.nombre AS ambiente, s.nombre AS sede,
+            SELECT te.nombre AS equipo,
+                   COALESCE(t.aula_reportada, a.nombre) AS ambiente, s.nombre AS sede,
                    count(*)::int AS fallas
             FROM tickets t
             JOIN equipos e ON e.id = t.equipo_id
             JOIN ambientes a ON a.id = e.ambiente_id
+            JOIN tipos_falla f ON f.id = t.tipo_falla_id
+            JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
             JOIN sedes s ON s.id = t.sede_id
             {filtro}
-            GROUP BY e.id, e.nombre, a.nombre, s.nombre
+            GROUP BY te.nombre, COALESCE(t.aula_reportada, a.nombre), s.nombre
             HAVING count(*) >= 2
             ORDER BY fallas DESC
             LIMIT 5
