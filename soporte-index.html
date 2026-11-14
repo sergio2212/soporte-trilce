@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soporte Trilce · Mesa de ayuda</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1b2333;
+    --muted: #5c677d;
+    --brand: #1f4fd8;
+    --brand-dark: #173ba3;
+    --ok: #12805c;
+    --warn: #a15c00;
+    --err: #b42318;
+    --line: #d9dfeb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10141f;
+      --card: #1a2030;
+      --text: #eef1f8;
+      --muted: #a2adc4;
+      --brand: #5b86ff;
+      --brand-dark: #7d9fff;
+      --ok: #3ccf9b;
+      --warn: #f0b34a;
+      --err: #ff8a7a;
+      --line: #2c3550;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45;
+  }
+  .oculto { display: none !important; }
+  button { font: inherit; cursor: pointer; }
+  input, textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--card);
+    border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  }
+  label.campo { display: block; font-size: .9rem; color: var(--muted); margin: 12px 0 4px; }
+
+  .btn {
+    border: 2px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 9px 14px; min-height: 42px; font-weight: 600;
+  }
+  .btn.primario { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .btn.primario:hover:not(:disabled) { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.chico { min-height: 36px; padding: 6px 12px; font-size: .9rem; }
+
+  /* ---------- Login ---------- */
+  #vista-login { max-width: 400px; margin: 0 auto; padding: 48px 16px; }
+  #vista-login h1 { margin: 0 0 4px; font-size: 1.4rem; }
+  #vista-login p.sub { margin: 0 0 20px; color: var(--muted); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .error { color: var(--err); font-weight: 600; margin: 10px 0 0; }
+  .aviso { color: var(--muted); font-size: .9rem; }
+
+  /* ---------- Cabecera ---------- */
+  header.barra {
+    position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+  }
+  header.barra h1 { margin: 0; font-size: 1.1rem; }
+  .usuario { display: flex; align-items: center; gap: 10px; font-size: .9rem; color: var(--muted); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+
+  /* ---------- Indicadores ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat .valor { font-size: 1.6rem; font-weight: 700; }
+  .stat .nombre { font-size: .82rem; color: var(--muted); }
+  .stat.alerta .valor { color: var(--err); }
+  details.recurrentes { margin-bottom: 14px; font-size: .92rem; }
+  details.recurrentes summary { cursor: pointer; color: var(--muted); }
+  details.recurrentes ul { margin: 6px 0 0; padding-left: 20px; }
+
+  /* ---------- Filtros ---------- */
+  .filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .filtros .btn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .filtros .espacio { flex: 1; }
+
+  /* ---------- Tickets ---------- */
+  .ticket {
+    background: var(--card); border: 1px solid var(--line); border-left-width: 6px;
+    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+  }
+  .ticket.p-critica { border-left-color: var(--err); }
+  .ticket.p-alta { border-left-color: var(--warn); }
+  .ticket.p-media { border-left-color: var(--brand); }
+  .ticket.p-baja { border-left-color: var(--muted); }
+  .ticket.resuelto { opacity: .85; border-left-color: var(--ok); }
+  .ticket.destello { animation: destello 2.5s ease-out; }
+  @keyframes destello { 0% { box-shadow: 0 0 0 4px var(--brand); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .fila-sup { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 6px; }
+  .num { font-weight: 700; color: var(--muted); }
+  .chip {
+    display: inline-block; padding: 2px 10px; border-radius: 999px; border: 2px solid var(--line);
+    font-size: .8rem; font-weight: 700;
+  }
+  .chip.critica { color: var(--err); border-color: var(--err); }
+  .chip.alta { color: var(--warn); border-color: var(--warn); }
+  .chip.media { color: var(--brand); border-color: var(--brand); }
+  .chip.baja { color: var(--muted); }
+  .chip.nuevo { color: var(--err); border-color: var(--err); }
+  .chip.en_atencion { color: var(--brand); border-color: var(--brand); }
+  .chip.resuelto { color: var(--ok); border-color: var(--ok); }
+  .chip.clase { background: var(--text); color: var(--card); border-color: var(--text); }
+  .falla { font-size: 1.1rem; font-weight: 700; margin: 2px 0; }
+  .donde { color: var(--muted); font-size: .92rem; }
+  .desc { margin: 6px 0 0; padding: 8px 10px; background: var(--bg); border-radius: 8px; font-size: .92rem; }
+  .plazo { margin-top: 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .plazo.ok { color: var(--ok); }
+  .plazo.cerca { color: var(--warn); }
+  .plazo.vencido { color: var(--err); }
+  .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .resolver-caja { margin-top: 10px; }
+  .historial { margin: 10px 0 0; padding: 0; list-style: none; font-size: .88rem; color: var(--muted); border-top: 1px dashed var(--line); }
+  .historial li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .vacio { text-align: center; color: var(--muted); padding: 32px 0; }
+
+  #aviso-toast {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 10;
+    background: var(--text); color: var(--card); padding: 10px 18px; border-radius: 999px;
+    font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.25); max-width: 92vw;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<section id="vista-login" class="oculto">
+  <h1>Soporte técnico · Trilce</h1>
+  <p class="sub">Mesa de ayuda. Ingresa con tu cuenta de soporte.</p>
+  <form id="form-login" class="panel" novalidate>
+    <label class="campo" for="correo" style="margin-top:0">Correo</label>
+    <input id="correo" type="email" autocomplete="username" inputmode="email" required>
+    <label class="campo" for="clave">Contraseña</label>
+    <input id="clave" type="password" autocomplete="current-password" required>
+    <p id="login-error" class="error oculto"></p>
+    <p id="login-espera" class="aviso oculto">Conectando… si el sistema estaba dormido puede tardar hasta 1 minuto.</p>
+    <button id="login-boton" class="btn primario" type="submit" style="width:100%;margin-top:16px">Ingresar</button>
+  </form>
+</section>
+
+<!-- ===================== PANEL ===================== -->
+<div id="vista-panel" class="oculto">
+  <header class="barra">
+    <h1>Mesa de ayuda · Soporte Trilce</h1>
+    <div class="usuario">
+      <span id="usuario-texto"></span>
+      <button id="salir" class="btn chico" type="button">Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="Indicadores">
+      <div class="stat" id="st-abiertos"><div class="valor">–</div><div class="nombre">Tickets abiertos</div></div>
+      <div class="stat" id="st-primera"><div class="valor">–</div><div class="nombre">1.ª respuesta (prom.)</div></div>
+      <div class="stat" id="st-mttr"><div class="valor">–</div><div class="nombre">Tiempo de resolución (prom.)</div></div>
+      <div class="stat" id="st-fuera"><div class="valor">–</div><div class="nombre">En clase fuera de plazo</div></div>
+    </section>
+    <details class="recurrentes oculto" id="recurrentes">
+      <summary>Equipos con fallas recurrentes</summary>
+      <ul id="lista-recurrentes"></ul>
+    </details>
+
+    <div class="filtros" role="group" aria-label="Filtro de tickets">
+      <button class="btn chico" type="button" data-filtro="activos" aria-pressed="true">Activos</button>
+      <button class="btn chico" type="button" data-filtro="resueltos" aria-pressed="false">Resueltos</button>
+      <button class="btn chico" type="button" data-filtro="todos" aria-pressed="false">Todos</button>
+      <span class="espacio"></span>
+      <span class="aviso" id="actualizado"></span>
+    </div>
+
+    <p id="panel-error" class="error oculto"></p>
+    <div id="lista"></div>
+  </main>
+</div>
+
+<div id="aviso-toast" class="oculto" role="status" aria-live="polite"></div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN: cambia esta URL si tu API cambia de dirección
+// ============================================================
+const API = "https://soporte-trilce.onrender.com";
+const CADA_SEGUNDOS = 15;      // cada cuánto se actualiza la lista
+const AVISO_CERCA_MS = 2 * 60 * 1000;
+
+const $ = (id) => document.getElementById(id);
+const ETQ_ESTADO = { nuevo: "Nuevo", en_atencion: "En atención", resuelto: "Resuelto" };
+const ETQ_PRIO = { critica: "Crítica", alta: "Alta", media: "Media", baja: "Baja" };
+
+// ---------- sesión (sessionStorage con respaldo en memoria) ----------
+let tokenMem = null;
+function guardarToken(t) {
+  tokenMem = t;
+  try { t ? sessionStorage.setItem("soporte_token", t) : sessionStorage.removeItem("soporte_token"); } catch (_) {}
+}
+function leerToken() {
+  if (tokenMem) return tokenMem;
+  try { return sessionStorage.getItem("soporte_token"); } catch (_) { return null; }
+}
+
+// ---------- estado de la pantalla ----------
+let filtro = "activos";
+let offsetReloj = 0;                 // diferencia entre el reloj del servidor y el de este equipo
+let idsVistos = null;                // para detectar tickets nuevos
+let ticketsActuales = [];
+let temporizadorLista = null;
+let abiertoResolver = new Set();     // tickets con el cuadro "resolver" abierto
+let abiertoHistorial = new Set();
+
+class SesionVencida extends Error {}
+
+async function api(ruta, opciones = {}, intentos = 3) {
+  const cab = { ...(opciones.headers || {}) };
+  const t = leerToken();
+  if (t) cab["Authorization"] = "Bearer " + t;
+  let ultimo;
+  for (let i = 0; i < intentos; i++) {
+    try {
+      const r = await fetch(API + ruta, { ...opciones, headers: cab });
+      if (r.status === 401 && t) throw new SesionVencida();
+      if (r.status >= 500 && i < intentos - 1) { ultimo = new Error("HTTP " + r.status); }
+      else return r;
+    } catch (e) {
+      if (e instanceof SesionVencida) throw e;
+      ultimo = e;
+    }
+    await new Promise((res) => setTimeout(res, 6000));
+  }
+  throw ultimo;
+}
+
+function toast(texto) {
+  const el = $("aviso-toast");
+  el.textContent = texto;
+  el.classList.remove("oculto");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.classList.add("oculto"), 4500);
+}
+
+function mostrarVista(nombre) {
+  $("vista-login").classList.toggle("oculto", nombre !== "login");
+  $("vista-panel").classList.toggle("oculto", nombre !== "panel");
+}
+
+function cerrarSesion(mensaje) {
+  guardarToken(null);
+  clearInterval(temporizadorLista);
+  idsVistos = null;
+  ticketsActuales = [];
+  document.title = "Soporte Trilce · Mesa de ayuda";
+  mostrarVista("login");
+  const err = $("login-error");
+  if (mensaje) { err.textContent = mensaje; err.classList.remove("oculto"); } else { err.classList.add("oculto"); }
+}
+
+// ---------- login ----------
+$("form-login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("login-error");
+  err.classList.add("oculto");
+  const correo = $("correo").value.trim();
+  const clave = $("clave").value;
+  if (!correo || !clave) { err.textContent = "Escribe tu correo y contraseña."; err.classList.remove("oculto"); return; }
+  const boton = $("login-boton");
+  boton.disabled = true; boton.textContent = "Ingresando…";
+  $("login-espera").classList.remove("oculto");
+  try {
+    const r = await api("/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correo, password: clave }),
+    });
+    if (r.status === 401) throw new Error("Correo o contraseña incorrectos.");
+    if (!r.ok) throw new Error("No se pudo iniciar sesión. Inténtalo de nuevo.");
+    const datos = await r.json();
+    guardarToken(datos.token);
+    $("clave").value = "";
+    entrarAlPanel(datos.usuario);
+  } catch (ex) {
+    err.textContent = ex.message && !/fetch|HTTP|Failed/i.test(ex.message) ? ex.message : "No se pudo conectar con el sistema. Inténtalo de nuevo en un momento.";
+    err.classList.remove("oculto");
+  } finally {
+    boton.disabled = false; boton.textContent = "Ingresar";
+    $("login-espera").classList.add("oculto");
+  }
+});
+
+$("salir").addEventListener("click", () => cerrarSesion(""));
+
+function entrarAlPanel(usuario) {
+  $("usuario-texto").textContent = usuario.nombre + " · " + usuario.sede + " · " + (usuario.rol === "admin" ? "Administrador" : "Técnico");
+  mostrarVista("panel");
+  refrescar();
+  clearInterval(temporizadorLista);
+  temporizadorLista = setInterval(refrescar, CADA_SEGUNDOS * 1000);
+}
+
+// ---------- utilidades de formato ----------
+function ahoraServidor() { return Date.now() + offsetReloj; }
+
+function fmtDuracion(ms) {
+  ms = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(ms / 3600), m = Math.floor((ms % 3600) / 60), s = ms % 60;
+  if (h > 0) return h + " h " + String(m).padStart(2, "0") + " min";
+  return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+function fmtMin(x) {
+  if (x === null || x === undefined) return "–";
+  return x < 1 ? "< 1 min" : (x < 100 ? x.toFixed(1) : Math.round(x)) + " min";
+}
+function fmtFecha(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
+}
+
+// Texto y color del plazo de primera respuesta de un ticket
+function infoPlazo(t) {
+  const creado = Date.parse(t.creado_en);
+  if (t.estado === "nuevo") {
+    if (!t.plazo_atencion) return { texto: "Sin plazo definido", clase: "ok" };
+    const resta = Date.parse(t.plazo_atencion) - ahoraServidor();
+    if (resta >= 0) return { texto: "⏱ Quedan " + fmtDuracion(resta) + " para responder", clase: resta <= AVISO_CERCA_MS ? "cerca" : "ok" };
+    return { texto: "⚠ Plazo vencido hace " + fmtDuracion(-resta), clase: "vencido" };
+  }
+  const tomado = Date.parse(t.atendido_en) - creado;
+  const aTiempo = !t.plazo_atencion || Date.parse(t.atendido_en) <= Date.parse(t.plazo_atencion);
+  let texto = "Primera respuesta en " + fmtDuracion(tomado) + (aTiempo ? " (a tiempo)" : " (fuera de plazo)");
+  if (t.estado === "resuelto") texto += " · Resuelto en " + fmtDuracion(Date.parse(t.resuelto_en) - creado);
+  return { texto, clase: aTiempo ? "ok" : "vencido" };
+}
+
+// ---------- carga de datos ----------
+async function refrescar() {
+  try {
+    const [rt, ri] = await Promise.all([
+      api("/soporte/tickets?estado=" + filtro),
+      api("/soporte/indicadores"),
+    ]);
+    if (!rt.ok) throw new Error("tickets " + rt.status);
+    const dt = await rt.json();
+    offsetReloj = Date.parse(dt.ahora) - Date.now();
+    detectarNuevos(dt.tickets);
+    ticketsActuales = dt.tickets;
+    $("panel-error").classList.add("oculto");
+    // Si el técnico está escribiendo una resolución, no redibujamos la lista (le quitaría el cursor).
+    const escribiendo = document.activeElement && document.activeElement.tagName === "TEXTAREA";
+    if (!escribiendo) pintarLista();
+    if (ri.ok) pintarIndicadores(await ri.json());
+    $("actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    $("panel-error").textContent = "No se pudo actualizar la lista. Reintentando…";
+    $("panel-error").classList.remove("oculto");
+  }
+}
+
+let idsNuevosDestello = new Set();
+function detectarNuevos(tickets) {
+  const ids = new Set(tickets.map((t) => t.id));
+  idsNuevosDestello = new Set();
+  if (idsVistos && filtro !== "resueltos") {
+    const nuevos = tickets.filter((t) => !idsVistos.has(t.id) && t.estado === "nuevo");
+    if (nuevos.length) {
+      nuevos.forEach((t) => idsNuevosDestello.add(t.id));
+      const t = nuevos[0];
+      toast("🔔 Nuevo reporte: " + t.falla + " · " + t.ambiente + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
+    }
+  }
+  idsVistos = ids;
+}
+
+function pintarIndicadores(d) {
+  $("st-abiertos").querySelector(".valor").textContent = d.abiertos;
+  $("st-primera").querySelector(".valor").textContent = fmtMin(d.primera_respuesta_min);
+  $("st-mttr").querySelector(".valor").textContent = fmtMin(d.mttr_min);
+  const f = $("st-fuera");
+  f.querySelector(".valor").textContent = d.en_clase_fuera_de_plazo;
+  f.classList.toggle("alerta", d.en_clase_fuera_de_plazo > 0);
+  const det = $("recurrentes"), ul = $("lista-recurrentes");
+  ul.replaceChildren();
+  for (const r of d.fallas_recurrentes) {
+    const li = document.createElement("li");
+    li.textContent = r.equipo + " · " + r.ambiente + " (" + r.sede + "): " + r.fallas + " reportes";
+    ul.append(li);
+  }
+  det.classList.toggle("oculto", d.fallas_recurrentes.length === 0);
+}
+
+// ---------- pintado de tickets ----------
+function el(tag, clase, texto) {
+  const e = document.createElement(tag);
+  if (clase) e.className = clase;
+  if (texto !== undefined) e.textContent = texto;
+  return e;
+}
+
+function pintarLista() {
+  const cont = $("lista");
+  cont.replaceChildren();
+  const nuevos = ticketsActuales.filter((t) => t.estado === "nuevo").length;
+  document.title = (nuevos ? "(" + nuevos + ") " : "") + "Soporte Trilce · Mesa de ayuda";
+  if (!ticketsActuales.length) {
+    cont.append(el("p", "vacio", filtro === "resueltos" ? "Aún no hay tickets resueltos." : "No hay tickets pendientes. ¡Todo en orden! ✅"));
+    return;
+  }
+  for (const t of ticketsActuales) cont.append(crearTarjeta(t));
+}
+
+function crearTarjeta(t) {
+  const card = el("article", "ticket p-" + t.prioridad + (t.estado === "resuelto" ? " resuelto" : "") + (idsNuevosDestello.has(t.id) ? " destello" : ""));
+  card.dataset.id = t.id;
+
+  const sup = el("div", "fila-sup");
+  sup.append(el("span", "num", "#" + t.id));
+  sup.append(el("span", "chip " + t.prioridad, "Prioridad " + ETQ_PRIO[t.prioridad]));
+  sup.append(el("span", "chip " + t.estado, ETQ_ESTADO[t.estado]));
+  if (t.en_clase) sup.append(el("span", "chip clase", "En clase"));
+  card.append(sup);
+
+  card.append(el("div", "falla", t.falla));
+  card.append(el("div", "donde", t.equipo + " · " + t.ambiente + (t.piso ? " (piso " + t.piso + ")" : "") + " · " + t.sede));
+  if (t.descripcion) card.append(el("div", "desc", "“" + t.descripcion + "”"));
+  card.append(el("div", "donde", "Registrado " + fmtFecha(t.creado_en) + (t.tecnico ? " · Atiende: " + t.tecnico : "")));
+
+  const p = infoPlazo(t);
+  const plazo = el("div", "plazo " + p.clase, p.texto);
+  if (t.estado === "nuevo") plazo.dataset.plazo = t.id;
+  card.append(plazo);
+
+  const acc = el("div", "acciones");
+  if (t.estado === "nuevo") {
+    const b = el("button", "btn primario chico", "Atender");
+    b.type = "button";
+    b.addEventListener("click", () => accionAtender(t.id, b));
+    acc.append(b);
+  }
+  if (t.estado !== "resuelto") {
+    const b = el("button", "btn chico", "Resolver…");
+    b.type = "button";
+    b.addEventListener("click", () => { abiertoResolver.has(t.id) ? abiertoResolver.delete(t.id) : abiertoResolver.add(t.id); pintarLista(); });
+    acc.append(b);
+  }
+  const h = el("button", "btn chico", abiertoHistorial.has(t.id) ? "Ocultar historial" : "Historial");
+  h.type = "button";
+  h.addEventListener("click", () => { abiertoHistorial.has(t.id) ? abiertoHistorial.delete(t.id) : abiertoHistorial.add(t.id); pintarLista(); });
+  acc.append(h);
+  card.append(acc);
+
+  if (abiertoResolver.has(t.id) && t.estado !== "resuelto") card.append(cajaResolver(t.id));
+  if (abiertoHistorial.has(t.id)) { const ul = el("ul", "historial"); ul.append(el("li", null, "Cargando historial…")); card.append(ul); cargarHistorial(t.id, ul); }
+  return card;
+}
+
+function cajaResolver(id) {
+  const caja = el("div", "resolver-caja");
+  const lab = el("label", "campo", "¿Qué se hizo para resolverlo? (intervención realizada)");
+  const area = document.createElement("textarea");
+  area.rows = 2; area.maxLength = 500; area.id = "nota-" + id;
+  area.value = cajaResolver.borradores?.[id] || "";
+  area.addEventListener("input", () => { (cajaResolver.borradores ||= {})[id] = area.value; });
+  lab.htmlFor = area.id;
+  const err = el("p", "error oculto");
+  const ok = el("button", "btn primario chico", "Confirmar resolución");
+  ok.type = "button"; ok.style.marginTop = "8px";
+  ok.addEventListener("click", () => accionResolver(id, area.value, ok, err));
+  caja.append(lab, area, err, ok);
+  return caja;
+}
+
+async function cargarHistorial(id, ul) {
+  try {
+    const r = await api("/soporte/tickets/" + id + "/historial");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const { eventos } = await r.json();
+    ul.replaceChildren();
+    for (const ev of eventos) {
+      const ant = ev.estado_anterior ? ETQ_ESTADO[ev.estado_anterior] + " → " : "";
+      ul.append(el("li", null, fmtFecha(ev.creado_en) + " · " + ant + ETQ_ESTADO[ev.estado_nuevo] + (ev.usuario ? " · " + ev.usuario : "") + (ev.nota ? " — " + ev.nota : "")));
+    }
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    ul.replaceChildren(el("li", null, "No se pudo cargar el historial."));
+  }
+}
+
+// ---------- acciones ----------
+async function accionAtender(id, boton) {
+  boton.disabled = true;
+  try {
+    const r = await api("/soporte/tickets/" + id + "/atender", { method: "POST" });
+    if (r.status === 409) toast("Otro técnico ya tomó este ticket.");
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else toast("Ticket #" + id + " en atención.");
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    toast("No se pudo atender el ticket. Inténtalo otra vez.");
+  }
+  refrescar();
+}
+
+async function accionResolver(id, nota, boton, err) {
+  err.classList.add("oculto");
+  if (nota.trim().length < 3) { err.textContent = "Describe brevemente qué se hizo."; err.classList.remove("oculto"); return; }
+  boton.disabled = true;
+  try {
+    const r = await api("/soporte/tickets/" + id + "/resolver", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nota: nota.trim() }),
+    });
+    if (r.status === 409) toast("Este ticket ya estaba resuelto.");
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else toast("Ticket #" + id + " resuelto. El docente verá el cambio en su enlace de seguimiento.");
+    abiertoResolver.delete(id);
+    if (cajaResolver.borradores) delete cajaResolver.borradores[id];
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    err.textContent = "No se pudo resolver el ticket. Inténtalo otra vez."; err.classList.remove("oculto");
+    boton.disabled = false;
+    return;
+  }
+  refrescar();
+}
+
+// ---------- filtros ----------
+document.querySelectorAll("[data-filtro]").forEach((b) => b.addEventListener("click", () => {
+  filtro = b.dataset.filtro;
+  document.querySelectorAll("[data-filtro]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  idsVistos = null;
+  refrescar();
+}));
+
+// ---------- cuenta regresiva en vivo (cada segundo, sin recargar) ----------
+setInterval(() => {
+  document.querySelectorAll("[data-plazo]").forEach((nodo) => {
+    const t = ticketsActuales.find((x) => String(x.id) === nodo.dataset.plazo);
+    if (!t || t.estado !== "nuevo") return;
+    const p = infoPlazo(t);
+    nodo.textContent = p.texto;
+    nodo.className = "plazo " + p.clase;
+    nodo.dataset.plazo = t.id;
+  });
+}, 1000);
+
+// ---------- arranque ----------
+(async function iniciar() {
+  if (!leerToken()) return mostrarVista("login");
+  try {
+    const r = await api("/auth/yo");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    entrarAlPanel(await r.json());
+  } catch (_) {
+    cerrarSesion("");
+  }
+})();
+</script>
+</body>
+</html>
