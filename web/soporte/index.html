@@ -190,7 +190,7 @@
       <div class="stat" id="st-abiertos"><div class="valor">–</div><div class="nombre">Tickets abiertos</div></div>
       <div class="stat" id="st-primera"><div class="valor">–</div><div class="nombre">1.ª respuesta (prom.)</div></div>
       <div class="stat" id="st-mttr"><div class="valor">–</div><div class="nombre">Tiempo de resolución (prom.)</div></div>
-      <div class="stat" id="st-fuera"><div class="valor">–</div><div class="nombre">En clase fuera de plazo</div></div>
+      <div class="stat" id="st-fuera"><div class="valor">–</div><div class="nombre">Fuera de plazo</div></div>
     </section>
     <details class="recurrentes oculto" id="recurrentes">
       <summary>Equipos con fallas recurrentes</summary>
@@ -354,6 +354,8 @@ function fmtMin(x) {
   if (x === null || x === undefined) return "–";
   return x < 1 ? "< 1 min" : (x < 100 ? x.toFixed(1) : Math.round(x)) + " min";
 }
+// El docente escribe el aula a mano ("305"); los antiguos ya traen "Aula 305"
+function fmtAula(a) { return !a ? "Aula sin indicar" : /^\d/.test(a) ? "Aula " + a : a; }
 function fmtFecha(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
@@ -416,7 +418,7 @@ function detectarNuevos(tickets) {
     if (nuevos.length) {
       nuevos.forEach((t) => idsNuevosDestello.add(t.id));
       const t = nuevos[0];
-      toast("Nuevo reporte: " + t.falla + " · " + t.ambiente + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
+      toast("Nuevo reporte: " + t.equipo + ": " + t.falla + " · " + fmtAula(t.ambiente) + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
     }
   }
   idsVistos = ids;
@@ -433,7 +435,7 @@ function pintarIndicadores(d) {
   ul.replaceChildren();
   for (const r of d.fallas_recurrentes) {
     const li = document.createElement("li");
-    li.textContent = r.equipo + " · " + r.ambiente + " (" + r.sede + "): " + r.fallas + " reportes";
+    li.textContent = r.equipo + " · " + fmtAula(r.ambiente) + " (" + r.sede + "): " + r.fallas + " reportes";
     ul.append(li);
   }
   det.classList.toggle("oculto", d.fallas_recurrentes.length === 0);
@@ -473,7 +475,7 @@ function crearTarjeta(t) {
   card.append(sup);
 
   card.append(el("div", "falla", t.falla));
-  card.append(el("div", "donde", t.equipo + " · " + t.ambiente + (t.piso ? " (piso " + t.piso + ")" : "") + " · " + t.sede));
+  card.append(el("div", "donde", t.equipo + " · " + fmtAula(t.ambiente) + (t.piso ? " · Piso " + t.piso : "") + " · " + t.sede));
   if (t.descripcion) card.append(el("div", "desc", "“" + t.descripcion + "”"));
   card.append(el("div", "donde", "Registrado " + fmtFecha(t.creado_en) + (t.tecnico ? " · Atiende: " + t.tecnico : "")));
 
