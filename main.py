@@ -436,6 +436,41 @@ def resolver_ticket(
     return {"id": ticket_id, "estado": "resuelto"}
 
 
+class CambioPrioridad(BaseModel):
+    prioridad: str = Field(max_length=10)
+
+
+@app.post("/soporte/tickets/{ticket_id}/prioridad")
+def cambiar_prioridad(
+    ticket_id: int,
+    datos: CambioPrioridad,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+):
+    """El técnico ajusta la urgencia del ticket (crítica, alta, media o baja)."""
+    nueva = datos.prioridad.strip().lower()
+    if nueva not in ("critica", "alta", "media", "baja"):
+        raise HTTPException(status_code=400, detail="Prioridad no válida")
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
+        if ticket["estado"] == "resuelto":
+            raise HTTPException(status_code=409, detail="Este ticket ya está resuelto")
+        cur.execute("SELECT prioridad FROM tickets WHERE id = %s", (ticket_id,))
+        anterior = cur.fetchone()["prioridad"]
+        if anterior != nueva:
+            cur.execute("UPDATE tickets SET prioridad = %s WHERE id = %s", (nueva, ticket_id))
+            cur.execute(
+                """
+                INSERT INTO ticket_historial
+                    (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (ticket_id, ticket["sede_id"], ticket["estado"], ticket["estado"],
+                 usuario["id"], "Prioridad cambiada de " + anterior + " a " + nueva),
+            )
+    return {"id": ticket_id, "prioridad": nueva}
+
+
 @app.get("/soporte/tickets/{ticket_id}/historial")
 def historial_ticket(
     ticket_id: int, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
