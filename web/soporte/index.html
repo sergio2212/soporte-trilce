@@ -4,140 +4,166 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Soporte Trilce · Mesa de ayuda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f6fb;
+    --bg: #fff8f2;
     --card: #ffffff;
-    --text: #1b2333;
-    --muted: #5c677d;
-    --brand: #1f4fd8;
-    --brand-dark: #173ba3;
-    --ok: #12805c;
-    --warn: #a15c00;
-    --err: #b42318;
-    --line: #d9dfeb;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10141f;
-      --card: #1a2030;
-      --text: #eef1f8;
-      --muted: #a2adc4;
-      --brand: #5b86ff;
-      --brand-dark: #7d9fff;
-      --ok: #3ccf9b;
-      --warn: #f0b34a;
-      --err: #ff8a7a;
-      --line: #2c3550;
-    }
+    --text: #2a1a10;
+    --muted: #7a6657;
+    --brand: #f26b1d;
+    --brand-ink: #ffffff;
+    --brand-dark: #c4510e;
+    --brand-soft: #ffeadb;
+    --line: #f0dfd2;
+    --warn: #b45309;
+    --err: #c0392b;
+    --ok: #1d8a4a;
+    --radius: 16px;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45;
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5;
   }
   .oculto { display: none !important; }
   button { font: inherit; cursor: pointer; }
   input, textarea {
     width: 100%; font: inherit; color: var(--text); background: var(--card);
-    border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px;
   }
-  label.campo { display: block; font-size: .9rem; color: var(--muted); margin: 12px 0 4px; }
+  input:focus, textarea:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
+  label.campo { display: block; font-size: .9rem; font-weight: 600; margin: 14px 0 6px; }
 
   .btn {
-    border: 2px solid var(--line); background: var(--card); color: var(--text);
-    border-radius: 10px; padding: 9px 14px; min-height: 42px; font-weight: 600;
+    border: 1.5px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 12px; padding: 9px 16px; min-height: 42px; font-weight: 700;
   }
-  .btn.primario { background: var(--brand); border-color: var(--brand); color: #fff; }
-  .btn.primario:hover:not(:disabled) { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn:hover:not(:disabled) { border-color: var(--muted); }
+  .btn.primario { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+  .btn.primario:hover:not(:disabled) { filter: brightness(1.08); }
   .btn:disabled { opacity: .55; cursor: not-allowed; }
-  .btn.chico { min-height: 36px; padding: 6px 12px; font-size: .9rem; }
+  .btn.chico { min-height: 36px; padding: 6px 14px; font-size: .9rem; }
+  .btn:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca-icono { width: 34px; height: 34px; border-radius: 10px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; flex: none; }
+  .marca b { font-weight: 800; letter-spacing: -.01em; display: block; line-height: 1.15; }
+  .marca span { color: var(--muted); font-size: .85rem; line-height: 1.15; display: block; }
 
   /* ---------- Login ---------- */
-  #vista-login { max-width: 400px; margin: 0 auto; padding: 48px 16px; }
-  #vista-login h1 { margin: 0 0 4px; font-size: 1.4rem; }
-  #vista-login p.sub { margin: 0 0 20px; color: var(--muted); }
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  #vista-login { max-width: 400px; margin: 0 auto; padding: 56px 16px; }
+  #vista-login .panel { border-top: 6px solid var(--brand); }
+  #vista-login .marca { margin-bottom: 28px; }
+  #vista-login h1 { margin: 0 0 4px; font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+  #vista-login p.sub { margin: 0 0 22px; color: var(--muted); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
   .error { color: var(--err); font-weight: 600; margin: 10px 0 0; }
   .aviso { color: var(--muted); font-size: .9rem; }
 
   /* ---------- Cabecera ---------- */
   header.barra {
-    position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
-    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
-    padding: 10px 16px;
+    position: sticky; top: 0; z-index: 5; background: var(--brand); color: #fff;
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 10px 20px;
   }
-  header.barra h1 { margin: 0; font-size: 1.1rem; }
-  .usuario { display: flex; align-items: center; gap: 10px; font-size: .9rem; color: var(--muted); }
-  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  .usuario { display: flex; align-items: center; gap: 12px; font-size: .9rem; color: #fff; }
+  header.barra .btn { background: transparent; border-color: rgba(255,255,255,.7); color: #fff; }
+  header.barra .btn:hover:not(:disabled) { background: rgba(255,255,255,.15); border-color: #fff; }
+  header.barra .marca span { color: rgba(255,255,255,.9); }
+  header.barra .marca-icono { background: #fff; color: var(--brand); }
+  main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 48px; }
 
   /* ---------- Indicadores ---------- */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
-  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-  .stat .valor { font-size: 1.6rem; font-weight: 700; }
-  .stat .nombre { font-size: .82rem; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .stat .valor { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .stat .nombre { font-size: .84rem; color: var(--muted); font-weight: 600; }
+  #st-abiertos { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+  #st-abiertos .nombre { color: inherit; opacity: .85; }
+  #st-abiertos .valor { font-size: 2.3rem; }
+  .stat.alerta { border-color: var(--err); }
   .stat.alerta .valor { color: var(--err); }
-  details.recurrentes { margin-bottom: 14px; font-size: .92rem; }
-  details.recurrentes summary { cursor: pointer; color: var(--muted); }
-  details.recurrentes ul { margin: 6px 0 0; padding-left: 20px; }
+  details.recurrentes { margin-bottom: 16px; font-size: .92rem; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+  details.recurrentes summary { cursor: pointer; font-weight: 700; }
+  details.recurrentes ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
 
   /* ---------- Filtros ---------- */
-  .filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .filtros .btn { border-radius: 999px; }
   .filtros .btn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
   .filtros .espacio { flex: 1; }
 
   /* ---------- Tickets ---------- */
+  #lista { display: grid; gap: 12px; }
   .ticket {
-    background: var(--card); border: 1px solid var(--line); border-left-width: 6px;
-    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+    position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px 16px 22px; overflow: hidden;
   }
-  .ticket.p-critica { border-left-color: var(--err); }
-  .ticket.p-alta { border-left-color: var(--warn); }
-  .ticket.p-media { border-left-color: var(--brand); }
-  .ticket.p-baja { border-left-color: var(--muted); }
-  .ticket.resuelto { opacity: .85; border-left-color: var(--ok); }
+  .ticket::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--line); }
+  .ticket.p-critica::before { background: var(--err); }
+  .ticket.p-alta::before { background: var(--brand); }
+  .ticket.p-media::before { background: #e0a800; }
+  .ticket.p-baja::before { background: var(--muted); }
+  .ticket.resuelto::before { background: var(--ok); }
+  .ticket.resuelto { opacity: .88; }
   .ticket.destello { animation: destello 2.5s ease-out; }
   @keyframes destello { 0% { box-shadow: 0 0 0 4px var(--brand); } 100% { box-shadow: 0 0 0 0 transparent; } }
-  .fila-sup { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 6px; }
-  .num { font-weight: 700; color: var(--muted); }
-  .chip {
-    display: inline-block; padding: 2px 10px; border-radius: 999px; border: 2px solid var(--line);
-    font-size: .8rem; font-weight: 700;
-  }
-  .chip.critica { color: var(--err); border-color: var(--err); }
-  .chip.alta { color: var(--warn); border-color: var(--warn); }
-  .chip.media { color: var(--brand); border-color: var(--brand); }
-  .chip.baja { color: var(--muted); }
-  .chip.nuevo { color: var(--err); border-color: var(--err); }
-  .chip.en_atencion { color: var(--brand); border-color: var(--brand); }
-  .chip.resuelto { color: var(--ok); border-color: var(--ok); }
-  .chip.clase { background: var(--text); color: var(--card); border-color: var(--text); }
-  .falla { font-size: 1.1rem; font-weight: 700; margin: 2px 0; }
+  .fila-sup { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 8px; }
+  .num { font-weight: 800; color: var(--muted); margin-right: 2px; }
+  .chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; background: var(--bg); color: var(--muted); }
+  .chip.critica { background: color-mix(in srgb, var(--err) 15%, transparent); color: var(--err); }
+  .chip.alta { background: var(--brand-soft); color: var(--brand-dark); }
+  .chip.media { background: #fff3c4; color: #7a5a00; }
+  .chip.nuevo { background: #fde4e1; color: var(--err); }
+  .chip.en_atencion { background: var(--brand-soft); color: var(--brand-dark); }
+  .chip.resuelto { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+  .chip.clase { background: var(--text); color: var(--card); }
+  .falla { font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; margin: 2px 0; }
   .donde { color: var(--muted); font-size: .92rem; }
-  .desc { margin: 6px 0 0; padding: 8px 10px; background: var(--bg); border-radius: 8px; font-size: .92rem; }
-  .plazo { margin-top: 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .desc { margin: 8px 0 0; padding: 9px 12px; background: var(--bg); border-radius: 10px; font-size: .92rem; }
+  .plazo { margin-top: 12px; font-weight: 700; font-size: .92rem; font-variant-numeric: tabular-nums; }
   .plazo.ok { color: var(--ok); }
   .plazo.cerca { color: var(--warn); }
   .plazo.vencido { color: var(--err); }
-  .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .resolver-caja { margin-top: 10px; }
-  .historial { margin: 10px 0 0; padding: 0; list-style: none; font-size: .88rem; color: var(--muted); border-top: 1px dashed var(--line); }
-  .historial li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
-  .vacio { text-align: center; color: var(--muted); padding: 32px 0; }
+  .barra-plazo { height: 6px; border-radius: 999px; background: var(--bg); margin-top: 6px; overflow: hidden; }
+  .barra-plazo i { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 999px; transition: width 1s linear; }
+  .barra-plazo.cerca i { background: var(--warn); }
+  .barra-plazo.vencido i { background: var(--err); }
+  .urgencia { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
+  .urgencia > span { font-size: .85rem; font-weight: 700; color: var(--muted); margin-right: 4px; }
+  .urg { border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 12px; font-size: .84rem; font-weight: 700; color: var(--muted); }
+  .urg[aria-pressed="true"] { color: #fff; border-color: transparent; }
+  .urg[data-p="critica"][aria-pressed="true"] { background: var(--err); }
+  .urg[data-p="alta"][aria-pressed="true"] { background: var(--brand); }
+  .urg[data-p="media"][aria-pressed="true"] { background: #e0a800; color: #2a1a10; }
+  .urg[data-p="baja"][aria-pressed="true"] { background: var(--muted); }
+  .urg:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .filtros.urg-filtro { margin-top: -4px; }
+  .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .resolver-caja { margin-top: 12px; padding: 14px; background: var(--bg); border-radius: 12px; }
+  .resolver-caja label.campo { margin-top: 0; }
+  .historial { margin: 14px 0 0; padding: 0; list-style: none; font-size: .88rem; color: var(--muted); border-top: 1px solid var(--line); }
+  .historial li { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .vacio { text-align: center; color: var(--muted); padding: 48px 0; font-weight: 600; }
 
   #aviso-toast {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 10;
-    background: var(--text); color: var(--card); padding: 10px 18px; border-radius: 999px;
-    font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.25); max-width: 92vw;
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; z-index: 10;
+    background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 14px;
+    font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.25); max-width: 92vw;
   }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
-  <h1>Soporte técnico · Trilce</h1>
-  <p class="sub">Mesa de ayuda. Ingresa con tu cuenta de soporte.</p>
+  <div class="marca"><div class="marca-icono" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div><div><b>Soporte técnico</b><span>Trilce</span></div></div>
+  <h1>Ingresa a la mesa de ayuda</h1>
+  <p class="sub">Usa la cuenta que te dio tu equipo de Soporte.</p>
   <form id="form-login" class="panel" novalidate>
     <label class="campo" for="correo" style="margin-top:0">Correo</label>
     <input id="correo" type="email" autocomplete="username" inputmode="email" required>
@@ -152,7 +178,7 @@
 <!-- ===================== PANEL ===================== -->
 <div id="vista-panel" class="oculto">
   <header class="barra">
-    <h1>Mesa de ayuda · Soporte Trilce</h1>
+    <div class="marca"><div class="marca-icono" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div><div><b>Mesa de ayuda</b><span>Soporte Trilce</span></div></div>
     <div class="usuario">
       <span id="usuario-texto"></span>
       <button id="salir" class="btn chico" type="button">Salir</button>
@@ -177,6 +203,15 @@
       <button class="btn chico" type="button" data-filtro="todos" aria-pressed="false">Todos</button>
       <span class="espacio"></span>
       <span class="aviso" id="actualizado"></span>
+    </div>
+
+    <div class="filtros urg-filtro" role="group" aria-label="Filtro por urgencia">
+      <span class="aviso">Urgencia:</span>
+      <button class="btn chico" type="button" data-urg="todas" aria-pressed="true">Todas</button>
+      <button class="btn chico" type="button" data-urg="critica" aria-pressed="false">Crítica</button>
+      <button class="btn chico" type="button" data-urg="alta" aria-pressed="false">Alta</button>
+      <button class="btn chico" type="button" data-urg="media" aria-pressed="false">Media</button>
+      <button class="btn chico" type="button" data-urg="baja" aria-pressed="false">Baja</button>
     </div>
 
     <p id="panel-error" class="error oculto"></p>
@@ -211,6 +246,7 @@ function leerToken() {
 
 // ---------- estado de la pantalla ----------
 let filtro = "activos";
+let filtroUrg = "todas";
 let offsetReloj = 0;                 // diferencia entre el reloj del servidor y el de este equipo
 let idsVistos = null;                // para detectar tickets nuevos
 let ticketsActuales = [];
@@ -329,14 +365,21 @@ function infoPlazo(t) {
   if (t.estado === "nuevo") {
     if (!t.plazo_atencion) return { texto: "Sin plazo definido", clase: "ok" };
     const resta = Date.parse(t.plazo_atencion) - ahoraServidor();
-    if (resta >= 0) return { texto: "⏱ Quedan " + fmtDuracion(resta) + " para responder", clase: resta <= AVISO_CERCA_MS ? "cerca" : "ok" };
-    return { texto: "⚠ Plazo vencido hace " + fmtDuracion(-resta), clase: "vencido" };
+    if (resta >= 0) return { texto: "Quedan " + fmtDuracion(resta) + " para responder", clase: resta <= AVISO_CERCA_MS ? "cerca" : "ok" };
+    return { texto: "Plazo vencido hace " + fmtDuracion(-resta), clase: "vencido" };
   }
   const tomado = Date.parse(t.atendido_en) - creado;
   const aTiempo = !t.plazo_atencion || Date.parse(t.atendido_en) <= Date.parse(t.plazo_atencion);
   let texto = "Primera respuesta en " + fmtDuracion(tomado) + (aTiempo ? " (a tiempo)" : " (fuera de plazo)");
   if (t.estado === "resuelto") texto += " · Resuelto en " + fmtDuracion(Date.parse(t.resuelto_en) - creado);
   return { texto, clase: aTiempo ? "ok" : "vencido" };
+}
+
+// Porcentaje del plazo ya consumido (0–100)
+function porcentajePlazo(t) {
+  const ini = Date.parse(t.creado_en), fin = Date.parse(t.plazo_atencion);
+  if (!(fin > ini)) return 100;
+  return Math.max(0, Math.min(100, ((ahoraServidor() - ini) / (fin - ini)) * 100));
 }
 
 // ---------- carga de datos ----------
@@ -373,7 +416,7 @@ function detectarNuevos(tickets) {
     if (nuevos.length) {
       nuevos.forEach((t) => idsNuevosDestello.add(t.id));
       const t = nuevos[0];
-      toast("🔔 Nuevo reporte: " + t.falla + " · " + t.ambiente + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
+      toast("Nuevo reporte: " + t.falla + " · " + t.ambiente + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
     }
   }
   idsVistos = ids;
@@ -410,10 +453,12 @@ function pintarLista() {
   const nuevos = ticketsActuales.filter((t) => t.estado === "nuevo").length;
   document.title = (nuevos ? "(" + nuevos + ") " : "") + "Soporte Trilce · Mesa de ayuda";
   if (!ticketsActuales.length) {
-    cont.append(el("p", "vacio", filtro === "resueltos" ? "Aún no hay tickets resueltos." : "No hay tickets pendientes. ¡Todo en orden! ✅"));
+    cont.append(el("p", "vacio", filtro === "resueltos" ? "Aún no hay tickets resueltos." : "No hay tickets pendientes. Todo en orden."));
     return;
   }
-  for (const t of ticketsActuales) cont.append(crearTarjeta(t));
+  const visibles = ticketsActuales.filter((t) => filtroUrg === "todas" || t.prioridad === filtroUrg);
+  if (!visibles.length) { cont.append(el("p", "vacio", "No hay tickets con esa urgencia.")); return; }
+  for (const t of visibles) cont.append(crearTarjeta(t));
 }
 
 function crearTarjeta(t) {
@@ -436,6 +481,27 @@ function crearTarjeta(t) {
   const plazo = el("div", "plazo " + p.clase, p.texto);
   if (t.estado === "nuevo") plazo.dataset.plazo = t.id;
   card.append(plazo);
+  if (t.estado === "nuevo" && t.plazo_atencion) {
+    const bar = el("div", "barra-plazo " + (p.clase === "ok" ? "" : p.clase));
+    bar.dataset.barra = t.id;
+    const relleno = document.createElement("i");
+    relleno.style.width = porcentajePlazo(t) + "%";
+    bar.append(relleno);
+    card.append(bar);
+  }
+
+  if (t.estado !== "resuelto") {
+    const urg = el("div", "urgencia");
+    urg.append(el("span", null, "Urgencia"));
+    for (const p of ["critica", "alta", "media", "baja"]) {
+      const b = el("button", "urg", ETQ_PRIO[p]);
+      b.type = "button"; b.dataset.p = p;
+      b.setAttribute("aria-pressed", String(t.prioridad === p));
+      b.addEventListener("click", () => accionPrioridad(t, p));
+      urg.append(b);
+    }
+    card.append(urg);
+  }
 
   const acc = el("div", "acciones");
   if (t.estado === "nuevo") {
@@ -484,8 +550,8 @@ async function cargarHistorial(id, ul) {
     const { eventos } = await r.json();
     ul.replaceChildren();
     for (const ev of eventos) {
-      const ant = ev.estado_anterior ? ETQ_ESTADO[ev.estado_anterior] + " → " : "";
-      ul.append(el("li", null, fmtFecha(ev.creado_en) + " · " + ant + ETQ_ESTADO[ev.estado_nuevo] + (ev.usuario ? " · " + ev.usuario : "") + (ev.nota ? " — " + ev.nota : "")));
+      const ant = ev.estado_anterior && ev.estado_anterior !== ev.estado_nuevo ? ETQ_ESTADO[ev.estado_anterior] + " → " : "";
+      ul.append(el("li", null, fmtFecha(ev.creado_en) + " · " + ant + (ev.estado_anterior === ev.estado_nuevo ? "" : ETQ_ESTADO[ev.estado_nuevo]) + (ev.usuario ? " · " + ev.usuario : "") + (ev.nota ? " — " + ev.nota : "")));
     }
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
@@ -494,6 +560,26 @@ async function cargarHistorial(id, ul) {
 }
 
 // ---------- acciones ----------
+async function accionPrioridad(t, nueva) {
+  if (t.prioridad === nueva) return;
+  const anterior = t.prioridad;
+  t.prioridad = nueva;           // se ve al instante; si falla, se revierte
+  pintarLista();
+  try {
+    const r = await api("/soporte/tickets/" + t.id + "/prioridad", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prioridad: nueva }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    toast("Ticket #" + t.id + ": urgencia " + ETQ_PRIO[nueva].toLowerCase() + ".");
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    t.prioridad = anterior; pintarLista();
+    toast("No se pudo cambiar la urgencia. Inténtalo otra vez.");
+    return;
+  }
+  refrescar();
+}
+
 async function accionAtender(id, boton) {
   boton.disabled = true;
   try {
@@ -530,6 +616,13 @@ async function accionResolver(id, nota, boton, err) {
   refrescar();
 }
 
+// ---------- filtro por urgencia ----------
+document.querySelectorAll("[data-urg]").forEach((b) => b.addEventListener("click", () => {
+  filtroUrg = b.dataset.urg;
+  document.querySelectorAll("[data-urg]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  pintarLista();
+}));
+
 // ---------- filtros ----------
 document.querySelectorAll("[data-filtro]").forEach((b) => b.addEventListener("click", () => {
   filtro = b.dataset.filtro;
@@ -547,6 +640,13 @@ setInterval(() => {
     nodo.textContent = p.texto;
     nodo.className = "plazo " + p.clase;
     nodo.dataset.plazo = t.id;
+  });
+  document.querySelectorAll("[data-barra]").forEach((nodo) => {
+    const t = ticketsActuales.find((x) => String(x.id) === nodo.dataset.barra);
+    if (!t || t.estado !== "nuevo") return;
+    const p = infoPlazo(t);
+    nodo.className = "barra-plazo " + (p.clase === "ok" ? "" : p.clase);
+    nodo.firstChild.style.width = porcentajePlazo(t) + "%";
   });
 }, 1000);
 
