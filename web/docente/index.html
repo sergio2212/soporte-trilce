@@ -3,140 +3,213 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f26b1d">
 <title>Reportar un problema · Soporte Trilce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f6fb;
-    --card: #ffffff;
-    --text: #1b2333;
-    --muted: #5c677d;
-    --brand: #1f4fd8;
-    --brand-dark: #173ba3;
-    --ok: #12805c;
-    --err: #b42318;
-    --line: #d9dfeb;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10141f;
-      --card: #1a2030;
-      --text: #eef1f8;
-      --muted: #a2adc4;
-      --brand: #5b86ff;
-      --brand-dark: #7d9fff;
-      --ok: #3ccf9b;
-      --err: #ff8a7a;
-      --line: #2c3550;
-    }
+    --bg: #fff8f2;
+    --surface: #ffffff;
+    --ink: #2a1a10;
+    --muted: #7a6657;
+    --brand: #f26b1d;
+    --brand-ink: #ffffff;
+    --brand-dark: #c4510e;
+    --brand-soft: #ffeadb;
+    --line: #f0dfd2;
+    --warn: #b45309;
+    --err: #c0392b;
+    --ok: #1d8a4a;
+    --radius: 16px;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.45;
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5; font-size: 16px;
   }
-  main { max-width: 520px; margin: 0 auto; padding: 16px; }
-  header { padding: 8px 0 16px; }
-  header h1 { margin: 0; font-size: 1.25rem; }
-  header p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 14px;
+  .oculto { display: none !important; }
+  main { max-width: 480px; margin: 0 auto; padding: 16px 16px 120px; }
+
+  /* ---------- Barra superior ---------- */
+  .banda { background: var(--brand); color: #fff; }
+  .banda .marca { max-width: 480px; margin: 0 auto; padding: 16px; }
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca-icono {
+    width: 38px; height: 38px; border-radius: 12px; background: #fff; color: var(--brand);
+    display: grid; place-items: center; flex: none;
   }
-  .card h2 { margin: 0 0 10px; font-size: 1rem; }
-  .equipo { font-size: 1.15rem; font-weight: 600; }
-  .ubicacion { color: var(--muted); font-size: .92rem; }
+  .marca b { font-weight: 800; letter-spacing: -.01em; }
+  .marca span { opacity: .9; font-size: .88rem; display: block; line-height: 1.2; }
+
+  /* ---------- Piezas comunes ---------- */
+  .bloque { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+  h2 { margin: 0 0 12px; font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; }
+  .aviso { color: var(--muted); font-size: .9rem; margin: 0; }
+  .error { color: var(--err); font-weight: 600; margin: 0 0 12px; }
+
+  /* ---------- Pasos ---------- */
+  .pasos { display: flex; gap: 6px; margin: 0 0 14px; }
+  .pasos span { flex: 1; height: 6px; border-radius: 999px; background: var(--line); transition: background .25s; }
+  .pasos span.listo { background: var(--brand); }
+  .pasos-texto { margin: 0 0 14px; font-size: .9rem; color: var(--muted); font-weight: 600; }
+  button.principal:disabled.pendiente { background: var(--line); color: var(--muted); opacity: 1; }
+
+  /* ---------- Equipo ---------- */
+  .equipo-bloque { padding: 20px 18px; border-color: transparent; background: var(--brand-soft); border-left: 6px solid var(--brand); }
+  .equipo-nombre { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin: 0; }
+  .equipo-lugar { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--muted); font-size: .95rem; }
+
+  /* ---------- Sí / No ---------- */
+  .segmento { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; background: var(--bg); border-radius: 14px; }
+  .segmento label { position: relative; }
+  .segmento input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .segmento span {
+    display: block; text-align: center; padding: 13px 0; border-radius: 10px; font-weight: 700; color: var(--muted);
+    transition: background .15s, color .15s;
+  }
+  .segmento input:checked + span { background: var(--brand); color: #fff; }
+  .segmento input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .ayuda { margin: 10px 2px 0; color: var(--muted); font-size: .88rem; }
+
+  /* ---------- Fallas ---------- */
   .opciones { display: grid; gap: 8px; }
   .opcion {
-    display: flex; align-items: center; gap: 10px;
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    padding: 14px;
-    min-height: 52px;
-    cursor: pointer;
-    font-size: 1rem;
+    position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 14px;
+    border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; font-weight: 600;
+    transition: border-color .15s, background .15s;
   }
-  .opcion input { width: 20px; height: 20px; accent-color: var(--brand); flex: none; }
-  .opcion:has(input:checked) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
-  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .opcion input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
+  .punto {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none;
+    display: grid; place-items: center; transition: border-color .15s, background .15s;
+  }
+  .punto::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--brand-ink); transform: scale(0); transition: transform .15s; }
+  .opcion:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+  .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
+  .opcion:has(input:checked) .punto::after { transform: scale(1); }
+  .opcion:has(input:focus-visible) { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  label.campo { display: block; font-size: .9rem; font-weight: 600; margin: 14px 0 6px; }
   textarea, input[type="email"], input[type="text"] {
-    width: 100%;
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    padding: 12px;
-    font: inherit;
-    background: var(--card);
-    color: var(--text);
+    width: 100%; font: inherit; color: var(--ink); background: var(--surface);
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px;
   }
-  label.campo { display: block; font-size: .9rem; color: var(--muted); margin: 10px 0 4px; }
+  textarea:focus, input[type="email"]:focus, input[type="text"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
+
+  details.opcional summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.opcional summary::-webkit-details-marker { display: none; }
+  details.opcional summary::after { content: "+"; font-size: 1.4rem; line-height: 1; color: var(--muted); }
+  details.opcional[open] summary::after { content: "–"; }
+
+  /* ---------- Botón fijo ---------- */
+  .barra-envio {
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+  }
+  .barra-envio > div { max-width: 480px; margin: 0 auto; }
   button.principal {
-    width: 100%;
-    min-height: 54px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--brand);
-    color: #fff;
-    font-size: 1.05rem;
-    font-weight: 600;
-    cursor: pointer;
+    width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink);
+    font: inherit; font-size: 1.02rem; font-weight: 800; cursor: pointer;
   }
+  button.principal:hover:not(:disabled) { filter: brightness(1.08); }
+  button.principal:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
   button.principal:disabled { opacity: .55; cursor: not-allowed; }
-  button.principal:hover:not(:disabled) { background: var(--brand-dark); }
-  .aviso { color: var(--muted); font-size: .9rem; }
-  .error { color: var(--err); font-weight: 600; }
-  .ok-titulo { color: var(--ok); font-size: 1.2rem; font-weight: 700; margin: 0 0 6px; }
-  .estado {
-    display: inline-block; padding: 4px 12px; border-radius: 999px;
-    font-weight: 700; font-size: .9rem; border: 2px solid var(--line);
+  .barra-envio .error { margin-bottom: 8px; font-size: .92rem; }
+
+  /* ---------- Cargando ---------- */
+  .carga { display: flex; align-items: center; gap: 14px; }
+  .giro { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: gira 0.9s linear infinite; flex: none; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+
+  /* ---------- Enviado ---------- */
+  .gran-check { width: 56px; height: 56px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; margin-bottom: 14px; }
+  .gran-check svg { stroke-dasharray: 30; stroke-dashoffset: 30; animation: trazo .5s .15s ease-out forwards; }
+  @keyframes trazo { to { stroke-dashoffset: 0; } }
+  .titulo-grande { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; line-height: 1.2; }
+  .enlace-fila { display: grid; gap: 8px; margin: 14px 0 0; }
+  a.sec { display: block; text-align: center; margin-top: 12px; color: var(--brand-dark); font-weight: 700; }
+
+  /* ---------- Seguimiento ---------- */
+  .estado-titulo { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin: 0 0 4px; }
+  .estado-titulo.nuevo { color: var(--warn); }
+  .estado-titulo.en_atencion { color: var(--brand-dark); }
+  .estado-titulo.resuelto { color: var(--ok); }
+  .linea { list-style: none; margin: 20px 0 0; padding: 0; }
+  .linea li { position: relative; padding: 0 0 22px 36px; color: var(--muted); }
+  .linea li:last-child { padding-bottom: 0; }
+  .linea li::before {
+    content: ""; position: absolute; left: 0; top: 2px; width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--line); background: var(--surface);
   }
-  .estado.nuevo { color: var(--err); border-color: var(--err); }
-  .estado.en_atencion { color: var(--brand); border-color: var(--brand); }
-  .estado.resuelto { color: var(--ok); border-color: var(--ok); }
-  dl { margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: .95rem; }
-  dt { color: var(--muted); }
-  dd { margin: 0; }
-  .oculto { display: none; }
+  .linea li::after { content: ""; position: absolute; left: 10px; top: 28px; bottom: 2px; width: 2px; background: var(--line); }
+  .linea li:last-child::after { display: none; }
+  .linea li.hecho, .linea li.actual { color: var(--ink); }
+  .linea li.hecho::before { background: var(--ok); border-color: var(--ok); }
+  .linea li.hecho::after { background: var(--ok); }
+  .linea li.actual::before { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 22%, transparent); }
+  .linea b { display: block; font-weight: 700; }
+  .linea small { color: var(--muted); font-size: .86rem; }
+  dl.ficha { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: .94rem; }
+  dl.ficha dt { color: var(--muted); }
+  dl.ficha dd { margin: 0; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .giro { animation-duration: 3s; }
+    .gran-check svg { animation: none; stroke-dashoffset: 0; }
+    * { transition: none !important; }
+  }
 </style>
 </head>
 <body>
+<header class="banda">
+  <div class="marca">
+    <div class="marca-icono" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
+    </div>
+    <div><b>Soporte técnico</b><span>Trilce · Reporta un problema</span></div>
+  </div>
+</header>
 <main>
-  <header>
-    <h1>Soporte técnico · Trilce</h1>
-    <p>Reporta un problema con este equipo</p>
-  </header>
 
   <!-- Pantalla: cargando -->
-  <section id="cargando" class="card">
+  <section id="cargando" class="bloque carga" aria-live="polite">
+    <div class="giro" aria-hidden="true"></div>
     <p id="msg-cargando" class="aviso">Conectando con el sistema…</p>
   </section>
 
   <!-- Pantalla: error -->
-  <section id="error" class="card oculto">
+  <section id="error" class="bloque oculto">
+    <h2>No se pudo continuar</h2>
     <p id="msg-error" class="error"></p>
     <p class="aviso">Si el problema continúa, avisa directamente al área de Soporte.</p>
   </section>
 
   <!-- Pantalla: formulario -->
   <form id="formulario" class="oculto" novalidate>
-    <div class="card">
-      <div class="equipo" id="equipo"></div>
-      <div class="ubicacion" id="ubicacion"></div>
+    <div class="pasos" aria-hidden="true"><span id="paso1"></span><span id="paso2"></span></div>
+    <div class="bloque equipo-bloque">
+      <p class="equipo-nombre" id="equipo"></p>
+      <p class="equipo-lugar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <span id="ubicacion"></span>
+      </p>
     </div>
 
-    <div class="card">
+    <div class="bloque">
       <h2>¿Estás dando clase ahora?</h2>
-      <div class="fila">
-        <label class="opcion"><input type="radio" name="clase" value="si"> Sí</label>
-        <label class="opcion"><input type="radio" name="clase" value="no"> No</label>
+      <div class="segmento">
+        <label><input type="radio" name="clase" value="si"><span>Sí</span></label>
+        <label><input type="radio" name="clase" value="no"><span>No</span></label>
       </div>
+      <p class="ayuda">Si estás en clase, tu reporte se atiende primero.</p>
     </div>
 
-    <div class="card">
+    <div class="bloque">
       <h2>¿Qué le pasa al equipo?</h2>
       <div class="opciones" id="fallas"></div>
       <div id="bloque-otro" class="oculto">
@@ -145,37 +218,48 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>Aviso cuando esté resuelto <span class="aviso">(opcional)</span></h2>
+    <details class="bloque opcional">
+      <summary>Quiero un aviso cuando esté resuelto</summary>
       <label class="campo" for="contacto">Tu correo institucional</label>
       <input id="contacto" type="email" autocomplete="email" inputmode="email" placeholder="nombre@colegio.edu.pe">
-    </div>
+    </details>
 
-    <p id="error-form" class="error oculto"></p>
-    <button id="enviar" class="principal" type="submit">Registrar problema</button>
+    <div class="barra-envio">
+      <div>
+        <p id="error-form" class="error oculto" role="alert"></p>
+        <button id="enviar" class="principal" type="submit">Registrar problema</button>
+      </div>
+    </div>
   </form>
 
   <!-- Pantalla: reporte enviado -->
-  <section id="enviado" class="card oculto">
-    <p class="ok-titulo">¡Problema registrado!</p>
-    <p>Soporte técnico ya recibió tu reporte. Guarda este enlace para ver cómo avanza:</p>
-    <p><input id="enlace" type="text" readonly aria-label="Enlace de seguimiento"></p>
-    <button id="copiar" class="principal" type="button">Copiar enlace</button>
-    <p style="margin-top:12px"><a id="ver-seguimiento" href="#">Ver estado de mi reporte</a></p>
+  <section id="enviado" class="bloque oculto">
+    <div class="gran-check" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+    </div>
+    <p class="titulo-grande">Problema registrado</p>
+    <p class="aviso" style="font-size:1rem">Soporte técnico ya recibió tu reporte. Guarda este enlace para ver cómo avanza.</p>
+    <div class="enlace-fila">
+      <input id="enlace" type="text" readonly aria-label="Enlace de seguimiento">
+      <button id="copiar" class="principal" type="button">Copiar enlace</button>
+    </div>
+    <a id="ver-seguimiento" class="sec" href="#">Ver el estado de mi reporte</a>
   </section>
 
   <!-- Pantalla: seguimiento -->
-  <section id="seguimiento" class="card oculto">
-    <h2>Estado de tu reporte</h2>
-    <span id="seg-estado" class="estado"></span>
-    <dl>
+  <section id="seguimiento" class="bloque oculto">
+    <p id="seg-estado" class="estado-titulo"></p>
+    <p id="seg-frase" class="aviso"></p>
+    <ol class="linea">
+      <li id="paso-nuevo"><b>Reporte registrado</b><small id="seg-creado">—</small></li>
+      <li id="paso-en_atencion"><b>Soporte lo está atendiendo</b><small id="seg-atendido">—</small></li>
+      <li id="paso-resuelto"><b>Resuelto</b><small id="seg-resuelto">—</small></li>
+    </ol>
+    <dl class="ficha">
       <dt>Equipo</dt><dd id="seg-equipo"></dd>
       <dt>Problema</dt><dd id="seg-falla"></dd>
-      <dt>Registrado</dt><dd id="seg-creado"></dd>
-      <dt>En atención</dt><dd id="seg-atendido"></dd>
-      <dt>Resuelto</dt><dd id="seg-resuelto"></dd>
     </dl>
-    <p class="aviso" style="margin-top:12px">Esta página se actualiza sola cada 30 segundos.</p>
+    <p class="aviso" style="margin-top:16px">Esta página se actualiza sola cada 30 segundos.</p>
   </section>
 </main>
 
@@ -190,7 +274,12 @@ const params = new URLSearchParams(location.search);
 const tokenQR = params.get("t");            // ?t=demo-pc-001  (viene en el QR)
 const tokenSeg = params.get("s");           // ?s=...          (enlace de seguimiento)
 
-const ETIQUETAS = { nuevo: "Nuevo", en_atencion: "En atención", resuelto: "Resuelto" };
+const TITULOS = { nuevo: "Reporte recibido", en_atencion: "En atención", resuelto: "Resuelto" };
+const FRASES = {
+  nuevo: "Soporte técnico verá tu reporte en breve.",
+  en_atencion: "Un técnico ya está trabajando en tu equipo.",
+  resuelto: "El problema fue solucionado. Gracias por avisar.",
+};
 
 function mostrar(id) {
   for (const s of ["cargando", "error", "formulario", "enviado", "seguimiento"]) {
@@ -256,20 +345,33 @@ async function iniciarFormulario() {
     input.name = "falla";
     input.value = f.id;
     input.dataset.otro = f.es_otro ? "1" : "0";
-    label.append(input, document.createTextNode(f.descripcion));
+    const punto = document.createElement("span");
+    punto.className = "punto";
+    label.append(input, punto, document.createTextNode(f.descripcion));
     cont.append(label);
   }
   mostrar("formulario");
+  actualizarPasos();
 }
 
-$("fallas").addEventListener("change", (e) => {
-  $("bloque-otro").classList.toggle("oculto", e.target.dataset.otro !== "1");
+function actualizarPasos() {
+  const clase = !!document.querySelector('input[name="clase"]:checked');
+  const falla = !!document.querySelector('input[name="falla"]:checked');
+  $("paso1").classList.toggle("listo", clase);
+  $("paso2").classList.toggle("listo", falla);
+  const boton = $("enviar");
+  if (boton.disabled && boton.textContent === "Enviando…") return;
+  boton.textContent = !clase ? "Indica si estás en clase" : !falla ? "Elige qué le pasa al equipo" : "Registrar problema";
+  boton.classList.toggle("pendiente", !(clase && falla));
+}
+$("formulario").addEventListener("change", (e) => {
+  if (e.target.name === "falla") $("bloque-otro").classList.toggle("oculto", e.target.dataset.otro !== "1");
+  actualizarPasos();
 });
 
 $("formulario").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const err = $("error-form");
-  err.classList.add("oculto");
+  $("error-form").classList.add("oculto");
 
   const clase = document.querySelector('input[name="clase"]:checked');
   const falla = document.querySelector('input[name="falla"]:checked');
@@ -301,11 +403,12 @@ $("formulario").addEventListener("submit", async (e) => {
     const enlace = location.origin + location.pathname + "?s=" + encodeURIComponent(ticket.token_seguimiento);
     $("enlace").value = enlace;
     $("ver-seguimiento").href = enlace;
+    window.scrollTo({ top: 0 });
     mostrar("enviado");
   } catch (_) {
     mensajeForm("No se pudo registrar el problema. Inténtalo otra vez.");
     boton.disabled = false;
-    boton.textContent = "Registrar problema";
+    actualizarPasos();
   }
 });
 
@@ -318,7 +421,7 @@ function mensajeForm(texto) {
 $("copiar").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText($("enlace").value);
-    $("copiar").textContent = "¡Copiado!";
+    $("copiar").textContent = "Enlace copiado";
   } catch (_) {
     $("enlace").select();
   }
@@ -335,13 +438,22 @@ async function cargarSeguimiento() {
   if (r.status === 404) return fallo("No encontramos ese reporte.");
   const t = await r.json();
   const est = $("seg-estado");
-  est.className = "estado " + t.estado;
-  est.textContent = ETIQUETAS[t.estado] || t.estado;
+  est.className = "estado-titulo " + t.estado;
+  est.textContent = TITULOS[t.estado] || t.estado;
+  $("seg-frase").textContent = FRASES[t.estado] || "";
   $("seg-equipo").textContent = t.equipo;
   $("seg-falla").textContent = t.falla;
   $("seg-creado").textContent = fechaLocal(t.creado_en);
-  $("seg-atendido").textContent = fechaLocal(t.atendido_en);
-  $("seg-resuelto").textContent = fechaLocal(t.resuelto_en);
+  $("seg-atendido").textContent = t.atendido_en ? fechaLocal(t.atendido_en) : "Pendiente";
+  $("seg-resuelto").textContent = t.resuelto_en ? fechaLocal(t.resuelto_en) : "Pendiente";
+
+  const orden = ["nuevo", "en_atencion", "resuelto"];
+  const idx = orden.indexOf(t.estado);
+  orden.forEach((p, i) => {
+    const li = $("paso-" + p);
+    li.classList.toggle("hecho", i < idx || t.estado === "resuelto");
+    li.classList.toggle("actual", i === idx && t.estado !== "resuelto");
+  });
   mostrar("seguimiento");
 }
 
