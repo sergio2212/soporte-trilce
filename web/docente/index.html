@@ -186,9 +186,14 @@
 
   <!-- Formulario por pasos -->
   <form id="formulario" class="oculto" novalidate autocomplete="off">
-    <div class="pasos" aria-hidden="true"><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
+    <div class="pasos" aria-hidden="true"><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
 
-    <section id="paso-lugar" class="bloque">
+    <section id="paso-sede" class="bloque">
+      <h2>¿En qué sede estás?</h2>
+      <div class="opciones" id="sedes" role="radiogroup" aria-label="Sede"></div>
+    </section>
+
+    <section id="paso-lugar" class="bloque oculto">
       <h2>¿Dónde está el problema?</h2>
       <label class="campo" for="aula">Aula</label>
       <input id="aula" type="text" maxlength="40" placeholder="Ej. 305" enterkeyhint="next">
@@ -307,6 +312,8 @@ const ICONO_OTRO = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.0
 // Formulario por pasos: cada respuesta abre el siguiente paso y baja sola
 // ------------------------------------------------------------
 let catalogo = [];
+let sedeId = null;        // sede elegida (o la del QR)
+let qrValido = false;     // true si el docente entró por un QR que existe
 
 function revelar(seccion) {
   const nuevo = seccion.classList.contains("oculto");
@@ -317,6 +324,7 @@ function revelar(seccion) {
 }
 
 function pintarPasos() {
+  $("p0").classList.toggle("listo", sedeId !== null);
   const aula = $("aula").value.trim();
   const piso = document.querySelector('input[name="piso"]:checked');
   const equipo = document.querySelector('input[name="equipo"]:checked');
@@ -336,17 +344,32 @@ function siguienteDesdeLugar() {
   if (eq.classList.contains("oculto")) revelar(eq);
 }
 
+function elegirSede(id, nombre) {
+  sedeId = id;
+  $("sub-marca").textContent = "Trilce · " + nombre;
+  pintarPasos();
+}
+
 async function iniciarFormulario() {
   mostrar("cargando");
-  let r;
-  try { r = await llamar("/qr/" + encodeURIComponent(tokenQR)); }
-  catch (e) { return fallo("No se pudo conectar con el sistema. Inténtalo de nuevo en un momento."); }
-  if (r.status === 404) return fallo("Este código QR no es válido o fue desactivado.");
-  if (!r.ok) return fallo("Ocurrió un problema al leer el código QR.");
-
-  const datos = await r.json();
+  let datos = null, sedes = null, porQR = false;
+  try {
+    if (tokenQR) {
+      const r = await llamar("/qr/" + encodeURIComponent(tokenQR));
+      if (r.ok) { datos = await r.json(); porQR = true; }
+      else if (r.status !== 404) return fallo("Ocurrió un problema al leer el código QR.");
+      // si el QR no es válido, se sigue como si no hubiera QR: el docente elige su sede
+    }
+    if (!datos) {
+      const r = await llamar("/catalogo");
+      if (!r.ok) return fallo("No se pudo cargar el formulario. Inténtalo de nuevo en un momento.");
+      datos = await r.json();
+      sedes = datos.sedes;
+    }
+  } catch (e) {
+    return fallo("No se pudo conectar con el sistema. Inténtalo de nuevo en un momento.");
+  }
   catalogo = datos.tipos;
-  $("sub-marca").textContent = "Trilce · " + datos.sede;
 
   // Pisos
   const pisos = $("pisos");
@@ -366,8 +389,33 @@ async function iniciarFormulario() {
     s.append(document.createTextNode(t.nombre));
     l.append(i, s); cont.append(l);
   }
+
+  if (porQR) {
+    // el QR ya dice la sede: se salta ese paso
+    qrValido = true;
+    $("paso-sede").classList.add("oculto");
+    $("paso-lugar").classList.remove("oculto");
+    elegirSede(datos.sede_id, datos.sede);
+  } else {
+    const lista = $("sedes");
+    for (const sd of sedes) {
+      const l = document.createElement("label"); l.className = "opcion";
+      const i = document.createElement("input"); i.type = "radio"; i.name = "sede"; i.value = sd.id; i.dataset.nombre = sd.nombre;
+      const p = document.createElement("span"); p.className = "punto";
+      l.append(i, p, document.createTextNode(sd.nombre));
+      lista.append(l);
+    }
+    if (!sedes.length) return fallo("Todavía no hay sedes registradas. Avisa al área de Soporte.");
+  }
   mostrar("formulario");
+  pintarPasos();
 }
+
+$("sedes").addEventListener("change", (e) => {
+  elegirSede(Number(e.target.value), e.target.dataset.nombre);
+  revelar($("paso-lugar"));
+  setTimeout(() => $("aula").focus({ preventScroll: true }), 500);
+});
 
 $("pisos").addEventListener("change", () => { pintarPasos(); if ($("aula").value.trim()) siguienteDesdeLugar(); else $("aula").focus(); });
 $("aula").addEventListener("input", pintarPasos);
@@ -426,6 +474,7 @@ $("formulario").addEventListener("submit", async (e) => {
   const aula = $("aula").value.trim();
   const piso = document.querySelector('input[name="piso"]:checked');
   const falla = document.querySelector('input[name="falla"]:checked');
+  if (sedeId === null) { $("paso-sede").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige tu sede."); }
   if (!aula || !piso) { $("paso-lugar").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Indica el aula y el piso."); }
   if (!falla) return mensajeForm("Elige qué le pasa al equipo.");
   const esOtro = falla.dataset.otro === "1";
@@ -440,7 +489,8 @@ $("formulario").addEventListener("submit", async (e) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        token_qr: tokenQR,
+        token_qr: qrValido ? tokenQR : null,
+        sede_id: sedeId,
         tipo_falla_id: Number(falla.value),
         aula, piso: piso.value,
         descripcion: esOtro ? descripcion : null,
@@ -563,8 +613,7 @@ $("copiar").addEventListener("click", async () => {
 // Arranque
 // ------------------------------------------------------------
 if (tokenSeg) iniciarSeguimiento();
-else if (tokenQR) iniciarFormulario();
-else fallo("Escanea el código QR pegado en el aula para reportar un problema.");
+else iniciarFormulario();
 </script>
 </body>
 </html>
