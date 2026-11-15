@@ -142,13 +142,41 @@ def salud_db():
 ORDEN_EQUIPOS = ["PC", "Internet", "Impresora", "Proyector"]
 
 
+def _catalogo_tipos(cur):
+    cur.execute(
+        """
+        SELECT te.id AS tipo_id, te.nombre AS tipo, f.id, f.descripcion, f.es_otro
+        FROM tipos_falla f JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+        WHERE f.activo
+        ORDER BY te.id, f.orden, f.id
+        """
+    )
+    tipos = {}
+    for f in cur.fetchall():
+        t = tipos.setdefault(f["tipo_id"], {"id": f["tipo_id"], "nombre": f["tipo"], "fallas": []})
+        t["fallas"].append({"id": f["id"], "descripcion": f["descripcion"], "es_otro": f["es_otro"]})
+    return sorted(
+        tipos.values(),
+        key=lambda t: ORDEN_EQUIPOS.index(t["nombre"]) if t["nombre"] in ORDEN_EQUIPOS else 99,
+    )
+
+
+@app.get("/catalogo")
+def catalogo():
+    """Página del docente sin QR: lista de sedes y catálogo de equipos con sus fallas."""
+    with conexion() as conn, conn.cursor() as cur:
+        cur.execute("SELECT id, nombre FROM sedes WHERE activa ORDER BY nombre")
+        sedes = cur.fetchall()
+        return {"sedes": sedes, "tipos": _catalogo_tipos(cur)}
+
+
 @app.get("/qr/{token}")
 def leer_qr(token: str):
-    """El docente escanea el QR: devuelve la sede y el catálogo de equipos con sus fallas."""
+    """Si el docente entra por un QR: devuelve su sede ya identificada y el catálogo."""
     with conexion() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT e.id, s.nombre AS sede
+            SELECT s.id AS sede_id, s.nombre AS sede
             FROM equipos e JOIN sedes s ON s.id = e.sede_id
             WHERE e.token_qr = %s AND e.activo
             """,
@@ -157,28 +185,12 @@ def leer_qr(token: str):
         qr = cur.fetchone()
         if not qr:
             raise HTTPException(status_code=404, detail="QR no válido")
-        cur.execute(
-            """
-            SELECT te.id AS tipo_id, te.nombre AS tipo, f.id, f.descripcion, f.es_otro
-            FROM tipos_falla f JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
-            WHERE f.activo
-            ORDER BY te.id, f.orden, f.id
-            """
-        )
-        filas = cur.fetchall()
-    tipos = {}
-    for f in filas:
-        t = tipos.setdefault(f["tipo_id"], {"id": f["tipo_id"], "nombre": f["tipo"], "fallas": []})
-        t["fallas"].append({"id": f["id"], "descripcion": f["descripcion"], "es_otro": f["es_otro"]})
-    lista = sorted(
-        tipos.values(),
-        key=lambda t: ORDEN_EQUIPOS.index(t["nombre"]) if t["nombre"] in ORDEN_EQUIPOS else 99,
-    )
-    return {"sede": qr["sede"], "tipos": lista}
+        return {"sede_id": qr["sede_id"], "sede": qr["sede"], "tipos": _catalogo_tipos(cur)}
 
 
 class TicketNuevo(BaseModel):
-    token_qr: str
+    token_qr: Optional[str] = Field(default=None, max_length=200)
+    sede_id: Optional[int] = None
     tipo_falla_id: int
     aula: str = Field(min_length=1, max_length=40)
     piso: str = Field(min_length=1, max_length=20)
@@ -193,13 +205,20 @@ def crear_ticket(datos: TicketNuevo):
     if not aula or not piso:
         raise HTTPException(status_code=400, detail="Indica el aula y el piso")
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute(
-            "SELECT id, sede_id FROM equipos WHERE token_qr = %s AND activo",
-            (datos.token_qr,),
-        )
-        equipo = cur.fetchone()
-        if not equipo:
-            raise HTTPException(status_code=404, detail="QR no válido")
+        if datos.token_qr:
+            cur.execute(
+                "SELECT id, sede_id FROM equipos WHERE token_qr = %s AND activo",
+                (datos.token_qr,),
+            )
+            equipo = cur.fetchone()
+            if not equipo:
+                raise HTTPException(status_code=404, detail="QR no válido")
+        else:
+            cur.execute("SELECT id FROM sedes WHERE id = %s AND activa", (datos.sede_id,))
+            sede = cur.fetchone()
+            if not sede:
+                raise HTTPException(status_code=400, detail="Elige una sede válida")
+            equipo = {"id": None, "sede_id": sede["id"]}   # reporte sin equipo registrado
 
         cur.execute(
             "SELECT id, tipo_equipo_id FROM tipos_falla WHERE id = %s AND activo",
@@ -318,8 +337,8 @@ SELECT t.id, t.estado, t.prioridad, t.en_clase, t.descripcion,
        COALESCE(t.piso_reportado, a.piso::text) AS piso, s.nombre AS sede,
        f.descripcion AS falla, u.nombre AS tecnico
 FROM tickets t
-JOIN equipos e ON e.id = t.equipo_id
-JOIN ambientes a ON a.id = e.ambiente_id
+LEFT JOIN equipos e ON e.id = t.equipo_id
+LEFT JOIN ambientes a ON a.id = e.ambiente_id
 JOIN sedes s ON s.id = t.sede_id
 JOIN tipos_falla f ON f.id = t.tipo_falla_id
 JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
@@ -550,8 +569,8 @@ def indicadores(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
                    COALESCE(t.aula_reportada, a.nombre) AS ambiente, s.nombre AS sede,
                    count(*)::int AS fallas
             FROM tickets t
-            JOIN equipos e ON e.id = t.equipo_id
-            JOIN ambientes a ON a.id = e.ambiente_id
+            LEFT JOIN equipos e ON e.id = t.equipo_id
+            LEFT JOIN ambientes a ON a.id = e.ambiente_id
             JOIN tipos_falla f ON f.id = t.tipo_falla_id
             JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
             JOIN sedes s ON s.id = t.sede_id
