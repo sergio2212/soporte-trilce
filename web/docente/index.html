@@ -468,22 +468,22 @@ const ICO_RELOJ = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
 const ICO_LLAVE = SVG('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>');
 const ICO_OK = SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
 
-// Texto que ve el docente según el equipo, la falla y el estado del reporte
-const TEXTO_TECNICO = "Tu reporte ha sido recibido. Nuestro equipo de soporte técnico realizará el cambio del equipo o la intervención técnica correspondiente para solucionar el inconveniente.";
+// Texto que ve el docente según el estado del reporte
+const TEXTO_ATENDIENDO = "Nuestro equipo de soporte está trabajando en ello.";
+const TEXTO_RESUELTO = "Nuestro equipo de soporte enviará a un técnico para que pueda hacer la revisión correspondiente para solucionar su problema.";
+const TEXTO_WIFI_RESUELTO = "Nuestro equipo de soporte pudo solucionar el problema. Apague y prenda el WiFi y verifique si ya tiene conexión.";
 function mensajeEstado(t) {
-  const eq = (t.equipo || "").toLowerCase();
-  const f = (t.falla || "").toLowerCase();
-  const sinWifi = eq === "internet" && f.includes("wifi");
+  const sinWifi = (t.equipo || "").toLowerCase() === "internet" && (t.falla || "").toLowerCase().includes("wifi");
   if (t.estado === "nuevo") {
     return { icono: ICO_RELOJ, titulo: "Recibimos tu reporte", texto: "Soporte técnico ya lo tiene en su lista. No necesitas actualizar esta página: cambia sola cuando haya novedades." };
   }
   if (t.estado === "en_atencion") {
-    return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: sinWifi ? "Un técnico está revisando tu conexión WiFi." : TEXTO_TECNICO };
+    return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: TEXTO_ATENDIENDO };
   }
-  return {
-    icono: ICO_OK, titulo: "¡Gracias por la espera!",
-    texto: sinWifi ? "Hemos solucionado tu problema. Por favor, verifica si ya tienes internet." : TEXTO_TECNICO,
-  };
+  if (sinWifi) {
+    return { icono: ICO_OK, titulo: "¡Listo!", texto: TEXTO_WIFI_RESUELTO };
+  }
+  return { icono: ICO_OK, titulo: "¡Listo!", texto: TEXTO_RESUELTO };
 }
 
 let estadoVisto = null;
