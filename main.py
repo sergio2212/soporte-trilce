@@ -587,6 +587,166 @@ def indicadores(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
 
 
 # ------------------------------------------------------------------
+# Activos tecnológicos y sedes (técnicos: solo su sede; admin: todas)
+# ------------------------------------------------------------------
+ESTADOS_ACTIVO = ("operativo", "en_mantenimiento", "en_revision", "baja")
+AMBIENTE_QR = "Código QR de la sede"      # ambiente interno donde viven los QR por sede
+
+
+@app.get("/soporte/activos")
+def listar_activos(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede = filtro_sede(usuario)
+        sql = """
+            SELECT e.id, e.codigo, e.nombre, te.nombre AS tipo, s.id AS sede_id, s.nombre AS sede,
+                   a.nombre AS ambiente, a.piso, e.estado, e.ultimo_mantenimiento
+            FROM equipos e
+            JOIN tipos_equipo te ON te.id = e.tipo_equipo_id
+            JOIN sedes s ON s.id = e.sede_id
+            JOIN ambientes a ON a.id = e.ambiente_id
+            WHERE e.activo AND NOT e.es_punto_qr
+        """
+        params = []
+        if sede is not None:
+            sql += " AND e.sede_id = %s"
+            params.append(sede)
+        sql += " ORDER BY s.nombre, a.nombre, e.nombre"
+        cur.execute(sql, params)
+        return {"activos": cur.fetchall()}
+
+
+class ActivoNuevo(BaseModel):
+    sede_id: Optional[int] = None
+    ambiente: str = Field(min_length=1, max_length=60)
+    piso: Optional[int] = Field(default=None, ge=0, le=20)
+    tipo_equipo_id: int
+    nombre: str = Field(min_length=2, max_length=80)
+    codigo: Optional[str] = Field(default=None, max_length=30)
+
+
+@app.post("/soporte/activos", status_code=201)
+def crear_activo(
+    datos: ActivoNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
+):
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede_id = filtro_sede(usuario)
+        if sede_id is None:                      # administrador: debe elegir la sede
+            sede_id = datos.sede_id
+            cur.execute("SELECT 1 FROM sedes WHERE id = %s AND activa", (sede_id,))
+            if sede_id is None or not cur.fetchone():
+                raise HTTPException(status_code=400, detail="Elige una sede válida")
+        cur.execute("SELECT 1 FROM tipos_equipo WHERE id = %s", (datos.tipo_equipo_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=400, detail="Tipo de equipo no válido")
+
+        nombre_amb = datos.ambiente.strip()
+        if nombre_amb[:1].isdigit():
+            nombre_amb = "Aula " + nombre_amb
+        if nombre_amb == AMBIENTE_QR:
+            raise HTTPException(status_code=400, detail="Nombre de ambiente no permitido")
+        codigo = (datos.codigo or "").strip().upper() or None
+        if codigo:
+            cur.execute("SELECT 1 FROM equipos WHERE codigo = %s", (codigo,))
+            if cur.fetchone():
+                raise HTTPException(status_code=409, detail="Ya existe un activo con ese código")
+
+        cur.execute(
+            "SELECT id FROM ambientes WHERE sede_id = %s AND lower(nombre) = lower(%s)",
+            (sede_id, nombre_amb),
+        )
+        amb = cur.fetchone()
+        if not amb:
+            cur.execute(
+                "INSERT INTO ambientes (sede_id, nombre, piso) VALUES (%s, %s, %s) RETURNING id",
+                (sede_id, nombre_amb, datos.piso),
+            )
+            amb = cur.fetchone()
+        cur.execute(
+            """
+            INSERT INTO equipos (sede_id, ambiente_id, tipo_equipo_id, nombre, token_qr, codigo)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
+            """,
+            (sede_id, amb["id"], datos.tipo_equipo_id, datos.nombre.strip(),
+             "act-" + secrets.token_urlsafe(8), codigo),
+        )
+        nuevo = cur.fetchone()
+        if not codigo:
+            cur.execute(
+                "UPDATE equipos SET codigo = %s WHERE id = %s",
+                ("ACT-" + str(nuevo["id"]).zfill(4), nuevo["id"]),
+            )
+    return {"id": nuevo["id"]}
+
+
+class CambioEstadoActivo(BaseModel):
+    estado: Optional[str] = Field(default=None, max_length=20)
+    mantenimiento_hoy: bool = False
+
+
+@app.post("/soporte/activos/{activo_id}")
+def actualizar_activo(
+    activo_id: int,
+    datos: CambioEstadoActivo,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+):
+    if datos.estado is not None and datos.estado not in ESTADOS_ACTIVO:
+        raise HTTPException(status_code=400, detail="Estado no válido")
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede = filtro_sede(usuario)
+        sql = "SELECT id FROM equipos WHERE id = %s AND activo AND NOT es_punto_qr"
+        params = [activo_id]
+        if sede is not None:
+            sql += " AND sede_id = %s"
+            params.append(sede)
+        cur.execute(sql, params)
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Activo no encontrado")
+        if datos.estado is not None:
+            cur.execute("UPDATE equipos SET estado = %s WHERE id = %s", (datos.estado, activo_id))
+        if datos.mantenimiento_hoy:
+            cur.execute("UPDATE equipos SET ultimo_mantenimiento = CURRENT_DATE WHERE id = %s", (activo_id,))
+    return {"id": activo_id}
+
+
+@app.get("/soporte/sedes")
+def listar_sedes(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede = filtro_sede(usuario)
+        extra, params = ("AND s.id = %s", [sede]) if sede is not None else ("", [])
+        cur.execute(
+            f"""
+            SELECT s.id, s.nombre,
+              (SELECT count(*) FROM equipos e
+                WHERE e.sede_id = s.id AND e.activo AND NOT e.es_punto_qr)::int AS activos,
+              (SELECT count(*) FROM tickets t
+                WHERE t.sede_id = s.id AND t.estado <> 'resuelto')::int AS tickets_abiertos,
+              (SELECT count(*) FROM tickets t WHERE t.sede_id = s.id)::int AS tickets_total
+            FROM sedes s WHERE s.activa {extra} ORDER BY s.nombre
+            """,
+            params,
+        )
+        sedes = cur.fetchall()
+        cur.execute(
+            """
+            SELECT a.id, a.sede_id, a.nombre, a.piso,
+                   count(e.id) FILTER (WHERE e.activo AND NOT e.es_punto_qr)::int AS activos
+            FROM ambientes a LEFT JOIN equipos e ON e.ambiente_id = a.id
+            WHERE a.nombre <> %s
+            GROUP BY a.id ORDER BY a.piso NULLS LAST, a.nombre
+            """,
+            (AMBIENTE_QR,),
+        )
+        ambientes = cur.fetchall()
+    for s_ in sedes:
+        s_["ambientes"] = [a for a in ambientes if a["sede_id"] == s_["id"]]
+    return {"sedes": sedes}
+
+
+# ------------------------------------------------------------------
 # Administración de usuarios (solo administrador)
 # ------------------------------------------------------------------
 class PrimerAdmin(BaseModel):
