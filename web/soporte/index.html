@@ -152,7 +152,8 @@
   .chip.media { background: #fff3c4; color: var(--warn); }
   .chip.baja { background: #ece6e1; color: var(--muted); }
   .chip.nuevo { background: #fde4e1; color: var(--err); }
-  .chip.en_atencion { background: #e3effc; color: var(--info); }
+  .chip.en_atencion, .chip.en_camino { background: #e3effc; color: var(--info); }
+  .chip.solucionando { background: #fff3c4; color: var(--warn); }
   .chip.resuelto, .chip.operativo { background: #dff3e6; color: var(--ok); }
   .chip.en_mantenimiento { background: #fff3c4; color: var(--warn); }
   .chip.en_revision { background: #e3effc; color: var(--info); }
@@ -308,7 +309,7 @@
         <div class="caja">
           <div class="herramientas" id="herr-tickets">
             <input id="f-buscar" type="search" placeholder="Buscar por código, falla o aula" aria-label="Buscar tickets">
-            <select id="f-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="nuevo">Pendiente</option><option value="en_atencion">En atención</option><option value="resuelto">Resuelto</option></select>
+            <select id="f-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="nuevo">Pendiente</option><option value="en_atencion">En atención</option><option value="en_camino">Técnico en camino</option><option value="solucionando">Técnico solucionando</option><option value="resuelto">Resuelto</option></select>
             <select id="f-prio" aria-label="Urgencia"><option value="todas">Todas las urgencias</option><option value="critica">Crítica</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select>
             <select id="f-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>
           </div>
@@ -426,7 +427,8 @@ const CADA_SEGUNDOS = 15;
 const AVISO_CERCA_MS = 2 * 60 * 1000;
 
 const $ = (id) => document.getElementById(id);
-const ETQ_ESTADO = { nuevo: "Pendiente", en_atencion: "En atención", resuelto: "Resuelto" };
+const ETQ_ESTADO = { nuevo: "Pendiente", en_atencion: "En atención", en_camino: "Técnico en camino", solucionando: "Técnico solucionando", resuelto: "Resuelto" };
+const ESTADOS_EN_PROCESO = ["en_atencion", "en_camino", "solucionando"];
 const ETQ_PRIO = { critica: "Crítica", alta: "Alta", media: "Media", baja: "Baja" };
 const ETQ_ACTIVO = { operativo: "Operativo", en_mantenimiento: "En mantenimiento", en_revision: "En revisión", baja: "De baja" };
 const VISTAS = {
@@ -721,7 +723,7 @@ function pintarPanel() {
   const T = S.tickets;
   kpi("k-total", T.length);
   kpi("k-pend", T.filter((t) => t.estado === "nuevo").length);
-  kpi("k-proc", T.filter((t) => t.estado === "en_atencion").length);
+  kpi("k-proc", T.filter((t) => ESTADOS_EN_PROCESO.includes(t.estado)).length);
   kpi("k-act", S.activos.length);
 
   pintarMeses();
@@ -885,6 +887,9 @@ function pintarDialogoTicket() {
 
     const acc = el("div", "acciones-dlg");
     if (t.estado === "nuevo") { const b = el("button", "btn primario", "Atender ticket"); b.type = "button"; b.addEventListener("click", () => accionAtender(t.id, b)); acc.append(b); }
+    const siguiente = { en_atencion: ["en_camino", "Técnico en camino"], en_camino: ["solucionando", "Técnico solucionando"] }[t.estado];
+    if (siguiente) { const b = el("button", "btn primario", siguiente[1]); b.type = "button"; b.addEventListener("click", () => accionAvanzar(t.id, siguiente[0], b)); acc.append(b); }
+    if (t.estado === "en_atencion") { const b2 = el("button", "btn", "Técnico solucionando"); b2.type = "button"; b2.addEventListener("click", () => accionAvanzar(t.id, "solucionando", b2)); acc.append(b2); }
     frag.append(acc);
 
     const caja = el("div", "resolver-caja");
@@ -953,6 +958,20 @@ async function accionAtender(id, boton) {
   refrescar();
 }
 
+async function accionAvanzar(id, estado, boton) {
+  boton.disabled = true;
+  try {
+    const r = await api("/soporte/tickets/" + id + "/avanzar", json({ estado }));
+    if (r.status === 409) toast("Ese ticket ya está en esa etapa o más adelante.");
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else toast("Ticket " + id + ": " + ETQ_ESTADO[estado].toLowerCase() + ". El docente lo ve al instante.");
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    toast("No se pudo cambiar el estado. Inténtalo otra vez.");
+  }
+  refrescar();
+}
+
 async function accionResolver(id, nota, boton, err) {
   err.classList.add("oculto");
   if (nota.trim().length < 3) { err.textContent = "Describe brevemente qué se hizo."; err.classList.remove("oculto"); return; }
@@ -961,7 +980,7 @@ async function accionResolver(id, nota, boton, err) {
     const r = await api("/soporte/tickets/" + id + "/resolver", json({ nota: nota.trim() }));
     if (r.status === 409) toast("Este ticket ya estaba resuelto.");
     else if (!r.ok) throw new Error("HTTP " + r.status);
-    else toast("Ticket " + id + " resuelto. El docente verá el cambio en su enlace.");
+    else toast("Ticket " + id + " resuelto. El docente verá el cambio en su cuenta.");
     delete borradorNota[id];
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
@@ -1108,13 +1127,13 @@ function pintarReportes() {
   const T = S.tickets, total = T.length;
 
   // --- distribución por estado (anillo) ---
-  const colores = { nuevo: "#c0392b", en_atencion: "#1d5fa8", resuelto: "#1d8a4a" };
+  const colores = { nuevo: "#c0392b", en_atencion: "#1d5fa8", en_camino: "#6c4fb3", solucionando: "#e0a800", resuelto: "#1d8a4a" };
   const cont = el("div", "donut-fila");
   const R = 54, C = 2 * Math.PI * R;
   const g = svg("svg", { viewBox: "0 0 150 150", role: "img", "aria-label": "Distribución de tickets por estado" });
   g.append(svg("circle", { cx: 75, cy: 75, r: R, fill: "none", stroke: "#f6ece4", "stroke-width": 18 }));
   let acum = 0;
-  for (const est of ["nuevo", "en_atencion", "resuelto"]) {
+  for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
     const n = T.filter((t) => t.estado === est).length;
     if (!n) continue;
     const largo = (n / total) * C;
@@ -1126,7 +1145,7 @@ function pintarReportes() {
   g.append(svg("text", { x: 75, y: 76, "text-anchor": "middle", "font-size": 26, "font-weight": 800, fill: "#2a1a10", "font-family": "inherit" }, total));
   g.append(svg("text", { x: 75, y: 94, "text-anchor": "middle", "font-size": 11, fill: "#7a6657", "font-family": "inherit" }, total === 1 ? "ticket" : "tickets"));
   const ley = el("ul", "leyenda");
-  for (const est of ["nuevo", "en_atencion", "resuelto"]) {
+  for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
     const n = T.filter((t) => t.estado === est).length;
     const li = el("li"); const i = el("i"); i.style.background = colores[est];
     li.append(i, el("span", null, ETQ_ESTADO[est]), el("b", null, n + (total ? " · " + Math.round((n / total) * 100) + " %" : "")));
