@@ -5,6 +5,7 @@ gestión de tickets para soporte, historial, indicadores y administración de us
 """
 import hmac
 import os
+import re
 import secrets
 from contextlib import contextmanager
 from typing import Literal, Optional
@@ -21,6 +22,9 @@ import seguridad
 DATABASE_URL = os.environ.get("DATABASE_URL")
 # En producción pon aquí las URLs de tus páginas, separadas por coma.
 ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+# Dominios de correo aceptados para docentes, separados por coma (ej. "trilce.edu.pe").
+# Si la variable no existe, se usa el del colegio. Déjala vacía ("") para aceptar cualquier correo.
+DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "trilce.edu.pe").split(",") if d.strip()]
 
 # ------------------------------------------------------------------
 # Regla de prioridad PROVISIONAL (hasta confirmar la sección 5 del documento).
@@ -94,6 +98,24 @@ def autenticar(cur, cred: Optional[HTTPAuthorizationCredentials]):
     if not usuario or not usuario["activo"]:
         raise HTTPException(status_code=401, detail="Usuario no disponible")
     return usuario
+
+
+def secreto_docente() -> str:
+    # Los tokens de docentes se firman con otra clave: uno nunca sirve como el otro.
+    return secreto() + "|docente"
+
+
+def autenticar_docente(cur, cred: Optional[HTTPAuthorizationCredentials]):
+    if cred is None:
+        raise HTTPException(status_code=401, detail="Ingresa con tu correo y contraseña")
+    datos = seguridad.leer_token(cred.credentials, secreto_docente())
+    if not datos:
+        raise HTTPException(status_code=401, detail="Tu sesión venció. Ingresa de nuevo")
+    cur.execute("SELECT id, correo FROM docentes WHERE id = %s", (datos["uid"],))
+    docente = cur.fetchone()
+    if not docente:
+        raise HTTPException(status_code=401, detail="Cuenta no disponible")
+    return docente
 
 
 def exigir_admin(usuario):
@@ -195,16 +217,18 @@ class TicketNuevo(BaseModel):
     aula: str = Field(min_length=1, max_length=40)
     piso: str = Field(min_length=1, max_length=20)
     descripcion: Optional[str] = Field(default=None, max_length=300)
-    contacto: Optional[str] = Field(default=None, max_length=200)
 
 
 @app.post("/tickets", status_code=201)
-def crear_ticket(datos: TicketNuevo):
-    """El docente presiona 'Registrar problema'."""
+def crear_ticket(
+    datos: TicketNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
+):
+    """El docente (con su cuenta) presiona 'Registrar problema'."""
     aula, piso = datos.aula.strip(), datos.piso.strip()
     if not aula or not piso:
         raise HTTPException(status_code=400, detail="Indica el aula y el piso")
     with conexion() as conn, conn.cursor() as cur:
+        docente = autenticar_docente(cur, cred)
         if datos.token_qr:
             cur.execute(
                 "SELECT id, sede_id FROM equipos WHERE token_qr = %s AND activo",
@@ -235,9 +259,10 @@ def crear_ticket(datos: TicketNuevo):
             """
             INSERT INTO tickets (sede_id, equipo_id, tipo_falla_id, descripcion,
                                  en_clase, contacto_docente, prioridad, token_seguimiento,
-                                 plazo_atencion, aula_reportada, piso_reportado, tipo_equipo_id)
+                                 plazo_atencion, aula_reportada, piso_reportado, tipo_equipo_id,
+                                 docente_id)
             VALUES (%s, %s, %s, %s, FALSE, %s, %s, %s,
-                    now() + make_interval(mins => %s), %s, %s, %s)
+                    now() + make_interval(mins => %s), %s, %s, %s, %s)
             RETURNING id, estado, prioridad, token_seguimiento
             """,
             (
@@ -245,13 +270,14 @@ def crear_ticket(datos: TicketNuevo):
                 equipo["id"],
                 datos.tipo_falla_id,
                 (datos.descripcion or "").strip() or None,
-                (datos.contacto or "").strip() or None,
+                docente["correo"],
                 prioridad,
                 token_seguimiento,
                 plazo_min,
                 aula,
                 piso,
                 falla["tipo_equipo_id"],
+                docente["id"],
             ),
         )
         ticket = cur.fetchone()
@@ -264,6 +290,81 @@ def crear_ticket(datos: TicketNuevo):
             (ticket["id"], equipo["sede_id"]),
         )
     return ticket
+
+
+class DocenteEntrada(BaseModel):
+    correo: str = Field(min_length=5, max_length=200)
+    password: str = Field(min_length=1, max_length=200)
+    crear: bool = False        # solo el formulario de reporte puede crear cuentas nuevas
+
+
+REGEX_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+@app.post("/docentes/entrar")
+def docente_entrar(datos: DocenteEntrada):
+    """Ingresa con correo y contraseña. Si el correo es nuevo, crea la cuenta."""
+    correo = datos.correo.strip().lower()
+    if not REGEX_CORREO.match(correo):
+        raise HTTPException(status_code=400, detail="Escribe un correo válido")
+    with conexion() as conn, conn.cursor() as cur:
+        cur.execute("SELECT id, correo, password_hash FROM docentes WHERE correo = %s", (correo,))
+        docente = cur.fetchone()
+        nuevo = False
+        if docente:
+            if not seguridad.verificar_password(datos.password, docente["password_hash"]):
+                raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+        else:
+            if not datos.crear:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No encontramos una cuenta con ese correo. Se crea al registrar tu primer reporte.",
+                )
+            if DOMINIOS_DOCENTES and correo.split("@")[1] not in DOMINIOS_DOCENTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Usa tu correo institucional (@" + DOMINIOS_DOCENTES[0] + ")",
+                )
+            if len(datos.password) < 8:
+                raise HTTPException(
+                    status_code=400, detail="La contraseña debe tener al menos 8 caracteres"
+                )
+            cur.execute(
+                "INSERT INTO docentes (correo, password_hash) VALUES (%s, %s) RETURNING id, correo",
+                (correo, seguridad.hashear_password(datos.password)),
+            )
+            docente = cur.fetchone()
+            nuevo = True
+    token = seguridad.crear_token(docente["id"], secreto_docente(), 30 * 24 * 3600)
+    return {"token": token, "correo": docente["correo"], "nuevo": nuevo}
+
+
+@app.get("/docentes/mis-reportes")
+def mis_reportes(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    """Los reportes del docente con la hora de cada etapa."""
+    with conexion() as conn, conn.cursor() as cur:
+        docente = autenticar_docente(cur, cred)
+        cur.execute(
+            """
+            SELECT t.id, t.estado, t.creado_en, t.atendido_en, t.resuelto_en,
+                   te.nombre AS equipo, f.descripcion AS falla,
+                   t.aula_reportada AS aula, t.piso_reportado AS piso, s.nombre AS sede,
+                   (SELECT min(h.creado_en) FROM ticket_historial h
+                     WHERE h.ticket_id = t.id AND h.estado_nuevo = 'en_camino') AS en_camino_en,
+                   (SELECT min(h.creado_en) FROM ticket_historial h
+                     WHERE h.ticket_id = t.id AND h.estado_nuevo = 'solucionando') AS solucionando_en
+            FROM tickets t
+            JOIN tipos_falla f ON f.id = t.tipo_falla_id
+            JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+            JOIN sedes s ON s.id = t.sede_id
+            WHERE t.docente_id = %s
+            ORDER BY t.creado_en DESC
+            LIMIT 30
+            """,
+            (docente["id"],),
+        )
+        reportes = cur.fetchall()
+    return {"correo": docente["correo"], "reportes": reportes}
 
 
 @app.get("/seguimiento/{token}")
@@ -425,6 +526,46 @@ def atender_ticket(
             (ticket_id, ticket["sede_id"], usuario["id"]),
         )
     return {"id": ticket_id, "estado": "en_atencion"}
+
+
+ETAPAS = ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]
+
+
+class Avance(BaseModel):
+    estado: str = Field(max_length=20)
+
+
+@app.post("/soporte/tickets/{ticket_id}/avanzar")
+def avanzar_ticket(
+    ticket_id: int,
+    datos: Avance,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+):
+    """Soporte marca 'técnico en camino' o 'técnico solucionando el problema'."""
+    nuevo = datos.estado.strip()
+    if nuevo not in ("en_camino", "solucionando"):
+        raise HTTPException(status_code=400, detail="Estado no válido")
+    nota = {"en_camino": "Técnico en camino", "solucionando": "Técnico solucionando el problema"}[nuevo]
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
+        actual = ticket["estado"]
+        if actual == "nuevo":
+            raise HTTPException(status_code=409, detail="Primero atiende el ticket")
+        if actual == "resuelto":
+            raise HTTPException(status_code=409, detail="Este ticket ya está resuelto")
+        if ETAPAS.index(nuevo) <= ETAPAS.index(actual):
+            raise HTTPException(status_code=409, detail="El ticket ya está en esa etapa o más adelante")
+        cur.execute("UPDATE tickets SET estado = %s WHERE id = %s", (nuevo, ticket_id))
+        cur.execute(
+            """
+            INSERT INTO ticket_historial
+                (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (ticket_id, ticket["sede_id"], actual, nuevo, usuario["id"], nota),
+        )
+    return {"id": ticket_id, "estado": nuevo}
 
 
 class Resolucion(BaseModel):
