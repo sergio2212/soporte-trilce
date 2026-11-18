@@ -55,11 +55,11 @@
 
   label.campo { display: block; font-size: .9rem; font-weight: 700; margin: 0 0 6px; }
   label.campo + input, label.campo + textarea { margin-bottom: 0; }
-  textarea, input[type="email"], input[type="text"] {
+  textarea, input[type="email"], input[type="text"], input[type="password"] {
     width: 100%; font: inherit; color: var(--ink); background: var(--surface);
     border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px;
   }
-  textarea:focus, input[type="email"]:focus, input[type="text"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
+  textarea:focus, input[type="email"]:focus, input[type="text"]:focus, input[type="password"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
   .espacio-sup { margin-top: 18px; }
 
   /* ---------- Piso: botones redondos ---------- */
@@ -127,7 +127,7 @@
 
   /* ---------- Seguimiento ---------- */
   .mensaje { border-radius: var(--radius); padding: 22px 20px; margin-bottom: 14px; background: var(--brand-soft); border: 1px solid var(--line); }
-  .mensaje.en_atencion { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .mensaje.en_atencion, .mensaje.en_camino, .mensaje.solucionando { background: var(--brand); border-color: var(--brand); color: #fff; }
   .mensaje.resuelto { background: var(--ok); border-color: var(--ok); color: #fff; }
   .mensaje-icono { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 14px; background: #fff; color: var(--brand); }
   .mensaje.resuelto .mensaje-icono { color: var(--ok); }
@@ -144,8 +144,10 @@
   .linea li::after { content: ""; position: absolute; left: 10px; top: 28px; bottom: 2px; width: 2px; background: var(--line); }
   .linea li:last-child::after { display: none; }
   .linea li.hecho, .linea li.actual { color: var(--ink); }
-  .linea li.hecho::before { background: var(--ok); border-color: var(--ok); }
-  .linea li.hecho::after { background: var(--ok); }
+  .linea li.hecho::before { background: var(--brand); border-color: var(--brand); }
+  .linea li.hecho::after { background: var(--brand); }
+  .linea li.verde::before { background: var(--ok); border-color: var(--ok); }
+  .linea li.verde b { color: var(--ok); }
   .linea li.actual::before { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 22%, transparent); }
   .linea b { display: block; font-weight: 700; }
   .linea small { color: var(--muted); font-size: .86rem; }
@@ -159,6 +161,26 @@
     .bloque.entra, .vivo i, .giro { animation: none; }
     * { transition: none !important; }
   }
+  .banda .marca { justify-content: space-between; }
+  .banda .marca > div:nth-child(2) { margin-right: auto; }
+  .btn-banda { border: 1.5px solid rgba(255,255,255,.75); background: transparent; color: #fff; border-radius: 12px; padding: 8px 14px; min-height: 40px; font: inherit; font-weight: 700; cursor: pointer; }
+  .btn-banda:hover { background: rgba(255,255,255,.16); border-color: #fff; }
+  .btn-banda:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .reporte-cab { margin: 0 0 12px; }
+  .reporte-cab b { display: block; font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+  .reporte-cab span { color: var(--muted); font-size: .9rem; }
+  .barra-sesion { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; }
+  .barra-sesion h2 { margin: 0; font-size: 1.2rem; }
+  .barra-sesion small { color: var(--muted); display: block; font-weight: 600; font-size: .85rem; }
+  .acciones-fila { display: grid; gap: 10px; margin-top: 4px; }
+  button.enlace { background: none; border: 0; padding: 0; color: var(--brand-dark); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+  .nota-final { background: var(--brand-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin: 14px 0; font-weight: 600; }
+  .vacio { text-align: center; color: var(--muted); padding: 30px 10px; font-weight: 600; }
+  .grupo-correo { display: flex; align-items: stretch; }
+  .grupo-correo input { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; min-width: 0; flex: 1; }
+  .grupo-correo .sufijo { display: flex; align-items: center; padding: 0 12px; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; border: 1.5px solid var(--line); border-left: 0; border-radius: 0 12px 12px 0; white-space: nowrap; font-size: .95rem; }
+  .grupo-correo:focus-within .sufijo { border-color: var(--brand); }
+  #correo-aviso, #e-correo-aviso { margin: 6px 0 0; font-size: .88rem; }
 </style>
 </head>
 <body>
@@ -168,6 +190,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
+    <button id="ver-reportes" class="btn-banda" type="button">Mis reportes</button>
   </div>
 </header>
 <main>
@@ -218,9 +241,20 @@
     </section>
 
     <section id="paso-final" class="bloque oculto">
-      <h2>Aviso por correo <span class="aviso" style="font-weight:600">(opcional)</span></h2>
-      <label class="campo" for="contacto">Tu correo institucional</label>
-      <input id="contacto" type="email" autocomplete="email" inputmode="email" placeholder="nombre@colegio.edu.pe">
+      <div id="cuenta-nueva">
+        <h2>Por favor ingrese su correo y contraseña para que visualice su estado de reporte</h2>
+        <label class="campo" for="correo">Correo institucional</label>
+        <div class="grupo-correo"><input id="correo" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+        <p id="correo-aviso" class="error oculto" role="alert"></p>
+        <label class="campo espacio-sup" for="clave">Contraseña</label>
+        <input id="clave" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
+        <p class="aviso espacio-sup">Si es tu primera vez, tu cuenta se crea con esta contraseña. Si ya la tienes, escribe la misma de siempre.</p>
+      </div>
+      <div id="cuenta-activa" class="oculto">
+        <h2>Tu cuenta</h2>
+        <p style="margin:0">Ingresaste como <b id="cuenta-correo"></b>.</p>
+        <p class="aviso espacio-sup"><button id="otra-cuenta" class="enlace" type="button">Usar otra cuenta</button></p>
+      </div>
     </section>
 
     <div id="barra-envio" class="barra-envio oculto">
@@ -231,29 +265,32 @@
     </div>
   </form>
 
-  <!-- Seguimiento (se muestra al enviar y al abrir el enlace) -->
-  <section id="seguimiento" class="oculto" aria-live="polite">
-    <div id="mensaje" class="mensaje">
-      <div class="mensaje-icono" id="mensaje-icono" aria-hidden="true"></div>
-      <h1 id="seg-titulo"></h1>
-      <p id="seg-texto"></p>
+  <!-- Ingresar para ver mis reportes -->
+  <section id="entrar" class="oculto">
+    <form id="form-entrar" class="bloque" novalidate>
+      <h2>Ingresa para ver tus reportes</h2>
+      <label class="campo" for="e-correo">Correo</label>
+      <div class="grupo-correo"><input id="e-correo" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="e-correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+      <p id="e-correo-aviso" class="error oculto" role="alert"></p>
+      <label class="campo espacio-sup" for="e-clave">Contraseña</label>
+      <input id="e-clave" type="password" autocomplete="current-password">
+      <p id="e-error" class="error oculto espacio-sup" role="alert"></p>
+      <button id="e-boton" class="principal espacio-sup" type="submit">Ingresar</button>
+      <p class="aviso espacio-sup">Tu cuenta se crea al registrar tu primer reporte.</p>
+    </form>
+    <button id="e-volver" class="secundario" type="button">Volver al formulario</button>
+  </section>
+
+  <!-- Mis reportes -->
+  <section id="reportes" class="oculto" aria-live="polite">
+    <div class="barra-sesion">
+      <div><h2>Mis reportes</h2><small id="r-correo"></small></div>
+      <button id="r-salir" class="enlace" type="button">Cerrar sesión</button>
     </div>
     <p id="vivo" class="vivo"><i aria-hidden="true"></i><span id="vivo-texto">Se actualiza sola</span></p>
-
-    <div class="bloque">
-      <ol class="linea">
-        <li id="paso-nuevo"><b>Reporte registrado</b><small id="seg-creado">—</small></li>
-        <li id="paso-en_atencion"><b>Soporte lo está atendiendo</b><small id="seg-atendido">—</small></li>
-        <li id="paso-resuelto"><b>Resuelto</b><small id="seg-resuelto">—</small></li>
-      </ol>
-      <hr class="separador">
-      <dl class="ficha">
-        <dt>Equipo</dt><dd id="seg-equipo"></dd>
-        <dt>Problema</dt><dd id="seg-falla"></dd>
-        <dt>Lugar</dt><dd id="seg-lugar"></dd>
-      </dl>
-    </div>
-    <button id="copiar" class="secundario" type="button">Copiar enlace de este reporte</button>
+    <div id="lista-reportes"></div>
+    <p id="nota-final" class="nota-final oculto">Puede visualizar el seguimiento de su reporte a través de su correo: ingrese con su correo y contraseña cuando quiera.</p>
+    <div class="acciones-fila"><button id="r-otro" class="principal" type="button">Reportar otro problema</button></div>
   </section>
 </main>
 
@@ -262,14 +299,13 @@
 // CONFIGURACIÓN: cambia esta URL si tu API cambia de dirección
 // ============================================================
 const API = "https://soporte-trilce.onrender.com";
-const CADA_MS = 4000;                 // cada cuánto se consulta el estado del reporte
+const CADA_MS = 4000;                 // cada cuánto se consulta el estado de los reportes
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const tokenQR = params.get("t");      // ?t=...  (viene en el QR)
-let tokenSeg = params.get("s");       // ?s=...  (enlace de seguimiento)
 
-const PANTALLAS = ["cargando", "error", "formulario", "seguimiento"];
+const PANTALLAS = ["cargando", "error", "formulario", "entrar", "reportes"];
 function mostrar(id) {
   for (const s of PANTALLAS) $(s).classList.toggle("oculto", s !== id);
 }
@@ -281,7 +317,7 @@ async function llamar(ruta, opciones = {}, intentos = 4) {
   for (let i = 0; i < intentos; i++) {
     try {
       const r = await fetch(API + ruta, { cache: "no-store", ...opciones });
-      if (r.status === 404 || r.status === 400 || r.status === 422) return r;
+      if ([400, 401, 404, 409, 422].includes(r.status)) return r;
       if (r.ok) return r;
       ultimo = new Error("HTTP " + r.status);
     } catch (e) { ultimo = e; }
@@ -290,6 +326,47 @@ async function llamar(ruta, opciones = {}, intentos = 4) {
   }
   throw ultimo;
 }
+
+// ---------- correo institucional: el docente solo escribe su usuario ----------
+const DOMINIO = "trilce.edu.pe";
+function limpiarUsuario(texto) {
+  // minúsculas, sin espacios, y solo letras, números, punto, guion y guion bajo
+  return texto.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9._-]/g, "");
+}
+function prepararCampoCorreo(idInput, idAviso) {
+  const input = $(idInput), aviso = $(idAviso);
+  const mostrar = (t) => { aviso.textContent = t; aviso.classList.toggle("oculto", !t); };
+  let fijo = "";
+  let tras = false; // true después de teclear "@": se ignora lo que siga (ya está el sufijo)
+  input.addEventListener("input", (e) => {
+    if (tras && e.inputType && e.inputType.startsWith("insert") && e.inputType !== "insertFromPaste") {
+      input.value = fijo;
+      return;
+    }
+    tras = false;
+    let v = input.value.trim().toLowerCase();
+    let alerta = "";
+    const arroba = v.indexOf("@");
+    if (arroba !== -1) {
+      // si escribe o pega el correo completo, se recorta desde la arroba
+      const dominio = v.slice(arroba + 1).replace(/\s+/g, "");
+      if (dominio && dominio !== DOMINIO) alerta = "Usa únicamente tu correo institucional (@" + DOMINIO + ").";
+      v = v.slice(0, arroba);
+      if (e.inputType === "insertText") { tras = true; fijo = limpiarUsuario(v); if (!alerta) alerta = "El @" + DOMINIO + " ya está puesto: escribe solo tu usuario."; }
+    }
+    const limpio = limpiarUsuario(v);
+    if (limpio !== input.value) input.value = limpio;
+    mostrar(alerta);
+  });
+  input.addEventListener("blur", () => { tras = false; input.value = limpiarUsuario(input.value); });
+}
+// Devuelve el correo completo, o "" si falta el usuario
+function correoCompleto(idInput) {
+  const u = limpiarUsuario($(idInput).value);
+  return u ? u + "@" + DOMINIO : "";
+}
+
+const json = (o) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) });
 
 function fechaLocal(iso) {
   if (!iso) return null;
@@ -302,11 +379,31 @@ function fechaLocal(iso) {
 const SVG = (d) => '<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
 const ICONOS = {
   PC: SVG('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
-  Internet: SVG('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10.5 10.5 0 0 1 14 0M8.5 16a5.5 5.5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/>'),
   Impresora: SVG('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><rect x="7" y="14" width="10" height="7" rx="1"/>'),
   Proyector: SVG('<rect x="2" y="7" width="20" height="9" rx="2"/><circle cx="15" cy="11.5" r="2.5"/><path d="M6 11.5h3M6 19v-3M18 19v-3"/>'),
 };
 const ICONO_OTRO = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>');
+
+// ------------------------------------------------------------
+// Sesión del docente (se recuerda en este navegador)
+// ------------------------------------------------------------
+let sesionMem = null;
+function leerSesion() {
+  if (sesionMem) return sesionMem;
+  try { const t = localStorage.getItem("docente_token"), c = localStorage.getItem("docente_correo"); if (t && c) return { token: t, correo: c }; } catch (_) {}
+  return null;
+}
+function guardarSesion(token, correo) {
+  sesionMem = token ? { token, correo } : null;
+  try {
+    if (token) { localStorage.setItem("docente_token", token); localStorage.setItem("docente_correo", correo); }
+    else { localStorage.removeItem("docente_token"); localStorage.removeItem("docente_correo"); }
+  } catch (_) {}
+}
+const visible = (m) => Object.assign(new Error(m), { visible: true });
+async function detalle(r, porDefecto) {
+  try { const d = await r.json(); return typeof d.detail === "string" ? d.detail : porDefecto; } catch (_) { return porDefecto; }
+}
 
 // ------------------------------------------------------------
 // Formulario por pasos: cada respuesta abre el siguiente paso y baja sola
@@ -408,6 +505,7 @@ async function iniciarFormulario() {
     if (!sedes.length) return fallo("Todavía no hay sedes registradas. Avisa al área de Soporte.");
   }
   mostrar("formulario");
+  pintarCuenta();
   pintarPasos();
 }
 
@@ -427,7 +525,7 @@ $("aula").addEventListener("keydown", (e) => {
 $("equipos").addEventListener("change", (e) => {
   const tipo = catalogo.find((t) => String(t.id) === e.target.value);
   if (!tipo) return;
-  $("titulo-falla").textContent = "¿Qué le pasa a " + (tipo.nombre === "PC" ? "la PC" : tipo.nombre === "Internet" ? "Internet" : "la " + tipo.nombre.toLowerCase()) + "?";
+  $("titulo-falla").textContent = "¿Qué le pasa a " + (tipo.nombre === "PC" ? "la PC" : "la " + tipo.nombre.toLowerCase()) + "?";
   const cont = $("fallas");
   cont.replaceChildren();
   $("bloque-otro").classList.add("oculto");
@@ -461,6 +559,14 @@ $("fallas").addEventListener("change", (e) => {
   }
 });
 
+function pintarCuenta() {
+  const ses = leerSesion();
+  $("cuenta-nueva").classList.toggle("oculto", !!ses);
+  $("cuenta-activa").classList.toggle("oculto", !ses);
+  if (ses) $("cuenta-correo").textContent = ses.correo;
+}
+$("otra-cuenta").addEventListener("click", () => { guardarSesion(null, null); pintarCuenta(); });
+
 function mensajeForm(texto) {
   const err = $("error-form");
   err.textContent = texto;
@@ -481,106 +587,166 @@ $("formulario").addEventListener("submit", async (e) => {
   const descripcion = $("descripcion").value.trim();
   if (esOtro && !descripcion) { $("descripcion").focus(); return mensajeForm("Cuéntanos brevemente qué pasa."); }
 
+  let ses = leerSesion();
+  const correo = correoCompleto("correo"), clave = $("clave").value;
+  if (!ses && (!correo || !clave)) {
+    $("paso-final").scrollIntoView({ behavior: "smooth", block: "center" });
+    return mensajeForm("Ingresa tu correo y contraseña para ver el estado de tu reporte.");
+  }
+
   const boton = $("enviar");
   boton.disabled = true;
   boton.textContent = "Enviando…";
   try {
+    if (!ses) {
+      const r = await llamar("/docentes/entrar", json({ correo, password: clave, crear: true }), 2);
+      if (!r.ok) throw visible(await detalle(r, "No se pudo ingresar. Revisa tu correo y contraseña."));
+      const d = await r.json();
+      guardarSesion(d.token, d.correo);
+      ses = leerSesion();
+    }
     const r = await llamar("/tickets", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + ses.token },
       body: JSON.stringify({
         token_qr: qrValido ? tokenQR : null,
         sede_id: sedeId,
         tipo_falla_id: Number(falla.value),
         aula, piso: piso.value,
         descripcion: esOtro ? descripcion : null,
-        contacto: $("contacto").value.trim() || null,
       }),
     }, 2);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const ticket = await r.json();
-    tokenSeg = ticket.token_seguimiento;
-    // el enlace del navegador pasa a ser el de seguimiento: si recarga, vuelve a ver su reporte
-    try { history.replaceState(null, "", location.pathname + "?s=" + encodeURIComponent(tokenSeg)); } catch (_) {}
+    if (r.status === 401) { guardarSesion(null, null); pintarCuenta(); throw visible("Tu sesión venció. Vuelve a ingresar tu correo y contraseña."); }
+    if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
     window.scrollTo({ top: 0 });
-    iniciarSeguimiento();
-  } catch (_) {
-    mensajeForm("No se pudo registrar el problema. Inténtalo otra vez.");
+    abrirReportes(true);
+  } catch (err) {
+    mensajeForm(err && err.visible ? err.message : "No se pudo registrar el problema. Inténtalo otra vez.");
     boton.disabled = false;
-    boton.textContent = "Registrar problema";
+    actualizarBoton();
   }
 });
 
+function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
+
 // ------------------------------------------------------------
-// Seguimiento en vivo
+// Mis reportes (en vivo)
 // ------------------------------------------------------------
 const ICO_RELOJ = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
 const ICO_LLAVE = SVG('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>');
 const ICO_OK = SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
 
-// Texto que ve el docente según el estado del reporte
-const TEXTO_ATENDIENDO = "Nuestro equipo de soporte está trabajando en ello.";
+const ETAPAS = ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"];
+const PASOS = [
+  ["Reporte registrado", "creado_en"],
+  ["Soporte lo está atendiendo", "atendido_en"],
+  ["Técnico en camino", "en_camino_en"],
+  ["Técnico solucionando el problema", "solucionando_en"],
+  ["Resuelto", "resuelto_en"],
+];
+
 const TEXTO_RESUELTO = "Nuestro equipo de soporte enviará a un técnico para que pueda hacer la revisión correspondiente para solucionar su problema.";
-const TEXTO_WIFI_RESUELTO = "Nuestro equipo de soporte pudo solucionar el problema. Apague y prenda el WiFi y verifique si ya tiene conexión.";
+const TEXTO_INTERNET_RESUELTO = "Hemos enviado a un técnico para que haga el trabajo correspondiente.";
+
+// Texto que ve el docente según el estado del reporte
 function mensajeEstado(t) {
-  const sinWifi = (t.equipo || "").toLowerCase() === "internet" && (t.falla || "").toLowerCase().includes("wifi");
-  if (t.estado === "nuevo") {
-    return { icono: ICO_RELOJ, titulo: "Recibimos tu reporte", texto: "Soporte técnico ya lo tiene en su lista. No necesitas actualizar esta página: cambia sola cuando haya novedades." };
+  switch (t.estado) {
+    case "nuevo":
+      return { icono: ICO_RELOJ, titulo: "Recibimos tu reporte", texto: "Soporte técnico ya lo tiene en su lista. No necesitas actualizar esta página: cambia sola cuando haya novedades." };
+    case "en_atencion":
+      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "Nuestro equipo de soporte está trabajando en ello." };
+    case "en_camino":
+      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "Un técnico va en camino." };
+    case "solucionando":
+      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "El técnico está solucionando el problema." };
+    default: {
+      const internet = (t.falla || "").toLowerCase().includes("internet");
+      return { icono: ICO_OK, titulo: "¡Listo!", texto: internet ? TEXTO_INTERNET_RESUELTO : TEXTO_RESUELTO };
+    }
   }
-  if (t.estado === "en_atencion") {
-    return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: TEXTO_ATENDIENDO };
-  }
-  if (sinWifi) {
-    return { icono: ICO_OK, titulo: "¡Listo!", texto: TEXTO_WIFI_RESUELTO };
-  }
-  return { icono: ICO_OK, titulo: "¡Listo!", texto: TEXTO_RESUELTO };
 }
 
-let estadoVisto = null;
+function tarjetaReporte(t) {
+  const m = mensajeEstado(t);
+  const caja = document.createElement("div");
+
+  const cab = document.createElement("div"); cab.className = "reporte-cab";
+  const b = document.createElement("b"); b.textContent = t.equipo + ": " + t.falla;
+  const sp = document.createElement("span");
+  sp.textContent = t.sede + " · Aula " + (t.aula || "—") + (t.piso ? " · Piso " + t.piso : "");
+  cab.append(b, sp);
+
+  const msg = document.createElement("div"); msg.className = "mensaje " + t.estado;
+  const ic = document.createElement("div"); ic.className = "mensaje-icono"; ic.innerHTML = m.icono;
+  const h = document.createElement("h1"); h.textContent = m.titulo;
+  const p = document.createElement("p"); p.textContent = m.texto;
+  msg.append(ic, h, p);
+
+  const bloque = document.createElement("div"); bloque.className = "bloque";
+  const ol = document.createElement("ol"); ol.className = "linea";
+  const idx = ETAPAS.indexOf(t.estado);
+  PASOS.forEach(([titulo, campo], i) => {
+    const li = document.createElement("li");
+    if (i < idx || (i === idx && (i === 0 || t.estado === "resuelto"))) li.classList.add("hecho");
+    if (i === idx && i > 0 && t.estado !== "resuelto") li.classList.add("actual");
+    if (i === 4 && t.estado === "resuelto") li.classList.add("verde");
+    const bb = document.createElement("b"); bb.textContent = titulo;
+    const sm = document.createElement("small");
+    sm.textContent = t[campo] ? fechaLocal(t[campo]) : "Pendiente";
+    li.append(bb, sm);
+    ol.append(li);
+  });
+  bloque.append(ol);
+
+  caja.append(cab, msg, bloque);
+  return caja;
+}
+
+let ultimoJSON = "";
 let temporizador = null;
 let fallosSeguidos = 0;
+let mostrarNota = false;
 
-function pintarSeguimiento(t) {
-  const m = mensajeEstado(t);
-  $("mensaje").className = "mensaje " + t.estado;
-  $("mensaje-icono").innerHTML = m.icono;
-  $("seg-titulo").textContent = m.titulo;
-  $("seg-texto").textContent = m.texto;
-  $("seg-equipo").textContent = t.equipo;
-  $("seg-falla").textContent = t.falla;
-  $("seg-lugar").textContent = (t.aula ? "Aula " + t.aula : "—") + (t.piso ? " · Piso " + t.piso : "");
-  $("seg-creado").textContent = fechaLocal(t.creado_en) || "—";
-  $("seg-atendido").textContent = fechaLocal(t.atendido_en) || "Pendiente";
-  $("seg-resuelto").textContent = fechaLocal(t.resuelto_en) || "Pendiente";
-  const orden = ["nuevo", "en_atencion", "resuelto"];
-  const idx = orden.indexOf(t.estado);
-  orden.forEach((p, i) => {
-    const li = $("paso-" + p);
-    li.classList.toggle("hecho", i < idx || t.estado === "resuelto");
-    li.classList.toggle("actual", i === idx && t.estado !== "resuelto");
-  });
-  if (estadoVisto && estadoVisto !== t.estado) {
-    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (_) {}
-    document.title = m.titulo + " · Soporte Trilce";
+function pintarReportes(d) {
+  const lista = $("lista-reportes");
+  const claveJSON = JSON.stringify(d.reportes);
+  if (claveJSON === ultimoJSON) return;      // nada cambió: no se redibuja
+  const previo = { ultimo: ultimoJSON ? JSON.parse(ultimoJSON) : null };
+  ultimoJSON = claveJSON;
+  lista.replaceChildren();
+  if (!d.reportes.length) {
+    const v = document.createElement("p"); v.className = "vacio"; v.textContent = "Aún no tienes reportes.";
+    lista.append(v);
+    return;
   }
-  estadoVisto = t.estado;
+  for (const t of d.reportes) lista.append(tarjetaReporte(t));
+  // aviso al cambiar de etapa (vibración + título de la pestaña)
+  if (previo.ultimo) {
+    const ant = new Map(previo.ultimo.map((x) => [x.id, x.estado]));
+    const cambio = d.reportes.find((x) => ant.has(x.id) && ant.get(x.id) !== x.estado);
+    if (cambio) {
+      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (_) {}
+      document.title = mensajeEstado(cambio).titulo + " · Soporte Trilce";
+    }
+  }
 }
 
-async function consultar(primera) {
+async function consultarReportes(primera) {
+  const ses = leerSesion();
+  if (!ses) { detener(); return mostrar("entrar"); }
   try {
     const r = primera
-      ? await llamar("/seguimiento/" + encodeURIComponent(tokenSeg))
-      : await fetch(API + "/seguimiento/" + encodeURIComponent(tokenSeg), { cache: "no-store" });
-    if (r.status === 404) { detener(); return fallo("No encontramos ese reporte."); }
+      ? await llamar("/docentes/mis-reportes", { headers: { Authorization: "Bearer " + ses.token } })
+      : await fetch(API + "/docentes/mis-reportes", { cache: "no-store", headers: { Authorization: "Bearer " + ses.token } });
+    if (r.status === 401) { guardarSesion(null, null); detener(); return mostrar("entrar"); }
     if (!r.ok) throw new Error("HTTP " + r.status);
-    pintarSeguimiento(await r.json());
+    pintarReportes(await r.json());
     fallosSeguidos = 0;
     $("vivo").classList.remove("perdido");
     $("vivo-texto").textContent = "En vivo · actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
-    if (estadoVisto === "resuelto") { detener(); $("vivo-texto").textContent = "Reporte cerrado"; }
     return true;
   } catch (_) {
-    if (primera) { fallo("No se pudo consultar el estado. Inténtalo de nuevo en un momento."); return false; }
+    if (primera) { fallo("No se pudieron cargar tus reportes. Inténtalo de nuevo en un momento."); return false; }
     fallosSeguidos++;
     if (fallosSeguidos >= 2) { $("vivo").classList.add("perdido"); $("vivo-texto").textContent = "Reconectando…"; }
     return false;
@@ -589,31 +755,54 @@ async function consultar(primera) {
 
 function detener() { clearInterval(temporizador); temporizador = null; }
 
-async function iniciarSeguimiento() {
-  mostrar("seguimiento");
+async function abrirReportes(justo) {
+  const ses = leerSesion();
+  if (!ses) return mostrar("entrar");
+  mostrarNota = !!justo;
+  $("nota-final").classList.toggle("oculto", !justo);
+  $("r-correo").textContent = ses.correo;
+  ultimoJSON = "";
+  mostrar("reportes");
   detener();
-  const ok = await consultar(true);
-  if (ok === false && $("seguimiento").classList.contains("oculto")) return;
-  if (estadoVisto !== "resuelto") {
-    temporizador = setInterval(() => { if (!document.hidden) consultar(false); }, CADA_MS);
-  }
+  await consultarReportes(true);
+  temporizador = setInterval(() => { if (!document.hidden) consultarReportes(false); }, CADA_MS);
 }
 
 // Al volver a la pestaña o recuperar la conexión, se actualiza al instante
-document.addEventListener("visibilitychange", () => { if (!document.hidden && temporizador) consultar(false); });
-window.addEventListener("online", () => { if (temporizador) consultar(false); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && temporizador) consultarReportes(false); });
+window.addEventListener("online", () => { if (temporizador) consultarReportes(false); });
 
-$("copiar").addEventListener("click", async () => {
-  const enlace = location.origin + location.pathname + "?s=" + encodeURIComponent(tokenSeg);
-  try { await navigator.clipboard.writeText(enlace); $("copiar").textContent = "Enlace copiado"; }
-  catch (_) { prompt("Copia este enlace:", enlace); }
+$("ver-reportes").addEventListener("click", () => { leerSesion() ? abrirReportes(false) : mostrar("entrar"); });
+$("e-volver").addEventListener("click", () => { location.href = location.pathname + location.search; });
+$("r-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
+$("r-salir").addEventListener("click", () => { guardarSesion(null, null); detener(); location.href = location.pathname + location.search; });
+
+$("form-entrar").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("e-error"); err.classList.add("oculto");
+  const correo = correoCompleto("e-correo"), clave = $("e-clave").value;
+  if (!correo || !clave) { err.textContent = "Escribe tu correo y contraseña."; err.classList.remove("oculto"); return; }
+  const boton = $("e-boton"); boton.disabled = true; boton.textContent = "Ingresando…";
+  try {
+    const r = await llamar("/docentes/entrar", json({ correo, password: clave, crear: false }), 2);
+    if (!r.ok) { err.textContent = await detalle(r, "No se pudo ingresar."); err.classList.remove("oculto"); return; }
+    const d = await r.json();
+    guardarSesion(d.token, d.correo);
+    $("e-clave").value = "";
+    abrirReportes(false);
+  } catch (_) {
+    err.textContent = "No se pudo conectar con el sistema. Inténtalo de nuevo."; err.classList.remove("oculto");
+  } finally {
+    boton.disabled = false; boton.textContent = "Ingresar";
+  }
 });
 
 // ------------------------------------------------------------
 // Arranque
 // ------------------------------------------------------------
-if (tokenSeg) iniciarSeguimiento();
-else iniciarFormulario();
+prepararCampoCorreo("correo", "correo-aviso");
+prepararCampoCorreo("e-correo", "e-correo-aviso");
+iniciarFormulario();
 </script>
 </body>
 </html>
