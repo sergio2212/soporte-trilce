@@ -190,7 +190,6 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
-    <button id="ver-reportes" class="btn-banda" type="button">Mis reportes</button>
   </div>
 </header>
 <main>
@@ -281,6 +280,16 @@
     <button id="e-volver" class="secundario" type="button">Volver al formulario</button>
   </section>
 
+  <!-- Reporte enviado: el estado se ve solo en el correo -->
+  <section id="enviado" class="oculto" aria-live="polite">
+    <div class="nota-final" style="text-align:center;padding:28px 20px">
+      <h2 style="margin:0 0 10px">Recibimos tu reporte</h2>
+      <p style="margin:0 0 6px;font-weight:600">Puede ver el estado de su reporte en su correo.</p>
+      <p id="enviado-correo" style="margin:0;font-weight:400;color:var(--muted,#5b6670)"></p>
+    </div>
+    <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
+  </section>
+
   <!-- Mis reportes -->
   <section id="reportes" class="oculto" aria-live="polite">
     <div class="barra-sesion">
@@ -305,7 +314,7 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const tokenQR = params.get("t");      // ?t=...  (viene en el QR)
 
-const PANTALLAS = ["cargando", "error", "formulario", "entrar", "reportes"];
+const PANTALLAS = ["cargando", "error", "formulario", "entrar", "reportes", "enviado"];
 function mostrar(id) {
   for (const s of PANTALLAS) $(s).classList.toggle("oculto", s !== id);
 }
@@ -619,7 +628,8 @@ $("formulario").addEventListener("submit", async (e) => {
     if (r.status === 401) { guardarSesion(null, null); pintarCuenta(); throw visible("Tu sesión venció. Vuelve a ingresar tu correo y contraseña."); }
     if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
     window.scrollTo({ top: 0 });
-    abrirReportes(true);
+    $("enviado-correo").textContent = "Le avisaremos a " + ses.correo + " cada vez que cambie.";
+    mostrar("enviado");
   } catch (err) {
     mensajeForm(err && err.visible ? err.message : "No se pudo registrar el problema. Inténtalo otra vez.");
     boton.disabled = false;
@@ -772,8 +782,8 @@ async function abrirReportes(justo) {
 document.addEventListener("visibilitychange", () => { if (!document.hidden && temporizador) consultarReportes(false); });
 window.addEventListener("online", () => { if (temporizador) consultarReportes(false); });
 
-$("ver-reportes").addEventListener("click", () => { leerSesion() ? abrirReportes(false) : mostrar("entrar"); });
 $("e-volver").addEventListener("click", () => { location.href = location.pathname + location.search; });
+$("enviado-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
 $("r-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
 $("r-salir").addEventListener("click", () => { guardarSesion(null, null); detener(); location.href = location.pathname + location.search; });
 
