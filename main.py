@@ -12,15 +12,17 @@ from typing import Literal, Optional
 
 import psycopg2
 import psycopg2.extras
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
+import correos
 import seguridad
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 # En producción pon aquí las URLs de tus páginas, separadas por coma.
+URL_DOCENTE = os.environ.get("URL_DOCENTE", "https://soporte-trilce-docente.onrender.com")
 ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 # Dominios de correo aceptados para docentes, separados por coma (ej. "trilce.edu.pe").
 # Si la variable no existe, se usa el del colegio. Déjala vacía ("") para aceptar cualquier correo.
@@ -60,6 +62,31 @@ def conexion():
         raise
     finally:
         conn.close()
+
+
+def notificar_estado(ticket_id: int):
+    """Envía al docente el correo con el estado actual de su reporte (se corre en segundo plano)."""
+    try:
+        with conexion() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT t.id, t.estado, d.correo, s.nombre AS sede, te.nombre AS equipo,
+                       f.descripcion AS falla, t.aula_reportada AS aula, t.piso_reportado AS piso
+                FROM tickets t
+                JOIN docentes d ON d.id = t.docente_id
+                JOIN sedes s ON s.id = t.sede_id
+                JOIN tipos_falla f ON f.id = t.tipo_falla_id
+                JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+                WHERE t.id = %s
+                """,
+                (ticket_id,),
+            )
+            t = cur.fetchone()
+        if t:
+            asunto, cuerpo, plano = correos.armar_correo(t, URL_DOCENTE)
+            correos.enviar(t["correo"], asunto, cuerpo, plano)
+    except Exception as ex:   # noqa: BLE001  (el correo nunca debe romper el flujo)
+        print("notificar_estado falló:", repr(ex))
 
 
 def calcular_prioridad(tipo_falla_id: int):
@@ -221,7 +248,9 @@ class TicketNuevo(BaseModel):
 
 @app.post("/tickets", status_code=201)
 def crear_ticket(
-    datos: TicketNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
+    datos: TicketNuevo,
+    tareas: BackgroundTasks,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ):
     """El docente (con su cuenta) presiona 'Registrar problema'."""
     aula, piso = datos.aula.strip(), datos.piso.strip()
@@ -289,6 +318,7 @@ def crear_ticket(
             """,
             (ticket["id"], equipo["sede_id"]),
         )
+    tareas.add_task(notificar_estado, ticket["id"])
     return ticket
 
 
@@ -501,7 +531,9 @@ def obtener_ticket(cur, usuario, ticket_id: int, bloquear: bool = False):
 
 @app.post("/soporte/tickets/{ticket_id}/atender")
 def atender_ticket(
-    ticket_id: int, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
+    ticket_id: int,
+    tareas: BackgroundTasks,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ):
     """Primera acción de atención: marca el ticket 'en atención' y registra la hora."""
     with conexion() as conn, conn.cursor() as cur:
@@ -525,6 +557,7 @@ def atender_ticket(
             """,
             (ticket_id, ticket["sede_id"], usuario["id"]),
         )
+    tareas.add_task(notificar_estado, ticket_id)
     return {"id": ticket_id, "estado": "en_atencion"}
 
 
@@ -539,6 +572,7 @@ class Avance(BaseModel):
 def avanzar_ticket(
     ticket_id: int,
     datos: Avance,
+    tareas: BackgroundTasks,
     cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ):
     """Soporte marca 'técnico en camino' o 'técnico solucionando el problema'."""
@@ -565,6 +599,7 @@ def avanzar_ticket(
             """,
             (ticket_id, ticket["sede_id"], actual, nuevo, usuario["id"], nota),
         )
+    tareas.add_task(notificar_estado, ticket_id)
     return {"id": ticket_id, "estado": nuevo}
 
 
@@ -576,6 +611,7 @@ class Resolucion(BaseModel):
 def resolver_ticket(
     ticket_id: int,
     datos: Resolucion,
+    tareas: BackgroundTasks,
     cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ):
     """Cierra el ticket registrando la intervención realizada."""
@@ -605,6 +641,7 @@ def resolver_ticket(
             """,
             (ticket_id, ticket["sede_id"], ticket["estado"], usuario["id"], nota),
         )
+    tareas.add_task(notificar_estado, ticket_id)
     return {"id": ticket_id, "estado": "resuelto"}
 
 
