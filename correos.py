@@ -117,13 +117,12 @@ def armar_correo(t: dict, url_docente: str):
   </td></tr>
   <tr><td style="padding:8px 24px 0">
     <h1 style="margin:16px 0 8px;font-size:24px;line-height:30px;color:{color}">{e(titulo)}</h1>
-    <p style="margin:0 0 20px;font-size:15px;line-height:22px;color:{TEXTO}">{e(texto)}</p>
-    <a href="{e(url_docente)}" style="display:inline-block;background:{NARANJA};color:#FFFFFF;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px">Ver mi reporte</a>
+    <p style="margin:0 0 4px;font-size:15px;line-height:22px;color:{TEXTO}">{e(texto)}</p>
   </td></tr>
   <tr><td style="padding:28px 16px 8px">{_linea_de_tiempo(estado)}</td></tr>
   <tr><td style="padding:16px 24px 8px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{NARANJA_SUAVE};border-radius:8px"><tr><td style="padding:12px 16px;font-size:13px;line-height:19px;color:{TEXTO}">
-      Para ver el estado de tu reporte, ingresa con tu correo institucional y tu contraseña.
+      Puede ver el estado de su reporte en su correo. Le avisaremos por aquí cada vez que cambie.
     </td></tr></table>
   </td></tr>
   <tr><td style="padding:12px 24px 8px">
@@ -135,7 +134,7 @@ def armar_correo(t: dict, url_docente: str):
 </table></td></tr></table></body></html>"""
     plano = (f"{titulo}\n{texto}\n\nReporte Nº {t['id']} - {t.get('equipo') or ''}: {t.get('falla') or ''}\n"
              f"Sede {t.get('sede') or ''} - Aula {t.get('aula') or '-'}, piso {t.get('piso') or '-'}\n\n"
-             f"Estado: {corto}\nVer tu reporte: {url_docente}\n")
+             f"Estado: {corto}\nPuede ver el estado de su reporte en su correo.\n")
     asunto = f"Reporte #{t['id']} · {corto}"
     return asunto, cuerpo, plano
 
