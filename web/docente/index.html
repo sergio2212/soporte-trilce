@@ -224,17 +224,51 @@
     <p class="aviso">Si el problema continúa, avisa directamente al área de Soporte.</p>
   </section>
 
-  <!-- Paso 1: correo institucional -->
+  <!-- Inicio: registrarse o iniciar sesión -->
+  <section id="inicio" class="bloque oculto">
+    <h2>Bienvenido</h2>
+    <p class="aviso" style="margin:0 0 16px">Para reportar un problema, primero identifícate.</p>
+    <button id="i-registro" class="principal" type="button">Registrarme</button>
+    <button id="i-login" class="secundario espacio-sup" type="button">Iniciar sesión</button>
+    <p class="aviso" style="margin:14px 0 0">¿Primera vez? Regístrate. ¿Ya tienes cuenta? Inicia sesión solo con tu correo.</p>
+  </section>
+
+  <!-- Registro: nombres, apellidos, correo y contraseña -->
+  <section id="registro-paso" class="oculto">
+    <form id="form-registro" class="bloque" novalidate autocomplete="on">
+      <button id="r-volver" class="enlace" type="button" style="margin-bottom:10px">← Volver</button>
+      <h2>Crea tu cuenta</h2>
+      <div class="dos">
+        <div><label class="campo" for="g-nombre">Nombres</label>
+          <input id="g-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60" placeholder="Juan Carlos"></div>
+        <div><label class="campo" for="g-apellido">Apellidos</label>
+          <input id="g-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60" placeholder="Pérez Gómez"></div>
+      </div>
+      <label class="campo" for="g-usuario" style="margin-top:12px">Correo institucional</label>
+      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+      <p id="g-correo-aviso" class="error oculto" role="alert"></p>
+      <label class="campo" for="g-pass" style="margin-top:12px">Contraseña</label>
+      <input id="g-pass" type="password" autocomplete="new-password" maxlength="100" aria-describedby="g-reglas">
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px;cursor:pointer"><input id="g-ver" type="checkbox" style="width:auto;min-height:0"> Mostrar contraseña</label>
+      <ul id="g-reglas" style="list-style:none;margin:10px 0 0;padding:0;font-size:13px;line-height:20px">
+        <li data-r="len">○ Mínimo 8 caracteres</li><li data-r="min">○ Una letra minúscula</li><li data-r="may">○ Una letra mayúscula</li><li data-r="num">○ Un número</li>
+      </ul>
+      <p id="g-error" class="error oculto" role="alert"></p>
+      <button id="g-boton" class="principal espacio-sup" type="submit">Crear cuenta</button>
+    </form>
+  </section>
+
+  <!-- Iniciar sesión: solo el correo institucional -->
   <section id="correo-paso" class="oculto">
     <form id="form-correo" class="bloque" novalidate autocomplete="on">
-      <button id="c-volver" class="enlace oculto" type="button" style="margin-bottom:10px">← Volver</button>
-      <h2>¿Cuál es tu correo institucional?</h2>
-      <p class="aviso" style="margin:0 0 14px">Así te avisamos por correo cómo va tu reporte.</p>
+      <button id="c-volver" class="enlace" type="button" style="margin-bottom:10px">← Volver</button>
+      <h2>Iniciar sesión</h2>
+      <p class="aviso" style="margin:0 0 14px">Escribe tu correo institucional. Así te avisamos por correo cómo va tu reporte.</p>
       <label class="campo" for="c-usuario">Correo institucional</label>
       <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="c-correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
       <p id="c-correo-aviso" class="error oculto" role="alert"></p>
       <p id="c-error" class="error oculto" role="alert"></p>
-      <button id="c-boton" class="principal espacio-sup" type="submit">Continuar</button>
+      <button id="c-boton" class="principal espacio-sup" type="submit">Iniciar sesión</button>
     </form>
   </section>
 
@@ -315,7 +349,7 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const tokenQR = params.get("t");      // ?t=...  (viene en el QR)
 
-const PANTALLAS = ["cargando", "error", "correo-paso", "formulario", "enviado"];
+const PANTALLAS = ["cargando", "error", "inicio", "registro-paso", "correo-paso", "formulario", "enviado"];
 function mostrar(id) {
   for (const s of PANTALLAS) $(s).classList.toggle("oculto", s !== id);
 }
@@ -663,10 +697,14 @@ function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 // ------------------------------------------------------------
 // Paso 1: correo institucional
 // ------------------------------------------------------------
-function mostrarCorreo() { $("c-volver").classList.toggle("oculto", !leerIdentidad()); mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
+function mostrarInicio() { mostrar("inicio"); window.scrollTo({ top: 0 }); }
+function mostrarCorreo() { mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
 function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
 $("form-correo").addEventListener("input", () => avisoCorreo(""));
-$("c-volver").addEventListener("click", () => irAlFormulario());
+$("c-volver").addEventListener("click", () => (leerIdentidad() ? irAlFormulario() : mostrarInicio()));
+$("i-login").addEventListener("click", () => { avisoCorreo(""); mostrarCorreo(); });
+$("i-registro").addEventListener("click", () => { avisoRegistro(""); mostrar("registro-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("g-nombre").focus({ preventScroll: true }), 50); });
+$("r-volver").addEventListener("click", mostrarInicio);
 
 $("form-correo").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -678,11 +716,47 @@ $("form-correo").addEventListener("submit", async (e) => {
     const r = await llamar("/docentes/verificar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ correo }) }, 2);
     if (!r.ok) return avisoCorreo(await detalle(r, "No se pudo verificar tu correo. Inténtalo otra vez."));
     const d = await r.json();
+    if (!d.existe) return avisoCorreo("Ese correo no está registrado. Vuelve y presiona «Registrarme».");
     guardarIdentidad(correo, !d.pide_nombre);   // si pide nombre, se completa junto con el reporte
     await irAlFormulario();
   } catch (_) {
     avisoCorreo("No se pudo conectar con el sistema. Inténtalo de nuevo.");
-  } finally { boton.disabled = false; boton.textContent = "Continuar"; }
+  } finally { boton.disabled = false; boton.textContent = "Iniciar sesión"; }
+});
+
+// ---------- registro ----------
+function avisoRegistro(t) { $("g-error").textContent = t; $("g-error").classList.toggle("oculto", !t); }
+function reglasPass(p) { return { len: p.length >= 8, min: /[a-z]/.test(p), may: /[A-Z]/.test(p), num: /\d/.test(p) }; }
+function pintarReglas() {
+  const r = reglasPass($("g-pass").value);
+  document.querySelectorAll("#g-reglas li").forEach((li) => {
+    const ok = r[li.dataset.r];
+    li.textContent = (ok ? "✓ " : "○ ") + li.textContent.slice(2);
+    li.style.color = ok ? "var(--ok, #1E7A46)" : "";
+  });
+  return Object.values(r).every(Boolean);
+}
+$("g-pass").addEventListener("input", () => { pintarReglas(); avisoRegistro(""); });
+$("g-ver").addEventListener("change", () => { $("g-pass").type = $("g-ver").checked ? "text" : "password"; });
+$("form-registro").addEventListener("input", () => avisoRegistro(""));
+$("form-registro").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  avisoRegistro("");
+  const nombre = $("g-nombre").value.trim().replace(/\s+/g, " "), apellido = $("g-apellido").value.trim().replace(/\s+/g, " ");
+  const correo = correoCompleto("g-usuario"), pass = $("g-pass").value;
+  if (nombre.length < 2 || apellido.length < 2) return avisoRegistro("Escribe tus nombres y apellidos.");
+  if (!correo) return avisoRegistro("Escribe tu correo institucional.");
+  if (!pintarReglas()) return avisoRegistro("La contraseña debe tener mínimo 8 caracteres, con mayúsculas, minúsculas y números.");
+  const boton = $("g-boton"); boton.disabled = true; boton.textContent = "Creando cuenta…";
+  try {
+    const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo, password: pass }), 2);
+    if (!r.ok) return avisoRegistro(await detalle(r, "No se pudo crear la cuenta. Inténtalo otra vez."));
+    $("g-pass").value = "";
+    guardarIdentidad(correo, true);
+    await irAlFormulario();
+  } catch (_) {
+    avisoRegistro("No se pudo conectar con el sistema. Inténtalo de nuevo.");
+  } finally { boton.disabled = false; boton.textContent = "Crear cuenta"; }
 });
 
 $("enviado-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
@@ -691,10 +765,11 @@ $("enviado-otro").addEventListener("click", () => { location.href = location.pat
 // Arranque: con el correo ya recordado se entra directo al formulario
 // ------------------------------------------------------------
 prepararCampoCorreo("c-usuario", "c-correo-aviso");
+prepararCampoCorreo("g-usuario", "g-correo-aviso");
 
 (function arrancar() {
   if (leerIdentidad()) return irAlFormulario();
-  mostrarCorreo();
+  mostrarInicio();
   cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
 })();
 </script>
