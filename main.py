@@ -70,7 +70,7 @@ def notificar_estado(ticket_id: int):
         with conexion() as conn, conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT t.id, t.estado, d.correo, d.nombre AS docente_nombre, s.nombre AS sede, te.nombre AS equipo,
+                SELECT t.id, t.estado, t.token_seguimiento, d.correo, d.nombre AS docente_nombre, s.nombre AS sede, te.nombre AS equipo,
                        f.descripcion AS falla, t.aula_reportada AS aula, t.piso_reportado AS piso
                 FROM tickets t
                 JOIN docentes d ON d.id = t.docente_id
@@ -775,6 +775,159 @@ def tecnico_no_resuelto(
         )
     tareas.add_task(notificar_estado, ticket_id)
     return {"id": ticket_id, "estado": "en_atencion"}
+
+
+
+# ------------------------------------------------------------------
+# Encuesta de satisfacción (la responde el docente desde el enlace del correo)
+# ------------------------------------------------------------------
+class EncuestaRespuesta(BaseModel):
+    satisfaccion: int = Field(ge=1, le=5)
+    resolucion: Literal["si", "parcial", "no"]
+    comentario: Optional[str] = Field(default=None, max_length=1000)
+
+
+def _ticket_de_encuesta(cur, token: str):
+    cur.execute(
+        """
+        SELECT t.id, t.estado, t.sede_id, t.docente_id, t.tecnico_campo_id, s.nombre AS sede,
+               te.nombre AS equipo, f.descripcion AS falla,
+               EXISTS (SELECT 1 FROM encuestas e WHERE e.ticket_id = t.id) AS ya_respondida
+        FROM tickets t
+        JOIN sedes s ON s.id = t.sede_id
+        JOIN tipos_falla f ON f.id = t.tipo_falla_id
+        JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+        WHERE t.token_seguimiento = %s
+        """,
+        (token,),
+    )
+    t = cur.fetchone()
+    if not t:
+        raise HTTPException(status_code=404, detail="Este enlace de encuesta no es válido")
+    return t
+
+
+@app.get("/encuesta/{token}")
+def encuesta_datos(token: str):
+    with conexion() as conn, conn.cursor() as cur:
+        t = _ticket_de_encuesta(cur, token)
+    return {
+        "reporte": t["id"], "equipo": t["equipo"], "falla": t["falla"], "sede": t["sede"],
+        "disponible": t["estado"] == "resuelto", "ya_respondida": t["ya_respondida"],
+    }
+
+
+@app.post("/encuesta/{token}", status_code=201)
+def encuesta_responder(token: str, datos: EncuestaRespuesta):
+    comentario = (datos.comentario or "").strip() or None
+    with conexion() as conn, conn.cursor() as cur:
+        t = _ticket_de_encuesta(cur, token)
+        if t["ya_respondida"]:
+            raise HTTPException(status_code=409, detail="Esta encuesta ya fue completada")
+        if t["estado"] != "resuelto":
+            raise HTTPException(status_code=409, detail="La encuesta estará disponible cuando el reporte esté resuelto")
+        cur.execute(
+            """
+            INSERT INTO encuestas (ticket_id, sede_id, docente_id, tecnico_campo_id, satisfaccion, resolucion, comentario)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (ticket_id) DO NOTHING
+            RETURNING id
+            """,
+            (t["id"], t["sede_id"], t["docente_id"], t["tecnico_campo_id"], datos.satisfaccion, datos.resolucion, comentario),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=409, detail="Esta encuesta ya fue completada")
+    return {"ok": True}
+
+
+@app.get("/soporte/encuestas")
+def soporte_encuestas(
+    dias: int = 0, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
+):
+    """Resultados de las encuestas (dias=0: todo el historial). Lo ven Soporte y el administrador."""
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede = filtro_sede(usuario)
+        cond, params = ["TRUE"], []
+        cond_t, params_t = ["t.estado = 'resuelto'"], []
+        if sede is not None:
+            cond.append("e.sede_id = %s"); params.append(sede)
+            cond_t.append("t.sede_id = %s"); params_t.append(sede)
+        if dias and dias > 0:
+            cond.append("e.creado_en >= now() - make_interval(days => %s)"); params.append(min(dias, 3650))
+            cond_t.append("t.resuelto_en >= now() - make_interval(days => %s)"); params_t.append(min(dias, 3650))
+        donde = " AND ".join(cond)
+        cur.execute(
+            f"""
+            SELECT count(*)::int AS total,
+                   round(avg(satisfaccion)::numeric, 2)::float AS promedio,
+                   count(*) FILTER (WHERE satisfaccion = 1)::int AS s1,
+                   count(*) FILTER (WHERE satisfaccion = 2)::int AS s2,
+                   count(*) FILTER (WHERE satisfaccion = 3)::int AS s3,
+                   count(*) FILTER (WHERE satisfaccion = 4)::int AS s4,
+                   count(*) FILTER (WHERE satisfaccion = 5)::int AS s5,
+                   count(*) FILTER (WHERE resolucion = 'si')::int AS r_si,
+                   count(*) FILTER (WHERE resolucion = 'parcial')::int AS r_parcial,
+                   count(*) FILTER (WHERE resolucion = 'no')::int AS r_no
+            FROM encuestas e WHERE {donde}
+            """,
+            params,
+        )
+        r = cur.fetchone()
+        cur.execute(f"SELECT count(*)::int AS n FROM tickets t WHERE {' AND '.join(cond_t)}", params_t)
+        resueltos = cur.fetchone()["n"]
+        cur.execute(
+            f"""
+            SELECT s.nombre AS sede, count(*)::int AS total,
+                   round(avg(e.satisfaccion)::numeric, 2)::float AS promedio
+            FROM encuestas e JOIN sedes s ON s.id = e.sede_id
+            WHERE {donde} GROUP BY s.nombre ORDER BY s.nombre
+            """,
+            params,
+        )
+        por_sede = cur.fetchall()
+        cur.execute(
+            f"""
+            SELECT e.id, e.ticket_id, e.satisfaccion, e.resolucion, e.comentario, e.creado_en,
+                   s.nombre AS sede, tc.nombre AS tecnico,
+                   COALESCE(NULLIF(trim(coalesce(d.nombre,'') || ' ' || coalesce(d.apellido,'')), ''), d.correo) AS docente,
+                   te.nombre AS equipo, f.descripcion AS falla
+            FROM encuestas e
+            JOIN sedes s ON s.id = e.sede_id
+            JOIN tickets t ON t.id = e.ticket_id
+            JOIN tipos_falla f ON f.id = t.tipo_falla_id
+            JOIN tipos_equipo te ON te.id = f.tipo_equipo_id
+            LEFT JOIN docentes d ON d.id = e.docente_id
+            LEFT JOIN usuarios tc ON tc.id = e.tecnico_campo_id
+            WHERE {donde} ORDER BY e.creado_en DESC LIMIT 200
+            """,
+            params,
+        )
+        lista = cur.fetchall()
+    total = r["total"]
+    satisfechos = r["s4"] + r["s5"]
+    return {
+        "total": total,
+        "promedio": r["promedio"],
+        "satisfechos_pct": round(100 * satisfechos / total) if total else None,
+        "distribucion": [r["s1"], r["s2"], r["s3"], r["s4"], r["s5"]],
+        "resolucion": {"si": r["r_si"], "parcial": r["r_parcial"], "no": r["r_no"]},
+        "resueltos": resueltos,
+        "tasa_respuesta_pct": min(100, round(100 * total / resueltos)) if resueltos else None,
+        "por_sede": por_sede,
+        "encuestas": lista,
+    }
+
+
+@app.delete("/admin/encuestas/{encuesta_id}")
+def admin_habilitar_encuesta(encuesta_id: int, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    """Solo el administrador: borra la respuesta para que el docente pueda responder de nuevo."""
+    with conexion() as conn, conn.cursor() as cur:
+        exigir_admin(autenticar(cur, cred))
+        cur.execute("DELETE FROM encuestas WHERE id = %s RETURNING id", (encuesta_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="No existe esa encuesta")
+    return {"ok": True}
 
 
 # ------------------------------------------------------------------

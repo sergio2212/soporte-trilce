@@ -109,6 +109,19 @@ def armar_correo(t: dict, url_docente: str):
         for k, v in detalle)
     saludo = (f'<p style="margin:16px 0 0;font-size:14px;color:{TEXTO_SUAVE}">Hola, {e(t["docente_nombre"])}</p>'
               if t.get("docente_nombre") else "")
+    enlace = ""
+    if resuelto and t.get("token_seguimiento") and url_docente:
+        enlace = f'{url_docente.rstrip("/")}/encuesta.html?t={t["token_seguimiento"]}'
+    encuesta = ""
+    if enlace:
+        encuesta = f"""
+  <tr><td style="padding:8px 24px 8px">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{NARANJA_SUAVE};border-radius:8px"><tr><td align="center" style="padding:18px 16px">
+      <div style="font-size:16px;font-weight:700;color:{TEXTO};margin-bottom:6px">¡Queremos conocer tu opinión!</div>
+      <div style="font-size:13px;line-height:19px;color:{TEXTO};margin-bottom:14px">Tu experiencia es importante para nosotros. Ayúdanos a mejorar nuestro servicio de soporte respondiendo esta breve encuesta.</div>
+      <a href="{e(enlace)}" target="_blank" style="display:inline-block;background:{NARANJA};color:#FFFFFF;text-decoration:none;font-weight:700;font-size:15px;padding:12px 26px;border-radius:8px">Responder encuesta</a>
+    </td></tr></table>
+  </td></tr>"""
     cuerpo = f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><title>{e(titulo)}</title></head>
@@ -124,6 +137,7 @@ def armar_correo(t: dict, url_docente: str):
     <p style="margin:0 0 4px;font-size:15px;line-height:22px;color:{TEXTO}">{e(texto)}</p>
   </td></tr>
   <tr><td style="padding:28px 16px 8px">{_linea_de_tiempo(estado)}</td></tr>
+  {encuesta}
   <tr><td style="padding:12px 24px 8px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #E5E7EB">{filas}</table>
   </td></tr>
@@ -133,7 +147,7 @@ def armar_correo(t: dict, url_docente: str):
 </table></td></tr></table></body></html>"""
     plano = (f"{titulo}\n{texto}\n\nReporte Nº {t['id']} - {t.get('equipo') or ''}: {t.get('falla') or ''}\n"
              f"Sede {t.get('sede') or ''} - Aula {t.get('aula') or '-'}, piso {t.get('piso') or '-'}\n\n"
-             f"Estado: {corto}\n")
+             f"Estado: {corto}\n" + (f"\nResponde nuestra encuesta: {enlace}\n" if enlace else ""))
     asunto = f"Reporte #{t['id']} · {corto}"
     return asunto, cuerpo, plano
 
