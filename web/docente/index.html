@@ -227,6 +227,7 @@
   <!-- Paso 1: correo institucional -->
   <section id="correo-paso" class="oculto">
     <form id="form-correo" class="bloque" novalidate autocomplete="on">
+      <button id="c-volver" class="enlace oculto" type="button" style="margin-bottom:10px">← Volver</button>
       <h2>¿Cuál es tu correo institucional?</h2>
       <p class="aviso" style="margin:0 0 14px">Así te avisamos por correo cómo va tu reporte.</p>
       <label class="campo" for="c-usuario">Correo institucional</label>
@@ -241,7 +242,7 @@
   <form id="formulario" class="oculto" novalidate autocomplete="off">
     <div class="barra-sesion">
       <div><small>Reportando como</small><b id="bd-correo"></b></div>
-      <button id="bd-salir" class="enlace" type="button">¿No eres tú?</button>
+      <button id="bd-salir" class="enlace" type="button">← Cambiar correo</button>
     </div>
     <section id="bloque-nombre" class="bloque oculto">
       <h2>Primera vez: ¿cómo te llamas?</h2>
@@ -589,7 +590,12 @@ $("fallas").addEventListener("change", (e) => {
 });
 
 ["r-nombre", "r-apellido"].forEach((id) => $(id).addEventListener("input", () => $("error-form").classList.add("oculto")));
-$("bd-salir").addEventListener("click", () => { guardarIdentidad(null); $("c-usuario").value = ""; mostrarCorreo(); });
+$("bd-salir").addEventListener("click", () => {
+  const ident = leerIdentidad();
+  $("c-usuario").value = ident ? ident.correo.split("@")[0] : "";
+  avisoCorreo("");
+  mostrarCorreo();
+});
 
 function mensajeForm(texto) {
   const err = $("error-form");
@@ -657,9 +663,10 @@ function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 // ------------------------------------------------------------
 // Paso 1: correo institucional
 // ------------------------------------------------------------
-function mostrarCorreo() { mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
+function mostrarCorreo() { $("c-volver").classList.toggle("oculto", !leerIdentidad()); mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
 function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
 $("form-correo").addEventListener("input", () => avisoCorreo(""));
+$("c-volver").addEventListener("click", () => irAlFormulario());
 
 $("form-correo").addEventListener("submit", async (e) => {
   e.preventDefault();
