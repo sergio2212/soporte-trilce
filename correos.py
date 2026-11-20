@@ -124,11 +124,6 @@ def armar_correo(t: dict, url_docente: str):
     <p style="margin:0 0 4px;font-size:15px;line-height:22px;color:{TEXTO}">{e(texto)}</p>
   </td></tr>
   <tr><td style="padding:28px 16px 8px">{_linea_de_tiempo(estado)}</td></tr>
-  <tr><td style="padding:16px 24px 8px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{NARANJA_SUAVE};border-radius:8px"><tr><td style="padding:12px 16px;font-size:13px;line-height:19px;color:{TEXTO}">
-      Puede ver el estado de su reporte en su correo. Le avisaremos por aquí cada vez que cambie.
-    </td></tr></table>
-  </td></tr>
   <tr><td style="padding:12px 24px 8px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #E5E7EB">{filas}</table>
   </td></tr>
@@ -138,7 +133,7 @@ def armar_correo(t: dict, url_docente: str):
 </table></td></tr></table></body></html>"""
     plano = (f"{titulo}\n{texto}\n\nReporte Nº {t['id']} - {t.get('equipo') or ''}: {t.get('falla') or ''}\n"
              f"Sede {t.get('sede') or ''} - Aula {t.get('aula') or '-'}, piso {t.get('piso') or '-'}\n\n"
-             f"Estado: {corto}\nPuede ver el estado de su reporte en su correo.\n")
+             f"Estado: {corto}\n")
     asunto = f"Reporte #{t['id']} · {corto}"
     return asunto, cuerpo, plano
 
