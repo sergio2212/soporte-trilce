@@ -226,6 +226,7 @@
 
   <!-- Inicio: registrarse o iniciar sesión -->
   <section id="inicio" class="bloque oculto">
+    <button id="i-volver" class="enlace oculto" type="button" style="margin-bottom:10px">← Volver al formulario</button>
     <h2>Bienvenido</h2>
     <p class="aviso" style="margin:0 0 16px">Para reportar un problema, primero identifícate.</p>
     <button id="i-registro" class="principal" type="button">Registrarme</button>
@@ -625,10 +626,7 @@ $("fallas").addEventListener("change", (e) => {
 
 ["r-nombre", "r-apellido"].forEach((id) => $(id).addEventListener("input", () => $("error-form").classList.add("oculto")));
 $("bd-salir").addEventListener("click", () => {
-  const ident = leerIdentidad();
-  $("c-usuario").value = ident ? ident.correo.split("@")[0] : "";
-  avisoCorreo("");
-  mostrarCorreo();
+  mostrarInicio();
 });
 
 function mensajeForm(texto) {
@@ -697,11 +695,12 @@ function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 // ------------------------------------------------------------
 // Paso 1: correo institucional
 // ------------------------------------------------------------
-function mostrarInicio() { mostrar("inicio"); window.scrollTo({ top: 0 }); }
+function mostrarInicio() { $("i-volver").classList.toggle("oculto", !leerIdentidad()); mostrar("inicio"); window.scrollTo({ top: 0 }); }
 function mostrarCorreo() { mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
 function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
 $("form-correo").addEventListener("input", () => avisoCorreo(""));
-$("c-volver").addEventListener("click", () => (leerIdentidad() ? irAlFormulario() : mostrarInicio()));
+$("c-volver").addEventListener("click", mostrarInicio);
+$("i-volver").addEventListener("click", () => irAlFormulario());
 $("i-login").addEventListener("click", () => { avisoCorreo(""); mostrarCorreo(); });
 $("i-registro").addEventListener("click", () => { avisoRegistro(""); mostrar("registro-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("g-nombre").focus({ preventScroll: true }), 50); });
 $("r-volver").addEventListener("click", mostrarInicio);
