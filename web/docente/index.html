@@ -245,28 +245,22 @@
         <div><label class="campo" for="g-apellido">Apellidos</label>
           <input id="g-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60" placeholder="Pérez Gómez"></div>
       </div>
-      <label class="campo" for="g-usuario" style="margin-top:12px">Correo institucional</label>
-      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+      <label class="campo" for="g-usuario" style="margin-top:12px">Correo de Gmail</label>
+      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez"><span class="sufijo" aria-hidden="true">@gmail.com</span></div>
       <p id="g-correo-aviso" class="error oculto" role="alert"></p>
-      <label class="campo" for="g-pass" style="margin-top:12px">Contraseña</label>
-      <input id="g-pass" type="password" autocomplete="new-password" maxlength="100" aria-describedby="g-reglas">
-      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px;cursor:pointer"><input id="g-ver" type="checkbox" style="width:auto;min-height:0"> Mostrar contraseña</label>
-      <ul id="g-reglas" style="list-style:none;margin:10px 0 0;padding:0;font-size:13px;line-height:20px">
-        <li data-r="len">○ Mínimo 8 caracteres</li><li data-r="min">○ Una letra minúscula</li><li data-r="may">○ Una letra mayúscula</li><li data-r="num">○ Un número</li>
-      </ul>
       <p id="g-error" class="error oculto" role="alert"></p>
       <button id="g-boton" class="principal espacio-sup" type="submit">Crear cuenta</button>
     </form>
   </section>
 
-  <!-- Iniciar sesión: solo el correo institucional -->
+  <!-- Iniciar sesión: solo el correo de Gmail -->
   <section id="correo-paso" class="oculto">
     <form id="form-correo" class="bloque" novalidate autocomplete="on">
       <button id="c-volver" class="enlace" type="button" style="margin-bottom:10px">← Volver</button>
       <h2>Iniciar sesión</h2>
-      <p class="aviso" style="margin:0 0 14px">Escribe tu correo institucional. Así te avisamos por correo cómo va tu reporte.</p>
-      <label class="campo" for="c-usuario">Correo institucional</label>
-      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="c-correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+      <p class="aviso" style="margin:0 0 14px">Escribe tu correo de Gmail. Así te avisamos por correo cómo va tu reporte.</p>
+      <label class="campo" for="c-usuario">Correo de Gmail</label>
+      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="c-correo-aviso"><span class="sufijo" aria-hidden="true">@gmail.com</span></div>
       <p id="c-correo-aviso" class="error oculto" role="alert"></p>
       <p id="c-error" class="error oculto" role="alert"></p>
       <button id="c-boton" class="principal espacio-sup" type="submit">Iniciar sesión</button>
@@ -377,8 +371,8 @@ async function llamar(ruta, opciones = {}, intentos = 4) {
   throw ultimo;
 }
 
-// ---------- correo institucional: el docente solo escribe su usuario ----------
-const DOMINIO = "trilce.edu.pe";
+// ---------- correo de Gmail: el docente solo escribe su usuario ----------
+const DOMINIO = "gmail.com";
 function limpiarUsuario(texto) {
   // minúsculas, sin espacios, y solo letras, números, punto, guion y guion bajo
   return texto.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9._-]/g, "");
@@ -400,7 +394,7 @@ function prepararCampoCorreo(idInput, idAviso) {
     if (arroba !== -1) {
       // si escribe o pega el correo completo, se recorta desde la arroba
       const dominio = v.slice(arroba + 1).replace(/\s+/g, "");
-      if (dominio && dominio !== DOMINIO) alerta = "Usa únicamente tu correo institucional (@" + DOMINIO + ").";
+      if (dominio && dominio !== DOMINIO) alerta = "Usa únicamente tu correo de Gmail (@" + DOMINIO + ").";
       v = v.slice(0, arroba);
       if (e.inputType === "insertText") { tras = true; fijo = limpiarUsuario(v); if (!alerta) alerta = "El @" + DOMINIO + " ya está puesto: escribe solo tu usuario."; }
     }
@@ -704,11 +698,13 @@ $("formulario").addEventListener("submit", async (e) => {
 // ---------- estado del reporte en vivo (pantalla "Recibimos tu reporte") ----------
 const ETAPAS = [
   ["nuevo", "Reporte recibido"],
-  ["en_atencion", "Soporte lo está atendiendo"],
-  ["en_camino", "Técnico en camino"],
-  ["solucionando", "Técnico solucionando el problema"],
+  ["en_atencion", "En atención"],
+  ["tecnico", "Técnico asignado"],
   ["resuelto", "Resuelto"],
+  ["cerrado", "Cerrado"],
 ];
+// estados internos -> paso que ve el docente (al resolverse, el reporte queda Resuelto y Cerrado)
+const PASO_DOCENTE = { nuevo: 0, en_atencion: 1, en_camino: 2, solucionando: 2, resuelto: 4 };
 const TEXTO_ESTADO = {
   nuevo: ["Recibimos tu reporte", "Nuestro equipo de soporte lo atenderá en breve."],
   en_atencion: ["¡Gracias por la espera!", "Nuestro equipo de soporte está trabajando en ello."],
@@ -718,7 +714,7 @@ const TEXTO_ESTADO = {
 };
 let temporizadorEstado = null;
 function pintarEstado(estado) {
-  const idx = Math.max(0, ETAPAS.findIndex((e) => e[0] === estado));
+  const idx = PASO_DOCENTE[estado] ?? 0;
   const t = TEXTO_ESTADO[estado] || TEXTO_ESTADO.nuevo;
   $("ev-titulo").textContent = t[0]; $("ev-texto").textContent = t[1];
   $("ev-pasos").innerHTML = ETAPAS.map((e, i) => {
@@ -747,7 +743,7 @@ function seguirEstado(token) {
 function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 
 // ------------------------------------------------------------
-// Paso 1: correo institucional
+// Paso 1: correo de Gmail
 // ------------------------------------------------------------
 function mostrarInicio() { $("i-volver").classList.toggle("oculto", !(haySesion() && leerIdentidad())); mostrar("inicio"); window.scrollTo({ top: 0 }); }
 function mostrarCorreo() { const id = leerIdentidad(); if (id && !$("c-usuario").value) $("c-usuario").value = id.correo.split("@")[0]; mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
@@ -763,7 +759,7 @@ $("form-correo").addEventListener("submit", async (e) => {
   e.preventDefault();
   avisoCorreo("");
   const correo = correoCompleto("c-usuario");
-  if (!correo) return avisoCorreo("Escribe tu correo institucional.");
+  if (!correo) return avisoCorreo("Escribe tu correo de Gmail.");
   const boton = $("c-boton"); boton.disabled = true; boton.textContent = "Verificando…";
   try {
     const r = await llamar("/docentes/verificar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ correo }) }, 2);
@@ -779,32 +775,18 @@ $("form-correo").addEventListener("submit", async (e) => {
 
 // ---------- registro ----------
 function avisoRegistro(t) { $("g-error").textContent = t; $("g-error").classList.toggle("oculto", !t); }
-function reglasPass(p) { return { len: p.length >= 8, min: /[a-z]/.test(p), may: /[A-Z]/.test(p), num: /\d/.test(p) }; }
-function pintarReglas() {
-  const r = reglasPass($("g-pass").value);
-  document.querySelectorAll("#g-reglas li").forEach((li) => {
-    const ok = r[li.dataset.r];
-    li.textContent = (ok ? "✓ " : "○ ") + li.textContent.slice(2);
-    li.style.color = ok ? "var(--ok, #1E7A46)" : "";
-  });
-  return Object.values(r).every(Boolean);
-}
-$("g-pass").addEventListener("input", () => { pintarReglas(); avisoRegistro(""); });
-$("g-ver").addEventListener("change", () => { $("g-pass").type = $("g-ver").checked ? "text" : "password"; });
 $("form-registro").addEventListener("input", () => avisoRegistro(""));
 $("form-registro").addEventListener("submit", async (e) => {
   e.preventDefault();
   avisoRegistro("");
   const nombre = $("g-nombre").value.trim().replace(/\s+/g, " "), apellido = $("g-apellido").value.trim().replace(/\s+/g, " ");
-  const correo = correoCompleto("g-usuario"), pass = $("g-pass").value;
+  const correo = correoCompleto("g-usuario");
   if (nombre.length < 2 || apellido.length < 2) return avisoRegistro("Escribe tus nombres y apellidos.");
-  if (!correo) return avisoRegistro("Escribe tu correo institucional.");
-  if (!pintarReglas()) return avisoRegistro("La contraseña debe tener mínimo 8 caracteres, con mayúsculas, minúsculas y números.");
+  if (!correo) return avisoRegistro("Escribe tu correo de Gmail.");
   const boton = $("g-boton"); boton.disabled = true; boton.textContent = "Creando cuenta…";
   try {
-    const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo, password: pass }), 2);
+    const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo }), 2);
     if (!r.ok) return avisoRegistro(await detalle(r, "No se pudo crear la cuenta. Inténtalo otra vez."));
-    $("g-pass").value = "";
     guardarIdentidad(correo, true);
     await irAlFormulario();
   } catch (_) {
