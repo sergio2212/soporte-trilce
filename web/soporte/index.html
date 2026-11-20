@@ -647,7 +647,7 @@ $("salir").addEventListener("click", () => cerrarSesion(""));
 
 function entrarAlPanel(usuario) {
   S.usuario = usuario;
-  const admin = usuario.rol === "admin";
+  const admin = usuario.rol === "admin" || !usuario.sede_id;   // ve todas las sedes
   $("u-nombre").textContent = usuario.nombre;
   $("u-detalle").innerHTML = "";
   $("u-detalle").append(usuario.sede + " · ", Object.assign(el("span", "rol"), { textContent: ETQ_ROL[usuario.rol] || usuario.rol }));
@@ -675,7 +675,7 @@ function llenarCatalogos() {
   $("da-tipo").replaceChildren(...S.catalogo.tipos.map((t) => new Option(t.nombre, t.id)));
   $("da-sede").replaceChildren(...sedes.map((s) => new Option(s.nombre, s.id)));
   $("du-sede").replaceChildren(...sedes.map((s) => new Option(s.nombre, s.id)));
-  $("da-sede-caja").classList.toggle("oculto", S.usuario.rol !== "admin");
+  $("da-sede-caja").classList.toggle("oculto", !!S.usuario.sede_id);
 }
 
 // ---------- menú y navegación ----------
@@ -840,7 +840,7 @@ function ticketsFiltrados() {
   return S.tickets.filter((t) => {
     if (est !== "todos" && t.estado !== est) return false;
     if (pr !== "todas" && t.prioridad !== pr) return false;
-    if (sd !== "todas" && S.usuario.rol === "admin" && t.sede !== sd) return false;
+    if (sd !== "todas" && !S.usuario.sede_id && t.sede !== sd) return false;
     if (q) {
       const texto = [String(t.id), codigo(t), t.falla, t.equipo, t.ambiente, t.sede, t.descripcion, t.tecnico, t.docente, t.docente_correo].join(" ").toLowerCase();
       if (!texto.includes(q)) return false;
@@ -935,7 +935,7 @@ function pintarDialogoTicket() {
         const lab = el("label", null, "Técnico al que llamar"); lab.htmlFor = "sel-tecnico";
         const sel = document.createElement("select"); sel.id = "sel-tecnico";
         sel.append(new Option("Cualquier técnico de la sede", ""));
-        for (const tc of S.tecnicos) sel.append(new Option(tc.nombre + (S.usuario.rol === "admin" && tc.sede ? " · " + tc.sede : "") + (Number(tc.ocupado_con) ? " (ocupado)" : ""), tc.id));
+        for (const tc of S.tecnicos) sel.append(new Option(tc.nombre + (!S.usuario.sede_id && tc.sede ? " · " + tc.sede : "") + (Number(tc.ocupado_con) ? " (ocupado)" : ""), tc.id));
         sel.value = elegidoTecnico[t.id] || "";
         sel.addEventListener("change", () => { elegidoTecnico[t.id] = sel.value; });
         caja.append(lab, sel); frag.append(caja);
@@ -1110,7 +1110,7 @@ function pintarActivos() {
   const est = $("a-estado").value, sd = $("a-sede").value;
   const lista = S.activos.filter((a) => {
     if (est !== "todos" && a.estado !== est) return false;
-    if (sd !== "todas" && S.usuario.rol === "admin" && a.sede !== sd) return false;
+    if (sd !== "todas" && !S.usuario.sede_id && a.sede !== sd) return false;
     if (q && ![a.nombre, a.codigo, a.ambiente, a.sede, a.tipo].join(" ").toLowerCase().includes(q)) return false;
     return true;
   });
@@ -1147,7 +1147,7 @@ $("form-activo").addEventListener("submit", async (e) => {
     tipo_equipo_id: Number($("da-tipo").value), nombre, ambiente: amb,
     piso: $("da-piso").value ? Number($("da-piso").value) : null,
     codigo: $("da-codigo").value.trim() || null,
-    sede_id: S.usuario.rol === "admin" ? Number($("da-sede").value) : null,
+    sede_id: !S.usuario.sede_id ? Number($("da-sede").value) : null,
   };
   const b = $("da-guardar"); b.disabled = true;
   try {
