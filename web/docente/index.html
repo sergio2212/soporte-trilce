@@ -442,9 +442,12 @@ function leerIdentidad() {
   } catch (_) {}
   return null;
 }
+// Sesión de esta pestaña: al abrir la página siempre se empieza por Registrarme / Iniciar sesión
+function haySesion() { try { return sessionStorage.getItem("docente_sesion") === "1"; } catch (_) { return false; } }
 function guardarIdentidad(correo, listo) {
   identidad = correo ? { correo, listo } : null;
   try {
+    if (correo) sessionStorage.setItem("docente_sesion", "1"); else sessionStorage.removeItem("docente_sesion");
     ["docente_token", "docente_nombre", "docente_visto"].forEach((k) => localStorage.removeItem(k));
     if (correo) { localStorage.setItem("docente_correo", correo); localStorage.setItem("docente_listo", listo ? "1" : "0"); }
     else { localStorage.removeItem("docente_correo"); localStorage.removeItem("docente_listo"); }
@@ -695,8 +698,8 @@ function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 // ------------------------------------------------------------
 // Paso 1: correo institucional
 // ------------------------------------------------------------
-function mostrarInicio() { $("i-volver").classList.toggle("oculto", !leerIdentidad()); mostrar("inicio"); window.scrollTo({ top: 0 }); }
-function mostrarCorreo() { mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
+function mostrarInicio() { $("i-volver").classList.toggle("oculto", !(haySesion() && leerIdentidad())); mostrar("inicio"); window.scrollTo({ top: 0 }); }
+function mostrarCorreo() { const id = leerIdentidad(); if (id && !$("c-usuario").value) $("c-usuario").value = id.correo.split("@")[0]; mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
 function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
 $("form-correo").addEventListener("input", () => avisoCorreo(""));
 $("c-volver").addEventListener("click", mostrarInicio);
@@ -767,7 +770,7 @@ prepararCampoCorreo("c-usuario", "c-correo-aviso");
 prepararCampoCorreo("g-usuario", "g-correo-aviso");
 
 (function arrancar() {
-  if (leerIdentidad()) return irAlFormulario();
+  if (haySesion() && leerIdentidad()) return irAlFormulario();   // p. ej. "Reportar otro problema"
   mostrarInicio();
   cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
 })();
