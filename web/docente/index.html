@@ -334,6 +334,11 @@
       <p style="margin:0 0 6px;font-weight:600">Puede ver el estado de su reporte en su correo.</p>
       <p id="enviado-correo" style="margin:0;font-weight:400;color:var(--muted,#5b6670)"></p>
     </div>
+    <div class="bloque" id="estado-vivo" style="margin-top:14px">
+      <h2 id="ev-titulo" style="margin:0 0 4px;font-size:1.05rem"></h2>
+      <p id="ev-texto" class="aviso" style="margin:0 0 14px"></p>
+      <ol id="ev-pasos" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ol>
+    </div>
     <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
   </section>
 
@@ -682,8 +687,10 @@ $("formulario").addEventListener("submit", async (e) => {
       return mensajeForm("Escribe tus nombres y apellidos.");
     }
     if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
+    let creado = null; try { creado = await r.json(); } catch (_) {}
     window.scrollTo({ top: 0 });
     guardarIdentidad(ident.correo, true);
+    seguirEstado(creado && creado.token_seguimiento);
     $("enviado-correo").textContent = "Le avisaremos a " + ident.correo + " cada vez que cambie.";
     mostrar("enviado");
   } catch (err) {
@@ -692,6 +699,50 @@ $("formulario").addEventListener("submit", async (e) => {
     actualizarBoton();
   }
 });
+
+
+// ---------- estado del reporte en vivo (pantalla "Recibimos tu reporte") ----------
+const ETAPAS = [
+  ["nuevo", "Reporte recibido"],
+  ["en_atencion", "Soporte lo está atendiendo"],
+  ["en_camino", "Técnico en camino"],
+  ["solucionando", "Técnico solucionando el problema"],
+  ["resuelto", "Resuelto"],
+];
+const TEXTO_ESTADO = {
+  nuevo: ["Recibimos tu reporte", "Nuestro equipo de soporte lo atenderá en breve."],
+  en_atencion: ["¡Gracias por la espera!", "Nuestro equipo de soporte está trabajando en ello."],
+  en_camino: ["¡Gracias por la espera!", "Un técnico va en camino."],
+  solucionando: ["¡Gracias por la espera!", "El técnico está solucionando el problema."],
+  resuelto: ["¡Listo!", "Tu problema fue resuelto."],
+};
+let temporizadorEstado = null;
+function pintarEstado(estado) {
+  const idx = Math.max(0, ETAPAS.findIndex((e) => e[0] === estado));
+  const t = TEXTO_ESTADO[estado] || TEXTO_ESTADO.nuevo;
+  $("ev-titulo").textContent = t[0]; $("ev-texto").textContent = t[1];
+  $("ev-pasos").innerHTML = ETAPAS.map((e, i) => {
+    const hecho = i < idx || estado === "resuelto", actual = i === idx && estado !== "resuelto";
+    const col = hecho ? "var(--ok)" : actual ? "var(--brand)" : "#e6d9cf";
+    return '<li style="display:flex;gap:10px;align-items:center;font-weight:' + (actual ? 700 : 500) + ';color:' + (hecho || actual ? "inherit" : "#9a8c82") + '">' +
+      '<span style="width:18px;height:18px;border-radius:50%;background:' + col + ';flex:none;color:#fff;font-size:12px;display:grid;place-items:center">' + (hecho ? "✓" : "") + '</span>' + e[1] + '</li>';
+  }).join("");
+}
+function seguirEstado(token) {
+  clearInterval(temporizadorEstado);
+  pintarEstado("nuevo");
+  if (!token) return;
+  const consultar = async () => {
+    try {
+      const r = await fetch(API + "/seguimiento/" + encodeURIComponent(token));
+      if (!r.ok) return;
+      const d = await r.json();
+      pintarEstado(d.estado);
+      if (d.estado === "resuelto") clearInterval(temporizadorEstado);
+    } catch (_) {}
+  };
+  temporizadorEstado = setInterval(consultar, 5000);
+}
 
 function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 
