@@ -105,6 +105,8 @@ def armar_correo(t: dict, url_docente: str):
         f'<tr><td style="padding:6px 0;font-size:13px;color:{TEXTO_SUAVE};width:38%">{e(k)}</td>'
         f'<td style="padding:6px 0;font-size:14px;color:{TEXTO};font-weight:600">{e(v)}</td></tr>'
         for k, v in detalle)
+    saludo = (f'<p style="margin:16px 0 0;font-size:14px;color:{TEXTO_SUAVE}">Hola, {e(t["docente_nombre"])}</p>'
+              if t.get("docente_nombre") else "")
     cuerpo = f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><title>{e(titulo)}</title></head>
@@ -116,7 +118,7 @@ def armar_correo(t: dict, url_docente: str):
     <span style="font-size:17px;font-weight:700;color:{TEXTO};vertical-align:middle;margin-left:8px">Soporte Trilce</span>
   </td></tr>
   <tr><td style="padding:8px 24px 0">
-    <h1 style="margin:16px 0 8px;font-size:24px;line-height:30px;color:{color}">{e(titulo)}</h1>
+    {saludo}<h1 style="margin:6px 0 8px;font-size:24px;line-height:30px;color:{color}">{e(titulo)}</h1>
     <p style="margin:0 0 4px;font-size:15px;line-height:22px;color:{TEXTO}">{e(texto)}</p>
   </td></tr>
   <tr><td style="padding:28px 16px 8px">{_linea_de_tiempo(estado)}</td></tr>
