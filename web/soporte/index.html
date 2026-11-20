@@ -274,6 +274,7 @@
     <button class="nav-item" data-vista="docentes" type="button"></button>
     <button class="nav-item" data-vista="activos" type="button"></button>
     <button class="nav-item" data-vista="sedes" type="button"></button>
+    <button class="nav-item" data-vista="encuestas" type="button"></button>
     <button class="nav-item" data-vista="reportes" type="button"></button>
     <div class="nav-grupo">Sistema</div>
     <button class="nav-item" data-vista="config" type="button"></button>
@@ -295,11 +296,12 @@
       <!-- ===== Panel principal ===== -->
       <section id="v-panel" class="oculto">
         <div class="cabecera"><div><h1>Panel principal</h1><p>Resumen general de soporte TI y activos tecnológicos. <span id="actualizado"></span></p></div></div>
-        <div class="tarjetas">
+        <div class="tarjetas" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
           <div class="caja kpi" id="k-total"><div class="nombre">Incidencias registradas</div><div class="valor">–</div><div class="nota">Desde el inicio del piloto</div></div>
           <div class="caja kpi destacado" id="k-pend"><div class="nombre">Pendientes</div><div class="valor">–</div><div class="nota">Esperan primera atención</div></div>
           <div class="caja kpi" id="k-proc"><div class="nombre">En atención</div><div class="valor">–</div><div class="nota">Asignadas a Soporte</div></div>
           <div class="caja kpi" id="k-act"><div class="nombre">Activos registrados</div><div class="valor">–</div><div class="nota">En el inventario</div></div>
+          <div class="caja kpi" id="k-sat"><div class="nombre">Satisfacción</div><div class="valor">–</div><div class="nota" id="k-sat-nota">Sin encuestas todavía</div></div>
         </div>
         <div class="dos">
           <div class="caja grafico"><h2>Incidencias por mes <small>Últimos 6 meses</small></h2><div id="g-meses"></div></div>
@@ -344,6 +346,27 @@
             <select id="d-periodo" aria-label="Periodo" style="width:auto"><option value="0">Todo el historial</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option></select></div>
           <div class="tabla-wrap"><table><thead><tr><th>#</th><th>Docente</th><th>Incidencias</th><th>Abiertas</th><th>Equipo más reportado</th><th>Último reporte</th><th></th></tr></thead><tbody id="t-docentes-rank"></tbody></table></div>
           <p id="pie-docentes" class="pie-tabla"></p>
+        </div>
+      </section>
+
+      <!-- ===== Encuestas ===== -->
+      <section id="v-encuestas" class="oculto">
+        <div class="cabecera"><div><h1>Encuestas de satisfacción</h1><p>Lo que opinan los docentes después de que un reporte queda resuelto.</p></div>
+          <div class="acciones"><select id="e-periodo" aria-label="Periodo" style="width:auto"><option value="0">Todo el historial</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option></select><button id="e-csv" class="btn chico" type="button">Descargar CSV</button></div></div>
+        <div class="tarjetas">
+          <div class="caja kpi destacado" id="ke-prom"><div class="nombre">Calificación promedio</div><div class="valor">–</div><div class="nota">De 1 a 5</div></div>
+          <div class="caja kpi" id="ke-sat"><div class="nombre">Docentes satisfechos</div><div class="valor">–</div><div class="nota">Califican 4 o 5</div></div>
+          <div class="caja kpi" id="ke-total"><div class="nombre">Encuestas respondidas</div><div class="valor">–</div><div class="nota" id="ke-tasa">–</div></div>
+          <div class="caja kpi" id="ke-res"><div class="nombre">Problema resuelto</div><div class="valor">–</div><div class="nota">Dicen «Sí, completamente»</div></div>
+        </div>
+        <div class="iguales">
+          <div class="caja"><h2>Satisfacción general</h2><div id="e-dist"></div></div>
+          <div class="caja"><h2>¿Se solucionó el inconveniente?</h2><div id="e-resol"></div><h2 style="margin-top:18px">Por sede</h2><div id="e-sedes"></div></div>
+        </div>
+        <div class="caja">
+          <h2>Respuestas y comentarios</h2>
+          <div class="tabla-wrap"><table><thead><tr><th>Reporte</th><th>Docente</th><th>Sede</th><th>Técnico</th><th>Calificación</th><th>¿Se solucionó?</th><th>Comentario</th><th>Fecha</th><th></th></tr></thead><tbody id="t-encuestas"></tbody></table></div>
+          <p id="pie-encuestas" class="pie-tabla"></p>
         </div>
       </section>
 
@@ -472,12 +495,13 @@ const VISTAS = {
   docentes: { titulo: "Docentes", icono: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c3 .3 5 2.6 5 5.8"/>' },
   activos: { titulo: "Activos tecnológicos", icono: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>' },
   sedes: { titulo: "Sedes y aulas", icono: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>' },
+  encuestas: { titulo: "Encuestas", icono: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.3 2.2 2 3.5 2s2.5-.7 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/>' },
   reportes: { titulo: "Reportes", icono: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>' },
   config: { titulo: "Configuración", icono: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>' },
 };
 
 // ---------- estado de la aplicación ----------
-const S = { docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null, catalogo: null };
+const S = { enc: null, docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null, catalogo: null };
 let vista = "panel";
 let offsetReloj = 0;
 let idsVistos = null;
@@ -699,6 +723,7 @@ function irA(v) {
   window.scrollTo({ top: 0 });
   if (v === "sedes") cargarSedes();
   if (v === "docentes") cargarDocentes();
+  if (v === "encuestas") cargarEncuestas();
   if (v === "config") cargarUsuarios();
   pintarVista();
 }
@@ -721,6 +746,7 @@ async function refrescar() {
     pintarVista();
     if (vista === "sedes") cargarSedes();
     if (vista === "docentes") cargarDocentes();
+    if (vista === "encuestas" || vista === "panel") cargarEncuestas();
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
     $("panel-error").textContent = "No se pudo actualizar. Reintentando…";
@@ -747,7 +773,7 @@ function pintarVista() {
   const nav = document.querySelector('.nav-item[data-vista="tickets"]');
   let cuenta = nav.querySelector(".cuenta");
   if (pend) { if (!cuenta) { cuenta = el("span", "cuenta"); nav.append(cuenta); } cuenta.textContent = pend; } else if (cuenta) cuenta.remove();
-  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, activos: pintarActivos, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
+  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, encuestas: pintarEncuestas, activos: pintarActivos, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
   if (ticketAbierto !== null && $("dlg-ticket").open) {
     const escribiendo = document.activeElement && ["TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && $("dlg-ticket").contains(document.activeElement);
     if (!escribiendo) pintarDialogoTicket();
@@ -765,6 +791,7 @@ function pintarPanel() {
   kpi("k-pend", T.filter((t) => t.estado === "nuevo").length);
   kpi("k-proc", T.filter((t) => ESTADOS_EN_PROCESO.includes(t.estado)).length);
   kpi("k-act", S.activos.length);
+  if (S.enc) { kpi("k-sat", S.enc.promedio != null ? S.enc.promedio.toFixed(1) + " / 5" : "–"); $("k-sat-nota").textContent = S.enc.total ? S.enc.total + (S.enc.total === 1 ? " encuesta" : " encuestas") + " · " + S.enc.satisfechos_pct + " % satisfechos" : "Sin encuestas todavía"; }
 
   pintarMeses();
 
@@ -1024,6 +1051,83 @@ async function accionEnviarTecnico(id, tecnicoId, boton) {
   }
   refrescar();
 }
+
+
+// ============================================================
+// ENCUESTAS DE SATISFACCIÓN
+// ============================================================
+const CARITAS = ["😡", "🙁", "😐", "🙂", "🤩"];
+const ETQ_SAT = ["Muy insatisfecho", "Insatisfecho", "Regular", "Satisfecho", "Muy satisfecho"];
+const ETQ_RESOL = { si: "Sí, completamente", parcial: "Parcialmente", no: "No, aún tiene problemas" };
+async function cargarEncuestas() {
+  try {
+    const dias = Number($("e-periodo").value) || 0;
+    const r = await api("/soporte/encuestas?dias=" + dias);
+    if (r.ok) S.enc = await r.json();
+  } catch (e) { if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo."); }
+  pintarEncuestas();
+}
+$("e-periodo").addEventListener("change", cargarEncuestas);
+function barraH(etiqueta, n, total, color) {
+  const f = el("div"); f.style.cssText = "display:grid;grid-template-columns:170px 1fr 70px;gap:10px;align-items:center;margin:7px 0;font-size:.9rem";
+  const riel = el("div"); riel.style.cssText = "height:12px;border-radius:999px;background:#f6ece4;overflow:hidden";
+  const b = el("i"); b.style.cssText = "display:block;height:100%;border-radius:999px;width:" + (total ? Math.round((n / total) * 100) : 0) + "%;background:" + color;
+  riel.append(b);
+  f.append(el("span", null, etiqueta), riel, el("b", null, n + (total ? " · " + Math.round((n / total) * 100) + " %" : "")));
+  return f;
+}
+function pintarEncuestas() {
+  const E = S.enc;
+  if (!E) return;
+  kpi("ke-prom", E.promedio != null ? E.promedio.toFixed(1) : "–");
+  kpi("ke-sat", E.satisfechos_pct != null ? E.satisfechos_pct + " %" : "–");
+  kpi("ke-total", E.total);
+  $("ke-tasa").textContent = E.tasa_respuesta_pct != null ? E.tasa_respuesta_pct + " % de los " + E.resueltos + " resueltos" : "Aún no hay reportes resueltos";
+  kpi("ke-res", E.total ? Math.round((E.resolucion.si / E.total) * 100) + " %" : "–");
+  const col = ["#c0392b", "#e67e22", "#e0a800", "#7fb85a", "#1d8a4a"];
+  const dist = el("div");
+  for (let i = 4; i >= 0; i--) dist.append(barraH(CARITAS[i] + " " + ETQ_SAT[i], E.distribucion[i], E.total, col[i]));
+  if (!E.total) dist.append(el("p", "aviso", "Todavía no hay encuestas respondidas."));
+  $("e-dist").replaceChildren(dist);
+  const res = el("div");
+  res.append(barraH("Sí, completamente", E.resolucion.si, E.total, "#1d8a4a"), barraH("Parcialmente", E.resolucion.parcial, E.total, "#e0a800"), barraH("No, aún tiene problemas", E.resolucion.no, E.total, "#c0392b"));
+  $("e-resol").replaceChildren(res);
+  const sd = el("div");
+  if (!E.por_sede.length) sd.append(el("p", "aviso", "Sin datos."));
+  for (const x of E.por_sede) sd.append(barraH(x.sede, x.total, E.total, "var(--brand)"), Object.assign(el("small", "sub", "Promedio " + x.promedio.toFixed(1) + " / 5"), { style: "display:block;margin:-4px 0 6px 0" }));
+  $("e-sedes").replaceChildren(sd);
+  const cuerpo = $("t-encuestas"); cuerpo.replaceChildren();
+  if (!E.encuestas.length) { const tr = el("tr"); const td = el("td", "vacio", "Cuando un docente responda la encuesta, aparecerá aquí."); td.colSpan = 9; tr.append(td); cuerpo.append(tr); }
+  for (const x of E.encuestas) {
+    const tr = el("tr", "clic");
+    const cal = el("td"); cal.append(CARITAS[x.satisfaccion - 1] + " " + x.satisfaccion + "/5", el("span", "sub", ETQ_SAT[x.satisfaccion - 1]));
+    const acc = el("td");
+    if (S.usuario && S.usuario.rol === "admin") {
+      const b = el("button", "btn chico", "Habilitar de nuevo"); b.type = "button";
+      b.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+        if (!confirm("Se borrará esta respuesta y el docente podrá responder otra vez. ¿Continuar?")) return;
+        const r = await api("/admin/encuestas/" + x.id, { method: "DELETE" });
+        if (r.ok) cargarEncuestas();
+      });
+      acc.append(b);
+    }
+    tr.append(el("td", null, "#" + x.ticket_id), el("td", null, x.docente || "—"), el("td", null, x.sede), el("td", null, x.tecnico || "—"), cal, el("td", null, ETQ_RESOL[x.resolucion]), el("td", null, x.comentario || "—"), el("td", null, fmtFecha(x.creado_en)), acc);
+    tr.addEventListener("click", () => abrirTicket(x.ticket_id));
+    cuerpo.append(tr);
+  }
+  $("pie-encuestas").textContent = E.encuestas.length + (E.encuestas.length === 1 ? " respuesta" : " respuestas");
+}
+$("e-csv").addEventListener("click", () => {
+  const E = S.enc; if (!E || !E.encuestas.length) return;
+  const filas = [["Reporte", "Docente", "Sede", "Técnico", "Calificación (1-5)", "Se solucionó", "Comentario", "Fecha"]]
+    .concat(E.encuestas.map((x) => [x.ticket_id, x.docente || "", x.sede, x.tecnico || "", x.satisfaccion, ETQ_RESOL[x.resolucion], x.comentario || "", fmtFecha(x.creado_en)]));
+  const csv = "\ufeff" + filas.map((f) => f.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = "encuestas-trilce-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+});
 
 // ============================================================
 // DOCENTES
