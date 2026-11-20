@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f26b1d">
+<title>Encuesta de satisfacción · Soporte Trilce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fff8f2; --surface:#fff; --ink:#2a1a10; --muted:#7a6657; --brand:#f26b1d; --brand-dark:#c4510e; --brand-soft:#ffeadb; --line:#f0dfd2; --err:#c0392b; --ok:#1d8a4a; --radius:16px; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.5; font-size:16px; }
+  .oculto { display:none !important; }
+  main { max-width:480px; margin:0 auto; padding:16px 16px 40px; }
+  .banda { background:var(--brand); color:#fff; }
+  .marca { display:flex; align-items:center; gap:10px; max-width:480px; margin:0 auto; padding:16px; }
+  .marca-icono { width:38px; height:38px; border-radius:12px; background:#fff; color:var(--brand); display:grid; place-items:center; flex:none; }
+  .marca b { font-weight:800; }
+  .marca span { opacity:.92; font-size:.88rem; display:block; line-height:1.2; }
+  .bloque { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+  h1 { margin:0 0 6px; font-size:1.4rem; font-weight:800; letter-spacing:-.01em; }
+  h2 { margin:0 0 4px; font-size:1.05rem; font-weight:800; }
+  .aviso { color:var(--muted); font-size:.92rem; margin:0 0 12px; }
+  .error { color:var(--err); font-weight:600; margin:10px 0 0; }
+  .reporte { background:var(--brand-soft); border-radius:12px; padding:10px 14px; font-size:.9rem; margin-bottom:14px; }
+
+  .caras { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; margin-top:10px; }
+  .cara { min-width:0; border:2px solid var(--line); background:#fff; border-radius:14px; padding:10px 0 8px; cursor:pointer; font:inherit; color:var(--ink); display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .12s, border-color .12s, background .12s; }
+  .cara .emoji { font-size:1.7rem; line-height:1; filter:grayscale(.85); opacity:.75; transition:filter .12s, opacity .12s; }
+  .cara .txt { font-size:.6rem; font-weight:700; line-height:1.15; max-width:100%; overflow-wrap:anywhere; hyphens:auto; text-align:center; color:var(--muted); }
+  .cara:hover .emoji { filter:none; opacity:1; }
+  .cara[aria-checked="true"] { border-color:var(--brand); background:var(--brand-soft); transform:translateY(-3px); }
+  .cara[aria-checked="true"] .emoji { filter:none; opacity:1; }
+  .cara[aria-checked="true"] .txt { color:var(--brand-dark); }
+  .cara:focus-visible, .op:focus-within { outline:3px solid color-mix(in srgb, var(--brand) 40%, transparent); outline-offset:2px; }
+
+  .opciones { display:grid; gap:8px; margin-top:10px; }
+  .op { display:flex; align-items:center; gap:10px; border:2px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; font-weight:600; background:#fff; }
+  .op input { accent-color:var(--brand); width:18px; height:18px; margin:0; }
+  .op:has(input:checked) { border-color:var(--brand); background:var(--brand-soft); }
+  textarea { width:100%; min-height:96px; resize:vertical; border:2px solid var(--line); border-radius:12px; padding:12px; font:inherit; color:var(--ink); background:#fff; margin-top:10px; }
+  textarea:focus { outline:3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color:var(--brand); }
+  .contador { text-align:right; font-size:.78rem; color:var(--muted); }
+  button.principal { width:100%; border:0; border-radius:14px; background:var(--brand); color:#fff; font:inherit; font-weight:800; font-size:1.05rem; padding:15px; cursor:pointer; }
+  button.principal:disabled { opacity:.6; cursor:default; }
+  .centro { text-align:center; padding:26px 18px; }
+  .grande { font-size:3rem; line-height:1; margin-bottom:8px; }
+  .gira { width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--brand); border-radius:50%; animation:g .8s linear infinite; margin:30px auto; }
+  @keyframes g { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .gira { animation:none; } .cara { transition:none; } }
+</style>
+</head>
+<body>
+<header class="banda">
+  <div class="marca">
+    <div class="marca-icono" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
+    </div>
+    <div><b>Soporte técnico</b><span>Trilce · Encuesta de satisfacción</span></div>
+  </div>
+</header>
+<main>
+  <div id="cargando" class="gira" role="status" aria-label="Cargando"></div>
+
+  <section id="aviso" class="bloque centro oculto">
+    <div class="grande" id="av-icono"></div>
+    <h2 id="av-titulo"></h2>
+    <p class="aviso" id="av-texto" style="margin:6px 0 0"></p>
+  </section>
+
+  <form id="encuesta" class="oculto" novalidate>
+    <div class="bloque">
+      <h1>¡Queremos conocer tu opinión!</h1>
+      <p class="aviso" style="margin:0 0 12px">Tu experiencia es importante para nosotros. Ayúdanos a mejorar nuestro servicio de soporte respondiendo esta breve encuesta.</p>
+      <div class="reporte" id="reporte"></div>
+
+      <h2 id="p1">1. ¿Qué tan satisfecho estás con la atención recibida?</h2>
+      <div class="caras" role="radiogroup" aria-labelledby="p1" id="caras"></div>
+    </div>
+
+    <div class="bloque">
+      <h2 id="p2">2. ¿Se solucionó tu inconveniente?</h2>
+      <div class="opciones" role="radiogroup" aria-labelledby="p2">
+        <label class="op"><input type="radio" name="resolucion" value="si"> Sí, completamente.</label>
+        <label class="op"><input type="radio" name="resolucion" value="parcial"> Parcialmente.</label>
+        <label class="op"><input type="radio" name="resolucion" value="no"> No, aún tengo problemas.</label>
+      </div>
+    </div>
+
+    <div class="bloque">
+      <h2><label for="comentario">3. ¿Deseas dejarnos algún comentario o sugerencia? <span style="font-weight:500;color:var(--muted)">(opcional)</span></label></h2>
+      <textarea id="comentario" maxlength="1000" placeholder="Escribe aquí tu comentario"></textarea>
+      <div class="contador"><span id="cuenta">0</span>/1000</div>
+    </div>
+
+    <p id="error" class="error oculto" role="alert"></p>
+    <button id="enviar" class="principal" type="submit">Enviar encuesta</button>
+  </form>
+</main>
+
+<script>
+const API = "https://soporte-trilce.onrender.com";
+const $ = (id) => document.getElementById(id);
+const token = new URLSearchParams(location.search).get("t") || "";
+const CARAS = [["😡", "Muy insatisfecho"], ["🙁", "Insatisfecho"], ["😐", "Regular"], ["🙂", "Satisfecho"], ["🤩", "Muy satisfecho"]];
+let nota = 0;
+
+function aviso(icono, titulo, texto) {
+  $("cargando").classList.add("oculto"); $("encuesta").classList.add("oculto");
+  $("av-icono").textContent = icono; $("av-titulo").textContent = titulo; $("av-texto").textContent = texto || "";
+  $("aviso").classList.remove("oculto");
+}
+
+CARAS.forEach(([emoji, texto], i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "cara"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("aria-label", texto);
+  b.innerHTML = '<span class="emoji" aria-hidden="true">' + emoji + '</span><span class="txt">' + texto + "</span>";
+  b.addEventListener("click", () => {
+    nota = i + 1;
+    document.querySelectorAll(".cara").forEach((c, j) => c.setAttribute("aria-checked", String(j === i)));
+    $("error").classList.add("oculto");
+  });
+  $("caras").append(b);
+});
+$("comentario").addEventListener("input", () => { $("cuenta").textContent = $("comentario").value.length; });
+document.querySelectorAll('input[name="resolucion"]').forEach((r) => r.addEventListener("change", () => $("error").classList.add("oculto")));
+
+async function iniciar() {
+  if (!token) return aviso("🔗", "Enlace no válido", "Abre la encuesta desde el botón del correo que recibiste.");
+  try {
+    const r = await fetch(API + "/encuesta/" + encodeURIComponent(token));
+    if (r.status === 404) return aviso("🔗", "Enlace no válido", "Abre la encuesta desde el botón del correo que recibiste.");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d.ya_respondida) return aviso("✅", "Esta encuesta ya fue completada", "Gracias por tu opinión sobre el reporte Nº " + d.reporte + ".");
+    if (!d.disponible) return aviso("⏳", "Aún no está disponible", "La encuesta se habilita cuando el técnico marque tu reporte como resuelto.");
+    $("reporte").textContent = "Reporte Nº " + d.reporte + " · " + d.equipo + ": " + d.falla + " · " + d.sede;
+    $("cargando").classList.add("oculto"); $("encuesta").classList.remove("oculto");
+  } catch (_) {
+    aviso("📡", "No pudimos cargar la encuesta", "Revisa tu conexión y vuelve a abrir el enlace. Si el servicio estaba dormido, espera unos segundos.");
+  }
+}
+
+$("encuesta").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("error");
+  const res = document.querySelector('input[name="resolucion"]:checked');
+  if (!nota) { err.textContent = "Elige qué tan satisfecho estás (pregunta 1)."; err.classList.remove("oculto"); return; }
+  if (!res) { err.textContent = "Indica si se solucionó tu inconveniente (pregunta 2)."; err.classList.remove("oculto"); return; }
+  const boton = $("enviar"); boton.disabled = true; boton.textContent = "Enviando…"; err.classList.add("oculto");
+  try {
+    const r = await fetch(API + "/encuesta/" + encodeURIComponent(token), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ satisfaccion: nota, resolucion: res.value, comentario: $("comentario").value.trim() || null }),
+    });
+    if (r.status === 409) {
+      const d = await r.json().catch(() => ({}));
+      if (/ya fue completada/i.test(d.detail || "")) return aviso("✅", "Esta encuesta ya fue completada", "Gracias por tu opinión.");
+      throw new Error(d.detail || "No se pudo enviar");
+    }
+    if (!r.ok) throw new Error("No se pudo enviar. Intenta de nuevo.");
+    aviso("🎉", "¡Gracias por tu opinión!", "Tu encuesta se envió correctamente. Nos ayuda a mejorar el soporte.");
+  } catch (ex) {
+    err.textContent = ex.message || "No se pudo enviar. Intenta de nuevo."; err.classList.remove("oculto");
+    boton.disabled = false; boton.textContent = "Enviar encuesta";
+  }
+});
+iniciar();
+</script>
+</body>
+</html>
