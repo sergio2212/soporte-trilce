@@ -142,8 +142,8 @@ def exigir_admin(usuario):
 
 
 def filtro_sede(usuario):
-    """None = ve todas las sedes (admin). Un técnico solo ve la suya."""
-    if usuario["rol"] == "admin":
+    """None = ve todas las sedes (admin, o Soporte sin sede fija). Los demás solo ven la suya."""
+    if usuario["rol"] == "admin" or (usuario["rol"] == "tecnico" and usuario["sede_id"] is None):
         return None
     if usuario["sede_id"] is None:
         raise HTTPException(status_code=403, detail="Tu usuario no tiene una sede asignada")
@@ -1166,7 +1166,7 @@ def crear_usuario(
 ):
     with conexion() as conn, conn.cursor() as cur:
         exigir_admin(autenticar(cur, cred))
-        if datos.rol in ("tecnico", "tecnico_campo") and datos.sede_id is None:
+        if datos.rol == "tecnico_campo" and datos.sede_id is None:
             raise HTTPException(status_code=400, detail="Un técnico necesita una sede")
         if datos.sede_id is not None:
             cur.execute("SELECT 1 FROM sedes WHERE id = %s", (datos.sede_id,))
