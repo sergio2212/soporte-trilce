@@ -237,6 +237,13 @@
     main { padding: 0; max-width: none; }
     .caja { break-inside: avoid; }
   }
+  .btn.pendiente { border-style: dashed; border-color: #d9a400; background: #fff8dc; color: #7a5b00; opacity: 1; cursor: default; }
+  .aviso-tecnico { margin-top: 14px; padding: 12px 14px; background: #e3effc; border-radius: 12px; font-size: .92rem; }
+  .elige-tecnico { margin-top: 16px; display: grid; gap: 6px; }
+  .elige-tecnico label { font-weight: 700; font-size: .9rem; }
+  .ranking-barra { display: inline-block; height: 8px; border-radius: 4px; background: var(--brand); vertical-align: middle; margin-left: 8px; }
+  .lista-docente { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .lista-docente li { padding: 10px 12px; background: var(--bg); border-radius: 10px; display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; align-items: center; }
 </style>
 </head>
 <body>
@@ -264,6 +271,7 @@
     <div class="nav-grupo">Menú principal</div>
     <button class="nav-item" data-vista="panel" type="button"></button>
     <button class="nav-item" data-vista="tickets" type="button"></button>
+    <button class="nav-item" data-vista="docentes" type="button"></button>
     <button class="nav-item" data-vista="activos" type="button"></button>
     <button class="nav-item" data-vista="sedes" type="button"></button>
     <button class="nav-item" data-vista="reportes" type="button"></button>
@@ -308,13 +316,34 @@
         <div class="cabecera"><div><h1>Gestión de tickets</h1><p>Consulta, atiende y actualiza el estado de las incidencias.</p></div></div>
         <div class="caja">
           <div class="herramientas" id="herr-tickets">
-            <input id="f-buscar" type="search" placeholder="Buscar por código, falla o aula" aria-label="Buscar tickets">
+            <input id="f-buscar" type="search" placeholder="Buscar por código, falla, aula o docente" aria-label="Buscar tickets">
             <select id="f-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="nuevo">Pendiente</option><option value="en_atencion">En atención</option><option value="en_camino">Técnico en camino</option><option value="solucionando">Técnico solucionando</option><option value="resuelto">Resuelto</option></select>
             <select id="f-prio" aria-label="Urgencia"><option value="todas">Todas las urgencias</option><option value="critica">Crítica</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select>
             <select id="f-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>
           </div>
           <div class="tabla-wrap"><table><thead><tr><th>Código</th><th>Descripción</th><th>Sede y aula</th><th>Prioridad</th><th>Estado</th><th>Plazo</th><th></th></tr></thead><tbody id="t-tickets"></tbody></table></div>
           <p id="pie-tickets" class="pie-tabla"></p>
+        </div>
+      </section>
+
+      <!-- ===== Docentes ===== -->
+      <section id="v-docentes" class="oculto">
+        <div class="cabecera"><div><h1>Docentes</h1><p>Quiénes están reportando y quiénes tienen más incidencias.</p></div></div>
+        <div class="tarjetas">
+          <div class="caja kpi" id="kd-docentes"><div class="nombre">Docentes que reportaron</div><div class="valor">–</div><div class="nota" id="kd-periodo">Todo el historial</div></div>
+          <div class="caja kpi" id="kd-incid"><div class="nombre">Incidencias de docentes</div><div class="valor">–</div><div class="nota">En el periodo elegido</div></div>
+          <div class="caja kpi" id="kd-reinc"><div class="nombre">Reinciden (3 o más)</div><div class="valor">–</div><div class="nota">Docentes con 3+ incidencias</div></div>
+          <div class="caja kpi destacado" id="kd-ahora"><div class="nombre">Reportando ahora</div><div class="valor">–</div><div class="nota">Incidencias abiertas</div></div>
+        </div>
+        <div class="caja">
+          <h2>Reportando ahora <small>Incidencias que siguen abiertas</small></h2>
+          <div class="tabla-wrap"><table><thead><tr><th>Docente</th><th>Incidencia</th><th>Sede y aula</th><th>Estado</th><th>Reportó</th></tr></thead><tbody id="t-docentes-ahora"></tbody></table></div>
+        </div>
+        <div class="caja">
+          <div class="cabecera" style="margin-bottom:6px"><h2 style="margin:0">Docentes con más incidencias</h2>
+            <select id="d-periodo" aria-label="Periodo" style="width:auto"><option value="0">Todo el historial</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option></select></div>
+          <div class="tabla-wrap"><table><thead><tr><th>#</th><th>Docente</th><th>Incidencias</th><th>Abiertas</th><th>Equipo más reportado</th><th>Último reporte</th><th></th></tr></thead><tbody id="t-docentes-rank"></tbody></table></div>
+          <p id="pie-docentes" class="pie-tabla"></p>
         </div>
       </section>
 
@@ -370,6 +399,11 @@
 </div>
 
 <!-- ===================== VENTANAS ===================== -->
+<dialog id="dlg-docente" aria-labelledby="dd-titulo"><div class="dlg-int">
+  <div class="dlg-cab"><h2 id="dd-titulo"></h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
+  <div id="dd-cuerpo"></div>
+</div></dialog>
+
 <dialog id="dlg-ticket" aria-labelledby="dt-titulo"><div class="dlg-int" id="dt-cuerpo"></div></dialog>
 
 <dialog id="dlg-activo" aria-labelledby="da-titulo">
@@ -407,7 +441,7 @@
     <label class="campo" for="du-correo">Correo</label><input id="du-correo" type="email" maxlength="200">
     <label class="campo" for="du-clave">Contraseña <span class="aviso">(mínimo 8 caracteres)</span></label><input id="du-clave" type="text" maxlength="200" autocomplete="off">
     <div class="fila">
-      <div><label class="campo" for="du-rol">Rol</label><select id="du-rol"><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></div>
+      <div><label class="campo" for="du-rol">Rol</label><select id="du-rol"><option value="tecnico">Soporte (atiende los tickets)</option><option value="tecnico_campo">Técnico de campo (va al aula)</option><option value="admin">Administrador</option></select></div>
       <div id="du-sede-caja"><label class="campo" for="du-sede">Sede</label><select id="du-sede"></select></div>
     </div>
     <p id="du-error" class="error oculto"></p>
@@ -427,6 +461,7 @@ const CADA_SEGUNDOS = 15;
 const AVISO_CERCA_MS = 2 * 60 * 1000;
 
 const $ = (id) => document.getElementById(id);
+const ETQ_ROL = { admin: "Administrador", tecnico: "Soporte", tecnico_campo: "Técnico de campo" };
 const ETQ_ESTADO = { nuevo: "Pendiente", en_atencion: "En atención", en_camino: "Técnico en camino", solucionando: "Técnico solucionando", resuelto: "Resuelto" };
 const ESTADOS_EN_PROCESO = ["en_atencion", "en_camino", "solucionando"];
 const ETQ_PRIO = { critica: "Crítica", alta: "Alta", media: "Media", baja: "Baja" };
@@ -434,6 +469,7 @@ const ETQ_ACTIVO = { operativo: "Operativo", en_mantenimiento: "En mantenimiento
 const VISTAS = {
   panel: { titulo: "Panel principal", icono: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>' },
   tickets: { titulo: "Gestión de tickets", icono: '<path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 0 0-6V6H3z"/><path d="M13 6v12" stroke-dasharray="2 3"/>' },
+  docentes: { titulo: "Docentes", icono: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c3 .3 5 2.6 5 5.8"/>' },
   activos: { titulo: "Activos tecnológicos", icono: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>' },
   sedes: { titulo: "Sedes y aulas", icono: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>' },
   reportes: { titulo: "Reportes", icono: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>' },
@@ -441,13 +477,13 @@ const VISTAS = {
 };
 
 // ---------- estado de la aplicación ----------
-const S = { usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null, catalogo: null };
+const S = { docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null, catalogo: null };
 let vista = "panel";
 let offsetReloj = 0;
 let idsVistos = null;
 let temporizador = null;
 let ticketAbierto = null;      // id del ticket que se está gestionando
-const borradorNota = {};
+const elegidoTecnico = {};
 let activoEditando = null;
 let sedesAbiertas = new Set();
 
@@ -595,6 +631,7 @@ $("form-login").addEventListener("submit", async (e) => {
     if (r.status === 401) throw new Error("Correo o contraseña incorrectos.");
     if (!r.ok) throw new Error("No se pudo iniciar sesión. Inténtalo de nuevo.");
     const datos = await r.json();
+    if (datos.usuario.rol === "tecnico_campo") throw new Error("Tu cuenta es de técnico de campo. Ingresa por la página del técnico.");
     guardarToken(datos.token);
     $("clave").value = "";
     entrarAlPanel(datos.usuario);
@@ -613,7 +650,7 @@ function entrarAlPanel(usuario) {
   const admin = usuario.rol === "admin";
   $("u-nombre").textContent = usuario.nombre;
   $("u-detalle").innerHTML = "";
-  $("u-detalle").append(usuario.sede + " · ", Object.assign(el("span", "rol"), { textContent: admin ? "Administrador" : "Técnico" }));
+  $("u-detalle").append(usuario.sede + " · ", Object.assign(el("span", "rol"), { textContent: ETQ_ROL[usuario.rol] || usuario.rol }));
   document.querySelectorAll(".sede-admin").forEach((n) => n.classList.toggle("oculto", !admin));
   $("f-sede").parentElement.classList.toggle("oculto", false);
   $("f-sede").classList.toggle("oculto", !admin);
@@ -661,6 +698,7 @@ function irA(v) {
   try { history.replaceState(null, "", "#/" + v); } catch (_) {}
   window.scrollTo({ top: 0 });
   if (v === "sedes") cargarSedes();
+  if (v === "docentes") cargarDocentes();
   if (v === "config") cargarUsuarios();
   pintarVista();
 }
@@ -669,7 +707,7 @@ window.addEventListener("hashchange", () => { const v = vistaDesdeHash(); if (v 
 // ---------- carga de datos ----------
 async function refrescar() {
   try {
-    const [rt, ri, ra] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/activos")]);
+    const [rt, ri, ra, rtec] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/activos"), api("/soporte/tecnicos")]);
     if (!rt.ok) throw new Error("tickets " + rt.status);
     const dt = await rt.json();
     offsetReloj = Date.parse(dt.ahora) - Date.now();
@@ -677,10 +715,12 @@ async function refrescar() {
     S.tickets = dt.tickets;
     if (ri.ok) S.ind = await ri.json();
     if (ra.ok) S.activos = (await ra.json()).activos;
+    if (rtec.ok) S.tecnicos = (await rtec.json()).tecnicos;
     $("panel-error").classList.add("oculto");
     $("actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
     pintarVista();
     if (vista === "sedes") cargarSedes();
+    if (vista === "docentes") cargarDocentes();
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
     $("panel-error").textContent = "No se pudo actualizar. Reintentando…";
@@ -707,9 +747,9 @@ function pintarVista() {
   const nav = document.querySelector('.nav-item[data-vista="tickets"]');
   let cuenta = nav.querySelector(".cuenta");
   if (pend) { if (!cuenta) { cuenta = el("span", "cuenta"); nav.append(cuenta); } cuenta.textContent = pend; } else if (cuenta) cuenta.remove();
-  ({ panel: pintarPanel, tickets: pintarTickets, activos: pintarActivos, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
+  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, activos: pintarActivos, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
   if (ticketAbierto !== null && $("dlg-ticket").open) {
-    const escribiendo = document.activeElement && document.activeElement.tagName === "TEXTAREA";
+    const escribiendo = document.activeElement && ["TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && $("dlg-ticket").contains(document.activeElement);
     if (!escribiendo) pintarDialogoTicket();
   }
 }
@@ -802,7 +842,7 @@ function ticketsFiltrados() {
     if (pr !== "todas" && t.prioridad !== pr) return false;
     if (sd !== "todas" && S.usuario.rol === "admin" && t.sede !== sd) return false;
     if (q) {
-      const texto = [String(t.id), codigo(t), t.falla, t.equipo, t.ambiente, t.sede, t.descripcion, t.tecnico].join(" ").toLowerCase();
+      const texto = [String(t.id), codigo(t), t.falla, t.equipo, t.ambiente, t.sede, t.descripcion, t.tecnico, t.docente, t.docente_correo].join(" ").toLowerCase();
       if (!texto.includes(q)) return false;
     }
     return true;
@@ -816,7 +856,7 @@ function pintarTickets() {
   if (!lista.length) { const tr = el("tr"); const td = el("td", "vacio", S.tickets.length ? "Ningún ticket coincide con los filtros." : "Aún no hay tickets. Cuando un docente reporte un problema aparecerá aquí."); td.colSpan = 7; tr.append(td); cuerpo.append(tr); }
   for (const t of lista.slice(0, 100)) {
     const tr = el("tr", "clic");
-    const desc = el("td"); desc.append(t.falla, el("span", "sub", t.equipo));
+    const desc = el("td"); desc.append(t.falla, el("span", "sub", t.equipo + (t.docente ? " · " + t.docente : "")));
     const lugar = el("td"); lugar.append(t.sede, el("span", "sub", donde(t)));
     const plazo = el("td", "plazo-cel");
     const p = infoPlazo(t);
@@ -861,7 +901,8 @@ function pintarDialogoTicket() {
   const dl = el("dl", "fichas");
   const fila = (a, b) => dl.append(el("dt", null, a), el("dd", null, b));
   fila("Equipo", t.equipo); fila("Sede", t.sede); fila("Ubicación", donde(t));
-  fila("Registrado", fmtFecha(t.creado_en)); if (t.tecnico) fila("Atiende", t.tecnico);
+  if (t.docente) fila("Reportado por", t.docente);
+  fila("Registrado", fmtFecha(t.creado_en)); if (t.tecnico) fila("Atiende", t.tecnico); if (t.tecnico_campo) fila("Técnico enviado", t.tecnico_campo);
   if (t.atendido_en) fila("Atendido", fmtFecha(t.atendido_en)); if (t.resuelto_en) fila("Resuelto", fmtFecha(t.resuelto_en));
   frag.append(dl);
   if (t.descripcion) frag.append(el("div", "cita", "“" + t.descripcion + "”"));
@@ -887,22 +928,32 @@ function pintarDialogoTicket() {
 
     const acc = el("div", "acciones-dlg");
     if (t.estado === "nuevo") { const b = el("button", "btn primario", "Atender ticket"); b.type = "button"; b.addEventListener("click", () => accionAtender(t.id, b)); acc.append(b); }
-    const siguiente = { en_atencion: ["en_camino", "Técnico en camino"], en_camino: ["solucionando", "Técnico solucionando"] }[t.estado];
-    if (siguiente) { const b = el("button", "btn primario", siguiente[1]); b.type = "button"; b.addEventListener("click", () => accionAvanzar(t.id, siguiente[0], b)); acc.append(b); }
-    if (t.estado === "en_atencion") { const b2 = el("button", "btn", "Técnico solucionando"); b2.type = "button"; b2.addEventListener("click", () => accionAvanzar(t.id, "solucionando", b2)); acc.append(b2); }
-    frag.append(acc);
-
-    const caja = el("div", "resolver-caja");
-    const lab = el("label", "campo", "¿Qué se hizo para resolverlo? (intervención realizada)");
-    const area = document.createElement("textarea"); area.rows = 2; area.maxLength = 500; area.id = "nota-ticket";
-    area.value = borradorNota[t.id] || "";
-    area.addEventListener("input", () => { borradorNota[t.id] = area.value; });
-    lab.htmlFor = "nota-ticket";
-    const err = el("p", "error oculto");
-    const ok = el("button", "btn primario", "Marcar como resuelto"); ok.type = "button"; ok.style.marginTop = "10px";
-    ok.addEventListener("click", () => accionResolver(t.id, area.value, ok, err));
-    caja.append(lab, area, err, ok);
-    frag.append(caja);
+    if (t.estado === "en_atencion") {
+      // Soporte solo llama al técnico: quien resuelve es el técnico, no Soporte
+      if (S.tecnicos.length) {
+        const caja = el("div", "elige-tecnico");
+        const lab = el("label", null, "Técnico al que llamar"); lab.htmlFor = "sel-tecnico";
+        const sel = document.createElement("select"); sel.id = "sel-tecnico";
+        sel.append(new Option("Cualquier técnico de la sede", ""));
+        for (const tc of S.tecnicos) sel.append(new Option(tc.nombre + (S.usuario.rol === "admin" && tc.sede ? " · " + tc.sede : "") + (Number(tc.ocupado_con) ? " (ocupado)" : ""), tc.id));
+        sel.value = elegidoTecnico[t.id] || "";
+        sel.addEventListener("change", () => { elegidoTecnico[t.id] = sel.value; });
+        caja.append(lab, sel); frag.append(caja);
+      }
+      const fila2 = el("div", "acciones-dlg");
+      const pen = el("button", "btn pendiente", "Pendiente"); pen.type = "button"; pen.disabled = true;
+      pen.title = "Solo el técnico puede marcar el problema como resuelto";
+      const env = el("button", "btn primario", "Contactar técnico"); env.type = "button";
+      env.addEventListener("click", () => accionEnviarTecnico(t.id, (elegidoTecnico[t.id] || ""), env));
+      fila2.append(pen, env); frag.append(fila2);
+      frag.append(el("p", "aviso", "Solo el técnico puede marcar el problema como resuelto."));
+    } else if (t.estado === "en_camino" || t.estado === "solucionando") {
+      const fila2 = el("div", "acciones-dlg");
+      const pen = el("button", "btn pendiente", "Pendiente"); pen.type = "button"; pen.disabled = true;
+      fila2.append(pen); frag.append(fila2);
+      frag.append(el("div", "aviso-tecnico", (t.estado === "en_camino" ? "Técnico en camino" : "Técnico solucionando el problema") + (t.tecnico_campo ? ": " + t.tecnico_campo : " (cualquier técnico de la sede)") + ". Cuando termine, el técnico marcará si quedó resuelto o no."));
+    }
+    if (acc.children.length) frag.append(acc);
   }
 
   frag.append(el("p", "historial-tit", "Historial"));
@@ -958,36 +1009,97 @@ async function accionAtender(id, boton) {
   refrescar();
 }
 
-async function accionAvanzar(id, estado, boton) {
+async function accionEnviarTecnico(id, tecnicoId, boton) {
   boton.disabled = true;
   try {
-    const r = await api("/soporte/tickets/" + id + "/avanzar", json({ estado }));
-    if (r.status === 409) toast("Ese ticket ya está en esa etapa o más adelante.");
-    else if (!r.ok) throw new Error("HTTP " + r.status);
-    else toast("Ticket " + id + ": " + ETQ_ESTADO[estado].toLowerCase() + ". El docente lo ve al instante.");
+    const r = await api("/soporte/tickets/" + id + "/enviar-tecnico", json({ tecnico_id: tecnicoId ? Number(tecnicoId) : null }));
+    if (r.status === 409 || r.status === 400) {
+      let msg = "No se pudo enviar al técnico."; try { msg = (await r.json()).detail || msg; } catch (_) {}
+      toast(msg);
+    } else if (!r.ok) throw new Error("HTTP " + r.status);
+    else { const d = await r.json(); toast("Ticket " + id + ": técnico en camino" + (d.tecnico ? " (" + d.tecnico + ")" : "") + ". El docente recibe el aviso en su correo."); delete elegidoTecnico[id]; }
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    toast("No se pudo cambiar el estado. Inténtalo otra vez.");
+    toast("No se pudo contactar al técnico. Inténtalo otra vez.");
   }
   refrescar();
 }
 
-async function accionResolver(id, nota, boton, err) {
-  err.classList.add("oculto");
-  if (nota.trim().length < 3) { err.textContent = "Describe brevemente qué se hizo."; err.classList.remove("oculto"); return; }
-  boton.disabled = true;
+// ============================================================
+// DOCENTES
+// ============================================================
+async function cargarDocentes() {
   try {
-    const r = await api("/soporte/tickets/" + id + "/resolver", json({ nota: nota.trim() }));
-    if (r.status === 409) toast("Este ticket ya estaba resuelto.");
-    else if (!r.ok) throw new Error("HTTP " + r.status);
-    else toast("Ticket " + id + " resuelto. El docente verá el cambio en su cuenta.");
-    delete borradorNota[id];
-  } catch (e) {
-    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    err.textContent = "No se pudo resolver el ticket. Inténtalo otra vez."; err.classList.remove("oculto");
-    boton.disabled = false; return;
+    const dias = Number($("d-periodo").value) || 0;
+    const r = await api("/soporte/docentes?dias=" + dias);
+    if (r.ok) S.docentes = await r.json();
+  } catch (e) { if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo."); }
+  pintarDocentes();
+}
+$("d-periodo").addEventListener("change", cargarDocentes);
+
+function haceCuanto(iso) {
+  const ms = ahoraServidor() - Date.parse(iso);
+  return ms < 60000 ? "ahora mismo" : "hace " + fmtMin(ms / 60000);
+}
+
+function pintarDocentes() {
+  const abiertos = S.tickets.filter((t) => t.estado !== "resuelto" && t.docente);
+  kpi("kd-ahora", abiertos.length);
+  const ahora = $("t-docentes-ahora"); ahora.replaceChildren();
+  if (!abiertos.length) { const tr = el("tr"); const td = el("td", "vacio", "No hay incidencias abiertas de docentes."); td.colSpan = 5; tr.append(td); ahora.append(tr); }
+  for (const t of abiertos.sort((a, b) => Date.parse(b.creado_en) - Date.parse(a.creado_en)).slice(0, 12)) {
+    const tr = el("tr", "clic");
+    const d = el("td"); d.append(t.docente, el("span", "sub", t.docente_correo || ""));
+    const i = el("td"); i.append(t.falla, el("span", "sub", t.equipo));
+    const l = el("td"); l.append(t.sede, el("span", "sub", donde(t)));
+    const e = el("td"); e.append(chip(t.estado, ETQ_ESTADO[t.estado]));
+    tr.append(d, i, l, e, el("td", null, haceCuanto(t.creado_en)));
+    tr.addEventListener("click", () => abrirTicket(t.id));
+    ahora.append(tr);
   }
-  await refrescar();
+
+  const D = S.docentes; if (!D) return;
+  kpi("kd-docentes", D.total_docentes); kpi("kd-incid", D.total_incidencias);
+  kpi("kd-reinc", D.docentes.filter((x) => Number(x.total) >= 3).length);
+  $("kd-periodo").textContent = { 0: "Todo el historial", 7: "Últimos 7 días", 30: "Últimos 30 días" }[$("d-periodo").value] || "";
+  const cuerpo = $("t-docentes-rank"); cuerpo.replaceChildren();
+  const max = D.docentes.length ? Number(D.docentes[0].total) : 1;
+  if (!D.docentes.length) { const tr = el("tr"); const td = el("td", "vacio", "Todavía no hay reportes de docentes en este periodo."); td.colSpan = 7; tr.append(td); cuerpo.append(tr); }
+  D.docentes.forEach((x, n) => {
+    const tr = el("tr", "clic");
+    const dn = el("td"); dn.append(x.nombre, el("span", "sub", x.correo));
+    const tot = el("td"); tot.append(el("b", null, String(x.total)));
+    const barra = el("span", "ranking-barra"); barra.style.width = Math.max(6, Math.round((Number(x.total) / max) * 90)) + "px"; tot.append(barra);
+    const ab = el("td"); ab.append(Number(x.abiertos) ? chip("nuevo", x.abiertos + " abiertas") : el("span", "sub", "—"));
+    const bt = el("td"); const b = el("button", "btn chico", "Ver reportes"); b.type = "button"; bt.append(b);
+    tr.append(el("td", null, String(n + 1)), dn, tot, ab, el("td", null, x.equipo_frecuente || "—"), el("td", null, fmtFecha(x.ultimo)), bt);
+    tr.addEventListener("click", () => abrirDocente(x));
+    cuerpo.append(tr);
+  });
+  $("pie-docentes").textContent = D.docentes.length + (D.docentes.length === 1 ? " docente" : " docentes");
+}
+
+async function abrirDocente(x) {
+  $("dd-titulo").textContent = x.nombre;
+  $("dd-cuerpo").replaceChildren(el("p", "aviso", x.correo + " · cargando reportes…"));
+  if (!$("dlg-docente").open) $("dlg-docente").showModal();
+  try {
+    const r = await api("/soporte/docentes/" + x.id + "/tickets");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const { tickets } = await r.json();
+    const ul = el("ul", "lista-docente");
+    for (const t of tickets) {
+      const li = el("li");
+      const izq = el("div"); izq.append(el("b", null, codigo(t) + " · " + t.equipo + ": " + t.falla), el("span", "sub", t.sede + " · " + donde(t) + " · " + fmtFecha(t.creado_en)));
+      li.append(izq, chip(t.estado, ETQ_ESTADO[t.estado]));
+      ul.append(li);
+    }
+    $("dd-cuerpo").replaceChildren(el("p", "aviso", x.correo + " · " + tickets.length + (tickets.length === 1 ? " reporte" : " reportes")), ul);
+  } catch (e) {
+    if (e instanceof SesionVencida) { $("dlg-docente").close(); return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo."); }
+    $("dd-cuerpo").replaceChildren(el("p", "error", "No se pudieron cargar los reportes."));
+  }
 }
 
 // ============================================================
@@ -1212,7 +1324,7 @@ $("csv").addEventListener("click", () => {
 // ============================================================
 function pintarConfig() {
   const u = S.usuario, dl = $("mi-cuenta"); dl.replaceChildren();
-  dl.append(el("dt", null, "Nombre"), el("dd", null, u.nombre), el("dt", null, "Rol"), el("dd", null, u.rol === "admin" ? "Administrador" : "Técnico"), el("dt", null, "Sede"), el("dd", null, u.sede));
+  dl.append(el("dt", null, "Nombre"), el("dd", null, u.nombre), el("dt", null, "Rol"), el("dd", null, ETQ_ROL[u.rol] || u.rol), el("dt", null, "Sede"), el("dd", null, u.sede));
   $("c-usuarios").classList.toggle("oculto", u.rol !== "admin");
   if (u.rol !== "admin" || !S.usuarios) return;
   const cuerpo = $("t-usuarios"); cuerpo.replaceChildren();
@@ -1221,7 +1333,7 @@ function pintarConfig() {
     const est = el("td"); est.append(chip(x.activo ? "operativo" : "baja", x.activo ? "Activo" : "Desactivado"));
     const acc = el("td");
     if (x.id !== u.id) { const b = el("button", "btn chico", x.activo ? "Desactivar" : "Activar"); b.type = "button"; b.addEventListener("click", () => cambiarUsuario(x, b)); acc.append(b); }
-    tr.append(el("td", null, x.nombre), el("td", null, x.correo), el("td", null, x.rol === "admin" ? "Administrador" : "Técnico"), el("td", null, x.sede || "Todas"), est, acc);
+    tr.append(el("td", null, x.nombre), el("td", null, x.correo), el("td", null, ETQ_ROL[x.rol] || x.rol), el("td", null, x.sede || "Todas"), est, acc);
     cuerpo.append(tr);
   }
 }
@@ -1286,7 +1398,9 @@ setInterval(() => {
   try {
     const r = await api("/auth/yo");
     if (!r.ok) throw new Error("HTTP " + r.status);
-    entrarAlPanel(await r.json());
+    const yo = await r.json();
+    if (yo.rol === "tecnico_campo") return cerrarSesion("Tu cuenta es de técnico de campo. Ingresa por la página del técnico.");
+    entrarAlPanel(yo);
   } catch (_) { cerrarSesion(""); }
 })();
 </script>
