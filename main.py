@@ -316,7 +316,7 @@ def docente_registrar(datos: DocenteRegistro):
         cur.execute("SELECT id, password_hash FROM docentes WHERE correo = %s", (correo,))
         d = cur.fetchone()
         if d and d["password_hash"]:
-            raise HTTPException(status_code=409, detail="Ese correo ya está registrado. Presiona «Iniciar sesión».")
+            raise HTTPException(status_code=409, detail="Este correo ya ha sido registrado")
         h = seguridad.hashear_password(datos.password)
         if d:   # cuenta creada antes sin contraseña: se completa
             cur.execute("UPDATE docentes SET nombre = %s, apellido = %s, password_hash = %s WHERE id = %s",
