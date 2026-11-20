@@ -181,6 +181,24 @@
   .grupo-correo .sufijo { display: flex; align-items: center; padding: 0 12px; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; border: 1.5px solid var(--line); border-left: 0; border-radius: 0 12px 12px 0; white-space: nowrap; font-size: .95rem; }
   .grupo-correo:focus-within .sufijo { border-color: var(--brand); }
   #correo-aviso, #e-correo-aviso { margin: 6px 0 0; font-size: .88rem; }
+  #acceso label.campo { margin-top: 16px; }
+  #acceso .dos label.campo, #form-login > label.campo:first-child { margin-top: 0; }
+  #acceso .error { margin: 10px 0 0; }
+  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--brand-soft); border-radius: 12px; margin-bottom: 16px; }
+  .tab { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
+  .tab.activa { background: var(--brand); color: #fff; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dos > div { min-width: 0; }
+  .grupo-clave { position: relative; }
+  .grupo-clave input { padding-right: 92px !important; }
+  .ojo { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--brand-soft); color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
+  .reglas { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: .86rem; color: var(--muted); }
+  .reglas li::before { content: "○ "; }
+  .reglas li.ok { color: #1E9E57; font-weight: 700; }
+  .reglas li.ok::before { content: "✓ "; }
+  #correo-paso label.campo { margin-top: 0; }
+  #bloque-nombre .dos label.campo { margin-top: 0; }
+  #correo-paso .error { margin: 10px 0 0; }
 </style>
 </head>
 <body>
@@ -206,8 +224,34 @@
     <p class="aviso">Si el problema continúa, avisa directamente al área de Soporte.</p>
   </section>
 
+  <!-- Paso 1: correo institucional -->
+  <section id="correo-paso" class="oculto">
+    <form id="form-correo" class="bloque" novalidate autocomplete="on">
+      <h2>¿Cuál es tu correo institucional?</h2>
+      <p class="aviso" style="margin:0 0 14px">Así te avisamos por correo cómo va tu reporte.</p>
+      <label class="campo" for="c-usuario">Correo institucional</label>
+      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="c-correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
+      <p id="c-correo-aviso" class="error oculto" role="alert"></p>
+      <p id="c-error" class="error oculto" role="alert"></p>
+      <button id="c-boton" class="principal espacio-sup" type="submit">Continuar</button>
+    </form>
+  </section>
+
   <!-- Formulario por pasos -->
   <form id="formulario" class="oculto" novalidate autocomplete="off">
+    <div class="barra-sesion">
+      <div><small>Reportando como</small><b id="bd-correo"></b></div>
+      <button id="bd-salir" class="enlace" type="button">¿No eres tú?</button>
+    </div>
+    <section id="bloque-nombre" class="bloque oculto">
+      <h2>Primera vez: ¿cómo te llamas?</h2>
+      <div class="dos">
+        <div><label class="campo" for="r-nombre">Nombres</label>
+          <input id="r-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60" placeholder="Juan Carlos"></div>
+        <div><label class="campo" for="r-apellido">Apellidos</label>
+          <input id="r-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60" placeholder="Pérez Gómez"></div>
+      </div>
+    </section>
     <div class="pasos" aria-hidden="true"><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
 
     <section id="paso-sede" class="bloque">
@@ -239,23 +283,6 @@
       </div>
     </section>
 
-    <section id="paso-final" class="bloque oculto">
-      <div id="cuenta-nueva">
-        <h2>Por favor ingrese su correo y contraseña para que visualice su estado de reporte</h2>
-        <label class="campo" for="correo">Correo institucional</label>
-        <div class="grupo-correo"><input id="correo" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
-        <p id="correo-aviso" class="error oculto" role="alert"></p>
-        <label class="campo espacio-sup" for="clave">Contraseña</label>
-        <input id="clave" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
-        <p class="aviso espacio-sup">Si es tu primera vez, tu cuenta se crea con esta contraseña. Si ya la tienes, escribe la misma de siempre.</p>
-      </div>
-      <div id="cuenta-activa" class="oculto">
-        <h2>Tu cuenta</h2>
-        <p style="margin:0">Ingresaste como <b id="cuenta-correo"></b>.</p>
-        <p class="aviso espacio-sup"><button id="otra-cuenta" class="enlace" type="button">Usar otra cuenta</button></p>
-      </div>
-    </section>
-
     <div id="barra-envio" class="barra-envio oculto">
       <div>
         <p id="error-form" class="error oculto" role="alert"></p>
@@ -263,22 +290,6 @@
       </div>
     </div>
   </form>
-
-  <!-- Ingresar para ver mis reportes -->
-  <section id="entrar" class="oculto">
-    <form id="form-entrar" class="bloque" novalidate>
-      <h2>Ingresa para ver tus reportes</h2>
-      <label class="campo" for="e-correo">Correo</label>
-      <div class="grupo-correo"><input id="e-correo" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" placeholder="juan.perez" aria-describedby="e-correo-aviso"><span class="sufijo" aria-hidden="true">@trilce.edu.pe</span></div>
-      <p id="e-correo-aviso" class="error oculto" role="alert"></p>
-      <label class="campo espacio-sup" for="e-clave">Contraseña</label>
-      <input id="e-clave" type="password" autocomplete="current-password">
-      <p id="e-error" class="error oculto espacio-sup" role="alert"></p>
-      <button id="e-boton" class="principal espacio-sup" type="submit">Ingresar</button>
-      <p class="aviso espacio-sup">Tu cuenta se crea al registrar tu primer reporte.</p>
-    </form>
-    <button id="e-volver" class="secundario" type="button">Volver al formulario</button>
-  </section>
 
   <!-- Reporte enviado: el estado se ve solo en el correo -->
   <section id="enviado" class="oculto" aria-live="polite">
@@ -290,17 +301,6 @@
     <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
   </section>
 
-  <!-- Mis reportes -->
-  <section id="reportes" class="oculto" aria-live="polite">
-    <div class="barra-sesion">
-      <div><h2>Mis reportes</h2><small id="r-correo"></small></div>
-      <button id="r-salir" class="enlace" type="button">Cerrar sesión</button>
-    </div>
-    <p id="vivo" class="vivo"><i aria-hidden="true"></i><span id="vivo-texto">Se actualiza sola</span></p>
-    <div id="lista-reportes"></div>
-    <p id="nota-final" class="nota-final oculto">Puede visualizar el seguimiento de su reporte a través de su correo: ingrese con su correo y contraseña cuando quiera.</p>
-    <div class="acciones-fila"><button id="r-otro" class="principal" type="button">Reportar otro problema</button></div>
-  </section>
 </main>
 
 <script>
@@ -314,7 +314,7 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const tokenQR = params.get("t");      // ?t=...  (viene en el QR)
 
-const PANTALLAS = ["cargando", "error", "formulario", "entrar", "reportes", "enviado"];
+const PANTALLAS = ["cargando", "error", "correo-paso", "formulario", "enviado"];
 function mostrar(id) {
   for (const s of PANTALLAS) $(s).classList.toggle("oculto", s !== id);
 }
@@ -396,17 +396,22 @@ const ICONO_OTRO = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.0
 // ------------------------------------------------------------
 // Sesión del docente (se recuerda en este navegador)
 // ------------------------------------------------------------
-let sesionMem = null;
-function leerSesion() {
-  if (sesionMem) return sesionMem;
-  try { const t = localStorage.getItem("docente_token"), c = localStorage.getItem("docente_correo"); if (t && c) return { token: t, correo: c }; } catch (_) {}
+// El docente se identifica por su correo; se recuerda en este celular para no pedirlo otra vez
+let identidad = null;
+function leerIdentidad() {
+  if (identidad) return identidad;
+  try {
+    const c = localStorage.getItem("docente_correo");
+    if (c) return { correo: c, listo: localStorage.getItem("docente_listo") === "1" || !!localStorage.getItem("docente_nombre") };
+  } catch (_) {}
   return null;
 }
-function guardarSesion(token, correo) {
-  sesionMem = token ? { token, correo } : null;
+function guardarIdentidad(correo, listo) {
+  identidad = correo ? { correo, listo } : null;
   try {
-    if (token) { localStorage.setItem("docente_token", token); localStorage.setItem("docente_correo", correo); }
-    else { localStorage.removeItem("docente_token"); localStorage.removeItem("docente_correo"); }
+    ["docente_token", "docente_nombre", "docente_visto"].forEach((k) => localStorage.removeItem(k));
+    if (correo) { localStorage.setItem("docente_correo", correo); localStorage.setItem("docente_listo", listo ? "1" : "0"); }
+    else { localStorage.removeItem("docente_correo"); localStorage.removeItem("docente_listo"); }
   } catch (_) {}
 }
 const visible = (m) => Object.assign(new Error(m), { visible: true });
@@ -456,24 +461,23 @@ function elegirSede(id, nombre) {
   pintarPasos();
 }
 
-async function iniciarFormulario() {
-  mostrar("cargando");
+async function _cargarFormulario() {
   let datos = null, sedes = null, porQR = false;
   try {
     if (tokenQR) {
       const r = await llamar("/qr/" + encodeURIComponent(tokenQR));
       if (r.ok) { datos = await r.json(); porQR = true; }
-      else if (r.status !== 404) return fallo("Ocurrió un problema al leer el código QR.");
+      else if (r.status !== 404) return { ok: false, msg: "Ocurrió un problema al leer el código QR." };
       // si el QR no es válido, se sigue como si no hubiera QR: el docente elige su sede
     }
     if (!datos) {
       const r = await llamar("/catalogo");
-      if (!r.ok) return fallo("No se pudo cargar el formulario. Inténtalo de nuevo en un momento.");
+      if (!r.ok) return { ok: false, msg: "No se pudo cargar el formulario. Inténtalo de nuevo en un momento." };
       datos = await r.json();
       sedes = datos.sedes;
     }
   } catch (e) {
-    return fallo("No se pudo conectar con el sistema. Inténtalo de nuevo en un momento.");
+    return { ok: false, msg: "No se pudo conectar con el sistema. Inténtalo de nuevo en un momento." };
   }
   catalogo = datos.tipos;
 
@@ -511,12 +515,31 @@ async function iniciarFormulario() {
       l.append(i, p, document.createTextNode(sd.nombre));
       lista.append(l);
     }
-    if (!sedes.length) return fallo("Todavía no hay sedes registradas. Avisa al área de Soporte.");
+    if (!sedes.length) return { ok: false, msg: "Todavía no hay sedes registradas. Avisa al área de Soporte." };
   }
+  return { ok: true };
+}
+
+// El formulario se prepara en segundo plano mientras el docente inicia sesión
+let cargaForm = null;
+function cargarFormulario() {
+  if (!cargaForm) cargaForm = _cargarFormulario().then((r) => { if (!r.ok) cargaForm = null; return r; });
+  return cargaForm;
+}
+
+async function irAlFormulario() {
+  mostrar("cargando");
+  $("msg-cargando").textContent = "Conectando con el sistema…";
+  const r = await cargarFormulario();
+  if (!r.ok) return fallo(r.msg);
+  const ident = leerIdentidad();
+  if (!ident) return mostrarCorreo();
+  $("bd-correo").textContent = ident.correo;
+  $("bloque-nombre").classList.toggle("oculto", ident.listo);
   mostrar("formulario");
-  pintarCuenta();
   pintarPasos();
 }
+
 
 $("sedes").addEventListener("change", (e) => {
   elegirSede(Number(e.target.value), e.target.dataset.nombre);
@@ -547,7 +570,6 @@ $("equipos").addEventListener("change", (e) => {
     cont.append(l);
   }
   // al cambiar de equipo se vuelve a pedir la falla
-  $("paso-final").classList.add("oculto");
   $("barra-envio").classList.add("oculto");
   pintarPasos();
   revelar($("paso-falla"));
@@ -559,22 +581,15 @@ $("fallas").addEventListener("change", (e) => {
   pintarPasos();
   $("barra-envio").classList.remove("oculto");
   if (esOtro) {
-    // primero se pide la descripción; el correo queda debajo
-    $("paso-final").classList.remove("oculto");
     setTimeout(() => $("bloque-otro").scrollIntoView({ behavior: "smooth", block: "center" }), 60);
     setTimeout(() => $("descripcion").focus({ preventScroll: true }), 450);
   } else {
-    revelar($("paso-final"));
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 80);
   }
 });
 
-function pintarCuenta() {
-  const ses = leerSesion();
-  $("cuenta-nueva").classList.toggle("oculto", !!ses);
-  $("cuenta-activa").classList.toggle("oculto", !ses);
-  if (ses) $("cuenta-correo").textContent = ses.correo;
-}
-$("otra-cuenta").addEventListener("click", () => { guardarSesion(null, null); pintarCuenta(); });
+["r-nombre", "r-apellido"].forEach((id) => $(id).addEventListener("input", () => $("error-form").classList.add("oculto")));
+$("bd-salir").addEventListener("click", () => { guardarIdentidad(null); $("c-usuario").value = ""; mostrarCorreo(); });
 
 function mensajeForm(texto) {
   const err = $("error-form");
@@ -596,39 +611,39 @@ $("formulario").addEventListener("submit", async (e) => {
   const descripcion = $("descripcion").value.trim();
   if (esOtro && !descripcion) { $("descripcion").focus(); return mensajeForm("Cuéntanos brevemente qué pasa."); }
 
-  let ses = leerSesion();
-  const correo = correoCompleto("correo"), clave = $("clave").value;
-  if (!ses && (!correo || !clave)) {
-    $("paso-final").scrollIntoView({ behavior: "smooth", block: "center" });
-    return mensajeForm("Ingresa tu correo y contraseña para ver el estado de tu reporte.");
+  const ident = leerIdentidad();
+  if (!ident) return mostrarCorreo();
+  let nombre = null, apellido = null;
+  if (!ident.listo) {
+    nombre = $("r-nombre").value.trim().replace(/\s+/g, " "); apellido = $("r-apellido").value.trim().replace(/\s+/g, " ");
+    if (nombre.length < 2 || apellido.length < 2) { $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" }); return mensajeForm("Escribe tus nombres y apellidos."); }
   }
 
   const boton = $("enviar");
   boton.disabled = true;
   boton.textContent = "Enviando…";
   try {
-    if (!ses) {
-      const r = await llamar("/docentes/entrar", json({ correo, password: clave, crear: true }), 2);
-      if (!r.ok) throw visible(await detalle(r, "No se pudo ingresar. Revisa tu correo y contraseña."));
-      const d = await r.json();
-      guardarSesion(d.token, d.correo);
-      ses = leerSesion();
-    }
     const r = await llamar("/tickets", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + ses.token },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token_qr: qrValido ? tokenQR : null,
         sede_id: sedeId,
         tipo_falla_id: Number(falla.value),
         aula, piso: piso.value,
         descripcion: esOtro ? descripcion : null,
+        correo: ident.correo, nombre, apellido,
       }),
     }, 2);
-    if (r.status === 401) { guardarSesion(null, null); pintarCuenta(); throw visible("Tu sesión venció. Vuelve a ingresar tu correo y contraseña."); }
+    if (r.status === 422) {   // el sistema no tiene sus nombres: se piden ahora
+      guardarIdentidad(ident.correo, false); boton.disabled = false; actualizarBoton();
+      $("bloque-nombre").classList.remove("oculto"); $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" });
+      return mensajeForm("Escribe tus nombres y apellidos.");
+    }
     if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
     window.scrollTo({ top: 0 });
-    $("enviado-correo").textContent = "Le avisaremos a " + ses.correo + " cada vez que cambie.";
+    guardarIdentidad(ident.correo, true);
+    $("enviado-correo").textContent = "Le avisaremos a " + ident.correo + " cada vez que cambie.";
     mostrar("enviado");
   } catch (err) {
     mensajeForm(err && err.visible ? err.message : "No se pudo registrar el problema. Inténtalo otra vez.");
@@ -640,179 +655,41 @@ $("formulario").addEventListener("submit", async (e) => {
 function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
 
 // ------------------------------------------------------------
-// Mis reportes (en vivo)
+// Paso 1: correo institucional
 // ------------------------------------------------------------
-const ICO_RELOJ = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
-const ICO_LLAVE = SVG('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>');
-const ICO_OK = SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
+function mostrarCorreo() { mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
+function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
+$("form-correo").addEventListener("input", () => avisoCorreo(""));
 
-const ETAPAS = ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"];
-const PASOS = [
-  ["Reporte registrado", "creado_en"],
-  ["Soporte lo está atendiendo", "atendido_en"],
-  ["Técnico en camino", "en_camino_en"],
-  ["Técnico solucionando el problema", "solucionando_en"],
-  ["Resuelto", "resuelto_en"],
-];
-
-const TEXTO_RESUELTO = "Nuestro equipo de soporte enviará a un técnico para que pueda hacer la revisión correspondiente para solucionar su problema.";
-const TEXTO_INTERNET_RESUELTO = "Hemos enviado a un técnico para que haga el trabajo correspondiente.";
-
-// Texto que ve el docente según el estado del reporte
-function mensajeEstado(t) {
-  switch (t.estado) {
-    case "nuevo":
-      return { icono: ICO_RELOJ, titulo: "Recibimos tu reporte", texto: "Soporte técnico ya lo tiene en su lista. No necesitas actualizar esta página: cambia sola cuando haya novedades." };
-    case "en_atencion":
-      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "Nuestro equipo de soporte está trabajando en ello." };
-    case "en_camino":
-      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "Un técnico va en camino." };
-    case "solucionando":
-      return { icono: ICO_LLAVE, titulo: "¡Gracias por la espera!", texto: "El técnico está solucionando el problema." };
-    default: {
-      const internet = (t.falla || "").toLowerCase().includes("internet");
-      return { icono: ICO_OK, titulo: "¡Listo!", texto: internet ? TEXTO_INTERNET_RESUELTO : TEXTO_RESUELTO };
-    }
-  }
-}
-
-function tarjetaReporte(t) {
-  const m = mensajeEstado(t);
-  const caja = document.createElement("div");
-
-  const cab = document.createElement("div"); cab.className = "reporte-cab";
-  const b = document.createElement("b"); b.textContent = t.equipo + ": " + t.falla;
-  const sp = document.createElement("span");
-  sp.textContent = t.sede + " · Aula " + (t.aula || "—") + (t.piso ? " · Piso " + t.piso : "");
-  cab.append(b, sp);
-
-  const msg = document.createElement("div"); msg.className = "mensaje " + t.estado;
-  const ic = document.createElement("div"); ic.className = "mensaje-icono"; ic.innerHTML = m.icono;
-  const h = document.createElement("h1"); h.textContent = m.titulo;
-  const p = document.createElement("p"); p.textContent = m.texto;
-  msg.append(ic, h, p);
-
-  const bloque = document.createElement("div"); bloque.className = "bloque";
-  const ol = document.createElement("ol"); ol.className = "linea";
-  const idx = ETAPAS.indexOf(t.estado);
-  PASOS.forEach(([titulo, campo], i) => {
-    const li = document.createElement("li");
-    if (i < idx || (i === idx && (i === 0 || t.estado === "resuelto"))) li.classList.add("hecho");
-    if (i === idx && i > 0 && t.estado !== "resuelto") li.classList.add("actual");
-    if (i === 4 && t.estado === "resuelto") li.classList.add("verde");
-    const bb = document.createElement("b"); bb.textContent = titulo;
-    const sm = document.createElement("small");
-    sm.textContent = t[campo] ? fechaLocal(t[campo]) : "Pendiente";
-    li.append(bb, sm);
-    ol.append(li);
-  });
-  bloque.append(ol);
-
-  caja.append(cab, msg, bloque);
-  return caja;
-}
-
-let ultimoJSON = "";
-let temporizador = null;
-let fallosSeguidos = 0;
-let mostrarNota = false;
-
-function pintarReportes(d) {
-  const lista = $("lista-reportes");
-  const claveJSON = JSON.stringify(d.reportes);
-  if (claveJSON === ultimoJSON) return;      // nada cambió: no se redibuja
-  const previo = { ultimo: ultimoJSON ? JSON.parse(ultimoJSON) : null };
-  ultimoJSON = claveJSON;
-  lista.replaceChildren();
-  if (!d.reportes.length) {
-    const v = document.createElement("p"); v.className = "vacio"; v.textContent = "Aún no tienes reportes.";
-    lista.append(v);
-    return;
-  }
-  for (const t of d.reportes) lista.append(tarjetaReporte(t));
-  // aviso al cambiar de etapa (vibración + título de la pestaña)
-  if (previo.ultimo) {
-    const ant = new Map(previo.ultimo.map((x) => [x.id, x.estado]));
-    const cambio = d.reportes.find((x) => ant.has(x.id) && ant.get(x.id) !== x.estado);
-    if (cambio) {
-      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (_) {}
-      document.title = mensajeEstado(cambio).titulo + " · Soporte Trilce";
-    }
-  }
-}
-
-async function consultarReportes(primera) {
-  const ses = leerSesion();
-  if (!ses) { detener(); return mostrar("entrar"); }
-  try {
-    const r = primera
-      ? await llamar("/docentes/mis-reportes", { headers: { Authorization: "Bearer " + ses.token } })
-      : await fetch(API + "/docentes/mis-reportes", { cache: "no-store", headers: { Authorization: "Bearer " + ses.token } });
-    if (r.status === 401) { guardarSesion(null, null); detener(); return mostrar("entrar"); }
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    pintarReportes(await r.json());
-    fallosSeguidos = 0;
-    $("vivo").classList.remove("perdido");
-    $("vivo-texto").textContent = "En vivo · actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
-    return true;
-  } catch (_) {
-    if (primera) { fallo("No se pudieron cargar tus reportes. Inténtalo de nuevo en un momento."); return false; }
-    fallosSeguidos++;
-    if (fallosSeguidos >= 2) { $("vivo").classList.add("perdido"); $("vivo-texto").textContent = "Reconectando…"; }
-    return false;
-  }
-}
-
-function detener() { clearInterval(temporizador); temporizador = null; }
-
-async function abrirReportes(justo) {
-  const ses = leerSesion();
-  if (!ses) return mostrar("entrar");
-  mostrarNota = !!justo;
-  $("nota-final").classList.toggle("oculto", !justo);
-  $("r-correo").textContent = ses.correo;
-  ultimoJSON = "";
-  mostrar("reportes");
-  detener();
-  await consultarReportes(true);
-  temporizador = setInterval(() => { if (!document.hidden) consultarReportes(false); }, CADA_MS);
-}
-
-// Al volver a la pestaña o recuperar la conexión, se actualiza al instante
-document.addEventListener("visibilitychange", () => { if (!document.hidden && temporizador) consultarReportes(false); });
-window.addEventListener("online", () => { if (temporizador) consultarReportes(false); });
-
-$("e-volver").addEventListener("click", () => { location.href = location.pathname + location.search; });
-$("enviado-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
-$("r-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
-$("r-salir").addEventListener("click", () => { guardarSesion(null, null); detener(); location.href = location.pathname + location.search; });
-
-$("form-entrar").addEventListener("submit", async (e) => {
+$("form-correo").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const err = $("e-error"); err.classList.add("oculto");
-  const correo = correoCompleto("e-correo"), clave = $("e-clave").value;
-  if (!correo || !clave) { err.textContent = "Escribe tu correo y contraseña."; err.classList.remove("oculto"); return; }
-  const boton = $("e-boton"); boton.disabled = true; boton.textContent = "Ingresando…";
+  avisoCorreo("");
+  const correo = correoCompleto("c-usuario");
+  if (!correo) return avisoCorreo("Escribe tu correo institucional.");
+  const boton = $("c-boton"); boton.disabled = true; boton.textContent = "Verificando…";
   try {
-    const r = await llamar("/docentes/entrar", json({ correo, password: clave, crear: false }), 2);
-    if (!r.ok) { err.textContent = await detalle(r, "No se pudo ingresar."); err.classList.remove("oculto"); return; }
+    const r = await llamar("/docentes/verificar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ correo }) }, 2);
+    if (!r.ok) return avisoCorreo(await detalle(r, "No se pudo verificar tu correo. Inténtalo otra vez."));
     const d = await r.json();
-    guardarSesion(d.token, d.correo);
-    $("e-clave").value = "";
-    abrirReportes(false);
+    guardarIdentidad(correo, !d.pide_nombre);   // si pide nombre, se completa junto con el reporte
+    await irAlFormulario();
   } catch (_) {
-    err.textContent = "No se pudo conectar con el sistema. Inténtalo de nuevo."; err.classList.remove("oculto");
-  } finally {
-    boton.disabled = false; boton.textContent = "Ingresar";
-  }
+    avisoCorreo("No se pudo conectar con el sistema. Inténtalo de nuevo.");
+  } finally { boton.disabled = false; boton.textContent = "Continuar"; }
 });
 
+$("enviado-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
+
 // ------------------------------------------------------------
-// Arranque
+// Arranque: con el correo ya recordado se entra directo al formulario
 // ------------------------------------------------------------
-prepararCampoCorreo("correo", "correo-aviso");
-prepararCampoCorreo("e-correo", "e-correo-aviso");
-iniciarFormulario();
+prepararCampoCorreo("c-usuario", "c-correo-aviso");
+
+(function arrancar() {
+  if (leerIdentidad()) return irAlFormulario();
+  mostrarCorreo();
+  cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
+})();
 </script>
 </body>
 </html>
