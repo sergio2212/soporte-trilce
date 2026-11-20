@@ -291,6 +291,42 @@ def docente_verificar(datos: DocenteVerificar):
     return {"existe": bool(d), "pide_nombre": (not d) or not (d["nombre"] or "").strip()}
 
 
+class DocenteRegistro(BaseModel):
+    nombre: str = Field(min_length=2, max_length=60)
+    apellido: str = Field(min_length=2, max_length=60)
+    correo: str = Field(min_length=5, max_length=200)
+    password: str = Field(min_length=1, max_length=100)
+
+
+def validar_password_docente(p: str):
+    if len(p) < 8 or not re.search(r"[a-z]", p) or not re.search(r"[A-Z]", p) or not re.search(r"\d", p):
+        raise HTTPException(status_code=422, detail="La contraseña debe tener mínimo 8 caracteres, con mayúsculas, minúsculas y números")
+
+
+@app.post("/docentes/registrar", status_code=201)
+def docente_registrar(datos: DocenteRegistro):
+    """Registro: nombres, apellidos, correo institucional y contraseña. No devuelve datos del docente."""
+    correo = normalizar_correo(datos.correo)
+    nombre = " ".join(datos.nombre.split())
+    apellido = " ".join(datos.apellido.split())
+    if not REGEX_NOMBRE.match(nombre) or not REGEX_NOMBRE.match(apellido):
+        raise HTTPException(status_code=422, detail="Escribe tus nombres y apellidos (solo letras)")
+    validar_password_docente(datos.password)
+    with conexion() as conn, conn.cursor() as cur:
+        cur.execute("SELECT id, password_hash FROM docentes WHERE correo = %s", (correo,))
+        d = cur.fetchone()
+        if d and d["password_hash"]:
+            raise HTTPException(status_code=409, detail="Ese correo ya está registrado. Presiona «Iniciar sesión».")
+        h = seguridad.hashear_password(datos.password)
+        if d:   # cuenta creada antes sin contraseña: se completa
+            cur.execute("UPDATE docentes SET nombre = %s, apellido = %s, password_hash = %s WHERE id = %s",
+                        (nombre, apellido, h, d["id"]))
+        else:
+            cur.execute("INSERT INTO docentes (correo, nombre, apellido, password_hash) VALUES (%s, %s, %s, %s)",
+                        (correo, nombre, apellido, h))
+    return {"ok": True}
+
+
 @app.post("/tickets", status_code=201)
 def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
     """El docente presiona 'Registrar problema'. Se identifica por su correo institucional."""
