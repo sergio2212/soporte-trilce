@@ -21,17 +21,19 @@ GRIS = "#C9CED6"
 TEXTO = "#1F2933"
 TEXTO_SUAVE = "#5B6670"
 
+# Lo que ve el docente (los estados internos son más finos: en_camino y solucionando = "Técnico asignado";
+# al resolverse el técnico, el reporte queda Resuelto y Cerrado).
 ETAPAS = [
-    ("nuevo", "Reporte registrado"),
-    ("en_atencion", "Soporte lo está atendiendo"),
-    ("en_camino", "Técnico en camino"),
-    ("solucionando", "Técnico solucionando"),
+    ("nuevo", "Reporte recibido"),
+    ("en_atencion", "En atención"),
+    ("tecnico", "Técnico asignado"),
     ("resuelto", "Resuelto"),
+    ("cerrado", "Cerrado"),
 ]
+INDICE_ETAPA = {"nuevo": 0, "en_atencion": 1, "en_camino": 2, "solucionando": 2, "resuelto": 4}
 
-TEXTO_RESUELTO = ("Nuestro equipo de soporte enviará a un técnico para que pueda hacer la "
-                  "revisión correspondiente para solucionar su problema.")
-TEXTO_INTERNET_RESUELTO = "Hemos enviado a un técnico para que haga el trabajo correspondiente."
+TEXTO_RESUELTO = "El técnico solucionó su problema. Gracias por reportarlo."
+TEXTO_INTERNET_RESUELTO = "El técnico solucionó el problema de internet. Gracias por reportarlo."
 
 
 def mensaje(estado: str, falla: str):
@@ -59,7 +61,7 @@ def _linea_vacia() -> str:
 
 def _linea_de_tiempo(estado: str) -> str:
     """Los 5 pasos con puntos y líneas, como en el correo de ejemplo."""
-    actual = [e for e, _ in ETAPAS].index(estado) if estado in [e for e, _ in ETAPAS] else 0
+    actual = INDICE_ETAPA.get(estado, 0)
     celdas, etiquetas = [], []
     ultimo = len(ETAPAS) - 1
 
@@ -68,7 +70,7 @@ def _linea_de_tiempo(estado: str) -> str:
             return GRIS
         return VERDE if j == ultimo else NARANJA
     for i, (clave, nombre) in enumerate(ETAPAS):
-        final_verde = (clave == "resuelto" and i <= actual)
+        final_verde = (clave == "cerrado" and i <= actual)
         color_punto = VERDE if final_verde else (NARANJA if i <= actual else "#FFFFFF")
         borde = VERDE if final_verde else (NARANJA if i <= actual else GRIS)
         izq = _linea_vacia() if i == 0 else _linea(seg(i))

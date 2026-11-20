@@ -24,9 +24,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 # En producción pon aquí las URLs de tus páginas, separadas por coma.
 URL_DOCENTE = os.environ.get("URL_DOCENTE", "https://soporte-trilce-docente.onrender.com")
 ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
-# Dominios de correo aceptados para docentes, separados por coma (ej. "trilce.edu.pe").
+# Dominios de correo aceptados para docentes, separados por coma (por defecto, cuentas Gmail).
 # Si la variable no existe, se usa el del colegio. Déjala vacía ("") para aceptar cualquier correo.
-DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "trilce.edu.pe").split(",") if d.strip()]
+DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "gmail.com").split(",") if d.strip()]
 
 # ------------------------------------------------------------------
 # Regla de prioridad PROVISIONAL (hasta confirmar la sección 5 del documento).
@@ -249,7 +249,7 @@ def normalizar_correo(correo: str) -> str:
     if not REGEX_CORREO.match(correo):
         raise HTTPException(status_code=400, detail="Escribe un correo válido")
     if DOMINIOS_DOCENTES and correo.split("@")[1] not in DOMINIOS_DOCENTES:
-        raise HTTPException(status_code=400, detail="Usa tu correo institucional (@" + DOMINIOS_DOCENTES[0] + ")")
+        raise HTTPException(status_code=400, detail="Usa tu correo de Gmail (@" + DOMINIOS_DOCENTES[0] + ")")
     return correo
 
 
@@ -295,41 +295,27 @@ class DocenteRegistro(BaseModel):
     nombre: str = Field(min_length=2, max_length=60)
     apellido: str = Field(min_length=2, max_length=60)
     correo: str = Field(min_length=5, max_length=200)
-    password: str = Field(min_length=1, max_length=100)
-
-
-def validar_password_docente(p: str):
-    if len(p) < 8 or not re.search(r"[a-z]", p) or not re.search(r"[A-Z]", p) or not re.search(r"\d", p):
-        raise HTTPException(status_code=422, detail="La contraseña debe tener mínimo 8 caracteres, con mayúsculas, minúsculas y números")
 
 
 @app.post("/docentes/registrar", status_code=201)
 def docente_registrar(datos: DocenteRegistro):
-    """Registro: nombres, apellidos, correo institucional y contraseña. No devuelve datos del docente."""
+    """Registro: nombres, apellidos y correo Gmail. Sin contraseña. No devuelve datos del docente."""
     correo = normalizar_correo(datos.correo)
     nombre = " ".join(datos.nombre.split())
     apellido = " ".join(datos.apellido.split())
     if not REGEX_NOMBRE.match(nombre) or not REGEX_NOMBRE.match(apellido):
         raise HTTPException(status_code=422, detail="Escribe tus nombres y apellidos (solo letras)")
-    validar_password_docente(datos.password)
     with conexion() as conn, conn.cursor() as cur:
-        cur.execute("SELECT id, password_hash FROM docentes WHERE correo = %s", (correo,))
-        d = cur.fetchone()
-        if d and d["password_hash"]:
+        cur.execute("SELECT id FROM docentes WHERE correo = %s", (correo,))
+        if cur.fetchone():
             raise HTTPException(status_code=409, detail="Este correo ya ha sido registrado")
-        h = seguridad.hashear_password(datos.password)
-        if d:   # cuenta creada antes sin contraseña: se completa
-            cur.execute("UPDATE docentes SET nombre = %s, apellido = %s, password_hash = %s WHERE id = %s",
-                        (nombre, apellido, h, d["id"]))
-        else:
-            cur.execute("INSERT INTO docentes (correo, nombre, apellido, password_hash) VALUES (%s, %s, %s, %s)",
-                        (correo, nombre, apellido, h))
+        cur.execute("INSERT INTO docentes (correo, nombre, apellido) VALUES (%s, %s, %s)", (correo, nombre, apellido))
     return {"ok": True}
 
 
 @app.post("/tickets", status_code=201)
 def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
-    """El docente presiona 'Registrar problema'. Se identifica por su correo institucional."""
+    """El docente presiona 'Registrar problema'. Se identifica por su correo Gmail."""
     aula, piso = datos.aula.strip(), datos.piso.strip()
     if not aula or not piso:
         raise HTTPException(status_code=400, detail="Indica el aula y el piso")
@@ -587,11 +573,11 @@ def listar_tecnicos(cred: Optional[HTTPAuthorizationCredentials] = Depends(beare
                    (SELECT count(*) FROM tickets t
                      WHERE t.tecnico_campo_id = u.id AND t.estado IN ('en_camino','solucionando')) AS ocupado_con
             FROM usuarios u LEFT JOIN sedes s ON s.id = u.sede_id
-            WHERE u.rol = 'tecnico_campo' AND u.activo
+            WHERE u.activo AND (u.rol = 'tecnico_campo' OR u.rol = 'admin')
         """
         params = []
-        if sede is not None:
-            sql += " AND u.sede_id = %s"
+        if sede is not None:   # el administrador también puede hacer de técnico, en cualquier sede
+            sql += " AND (u.sede_id = %s OR u.rol = 'admin')"
             params.append(sede)
         cur.execute(sql + " ORDER BY u.nombre", params)
         tecnicos = cur.fetchall()
@@ -618,11 +604,11 @@ def enviar_tecnico(
         nombre_tecnico = None
         if datos.tecnico_id is not None:
             cur.execute(
-                "SELECT id, nombre, sede_id FROM usuarios WHERE id = %s AND rol = 'tecnico_campo' AND activo",
+                "SELECT id, nombre, sede_id, rol FROM usuarios WHERE id = %s AND rol IN ('tecnico_campo', 'admin') AND activo",
                 (datos.tecnico_id,),
             )
             tec = cur.fetchone()
-            if not tec or tec["sede_id"] != ticket["sede_id"]:
+            if not tec or (tec["rol"] != "admin" and tec["sede_id"] != ticket["sede_id"]):
                 raise HTTPException(status_code=400, detail="Ese técnico no está disponible en esta sede")
             nombre_tecnico = tec["nombre"]
         cur.execute(
