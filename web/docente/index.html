@@ -495,6 +495,17 @@ function siguienteDesdeLugar() {
   if (eq.classList.contains("oculto")) revelar(eq);
 }
 
+// El piso se determina automáticamente según el primer dígito del aula
+function sincronizarPiso() {
+  const aula = $("aula").value.trim();
+  const coincidencia = aula.match(/^([1-6])/);
+  const pisoCorrecto = coincidencia ? coincidencia[1] : null;
+
+  document.querySelectorAll('input[name="piso"]').forEach((input) => {
+    input.checked = input.value === pisoCorrecto;
+  });
+}  
+  
 function elegirSede(id, nombre) {
   sedeId = id;
   $("sub-marca").textContent = "Trilce · " + nombre;
@@ -587,11 +598,23 @@ $("sedes").addEventListener("change", (e) => {
   setTimeout(() => $("aula").focus({ preventScroll: true }), 500);
 });
 
-$("pisos").addEventListener("change", () => { pintarPasos(); if ($("aula").value.trim()) siguienteDesdeLugar(); else $("aula").focus(); });
-$("aula").addEventListener("input", pintarPasos);
-$("aula").addEventListener("change", () => { pintarPasos(); siguienteDesdeLugar(); });
-$("aula").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") { e.preventDefault(); $("aula").blur(); pintarPasos(); siguienteDesdeLugar(); }
+$("pisos").addEventListener("change", () => {
+  sincronizarPiso();
+  pintarPasos();
+
+  if ($("aula").value.trim()) siguienteDesdeLugar();
+  else $("aula").focus();
+});
+
+$("aula").addEventListener("input", () => {
+  sincronizarPiso();
+  pintarPasos();
+});
+
+$("aula").addEventListener("change", () => {
+  sincronizarPiso();
+  pintarPasos();
+  siguienteDesdeLugar();
 });
 
 $("equipos").addEventListener("change", (e) => {
@@ -643,8 +666,9 @@ $("formulario").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("error-form").classList.add("oculto");
 
-  const aula = $("aula").value.trim();
-  const piso = document.querySelector('input[name="piso"]:checked');
+const aula = $("aula").value.trim();
+sincronizarPiso();
+const piso = document.querySelector('input[name="piso"]:checked');
   const falla = document.querySelector('input[name="falla"]:checked');
   if (sedeId === null) { $("paso-sede").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige tu sede."); }
   if (!aula || !piso) { $("paso-lugar").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Indica el aula y el piso."); }
