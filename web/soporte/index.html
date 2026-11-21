@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro"); } catch (_) {}</script>
 <style>
   :root {
     --bg: #fff8f2;
@@ -25,6 +26,25 @@
     --warn: #7a5a00;
     --radius: 16px;
   }
+
+  /* ---------- Modo oscuro (Configuración → Apariencia) ---------- */
+  :root[data-tema="oscuro"] {
+    color-scheme: dark;
+    --bg: #17120f; --card: #221b16; --text: #f4eae2; --muted: #b9a89a;
+    --brand: #ff8a42; --brand-dark: #d9611a; --brand-soft: #3b2619; --line: #3a2e27; --side: #120d0a;
+    --err: #ff8070; --ok: #4cc27a; --info: #82b6f2; --warn: #f0c24a;
+  }
+  :root[data-tema="oscuro"] .chip.media, :root[data-tema="oscuro"] .chip.solucionando, :root[data-tema="oscuro"] .chip.en_mantenimiento { background: #4a3a10; }
+  :root[data-tema="oscuro"] .chip.baja { background: #3a332e; }
+  :root[data-tema="oscuro"] .chip.nuevo, :root[data-tema="oscuro"] .chip.contador { background: #4d2420; }
+  :root[data-tema="oscuro"] .chip.en_atencion, :root[data-tema="oscuro"] .chip.en_camino, :root[data-tema="oscuro"] .chip.en_revision { background: #1e3350; }
+  :root[data-tema="oscuro"] .chip.resuelto, :root[data-tema="oscuro"] .chip.operativo { background: #1c3d29; }
+  :root[data-tema="oscuro"] .btn.pendiente { background: #3d3210; border-color: #d9a400; color: #f0d37a; }
+  :root[data-tema="oscuro"] .aviso-tecnico { background: #1e3350; }
+  :root[data-tema="oscuro"] .nav-item[aria-current="page"], :root[data-tema="oscuro"] .nav-item .cuenta { background: var(--card); color: var(--brand); }
+  :root[data-tema="oscuro"] .btn.primario { color: #fff; }
+  :root[data-tema="oscuro"] #tip { color: var(--bg); }
+  :root[data-tema="oscuro"] dialog::backdrop { background: rgba(0,0,0,.65); }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
@@ -250,7 +270,7 @@
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
-  <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte y activos</span></div></div>
+  <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte técnico</span></div></div>
   <h1>Ingresa a la mesa de ayuda</h1>
   <p class="sub">Usa la cuenta que te dio tu equipo de Soporte.</p>
   <form id="form-login" class="panel" novalidate>
@@ -267,12 +287,11 @@
 <!-- ===================== APLICACIÓN ===================== -->
 <div id="app" class="oculto">
   <aside id="menu" aria-label="Menú principal">
-    <div class="logo"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte y activos</span></div></div>
+    <div class="logo"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte técnico</span></div></div>
     <div class="nav-grupo">Menú principal</div>
     <button class="nav-item" data-vista="panel" type="button"></button>
     <button class="nav-item" data-vista="tickets" type="button"></button>
     <button class="nav-item" data-vista="docentes" type="button"></button>
-    <button class="nav-item" data-vista="activos" type="button"></button>
     <button class="nav-item" data-vista="sedes" type="button"></button>
     <button class="nav-item" data-vista="encuestas" type="button"></button>
     <button class="nav-item" data-vista="reportes" type="button"></button>
@@ -295,12 +314,11 @@
 
       <!-- ===== Panel principal ===== -->
       <section id="v-panel" class="oculto">
-        <div class="cabecera"><div><h1>Panel principal</h1><p>Resumen general de soporte TI y activos tecnológicos. <span id="actualizado"></span></p></div></div>
+        <div class="cabecera"><div><h1>Panel principal</h1><p>Resumen general del soporte técnico. <span id="actualizado"></span></p></div></div>
         <div class="tarjetas" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
           <div class="caja kpi" id="k-total"><div class="nombre">Incidencias registradas</div><div class="valor">–</div><div class="nota">Desde el inicio del piloto</div></div>
           <div class="caja kpi destacado" id="k-pend"><div class="nombre">Pendientes</div><div class="valor">–</div><div class="nota">Esperan primera atención</div></div>
           <div class="caja kpi" id="k-proc"><div class="nombre">En atención</div><div class="valor">–</div><div class="nota">Asignadas a Soporte</div></div>
-          <div class="caja kpi" id="k-act"><div class="nombre">Activos registrados</div><div class="valor">–</div><div class="nota">En el inventario</div></div>
           <div class="caja kpi" id="k-sat"><div class="nombre">Satisfacción</div><div class="valor">–</div><div class="nota" id="k-sat-nota">Sin encuestas todavía</div></div>
         </div>
         <div class="dos">
@@ -370,23 +388,9 @@
         </div>
       </section>
 
-      <!-- ===== Activos tecnológicos ===== -->
-      <section id="v-activos" class="oculto">
-        <div class="cabecera"><div><h1>Activos tecnológicos</h1><p>Inventario de equipos de las sedes.</p></div><div class="acciones"><button id="nuevo-activo" class="btn primario" type="button">+ Nuevo activo</button></div></div>
-        <div class="caja">
-          <div class="herramientas dos-col">
-            <input id="a-buscar" type="search" placeholder="Buscar activo, código o ubicación" aria-label="Buscar activos">
-            <select id="a-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="operativo">Operativo</option><option value="en_mantenimiento">En mantenimiento</option><option value="en_revision">En revisión</option><option value="baja">De baja</option></select>
-            <select id="a-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>
-          </div>
-          <div class="tabla-wrap"><table><thead><tr><th>Activo</th><th>Código</th><th>Sede y ubicación</th><th>Estado</th><th>Último mantenimiento</th><th></th></tr></thead><tbody id="t-activos"></tbody></table></div>
-          <p id="pie-activos" class="pie-tabla"></p>
-        </div>
-      </section>
-
       <!-- ===== Sedes y aulas ===== -->
       <section id="v-sedes" class="oculto">
-        <div class="cabecera"><div><h1>Sedes y aulas</h1><p>Ubicaciones del proyecto con sus activos e incidencias abiertas.</p></div></div>
+        <div class="cabecera"><div><h1>Sedes y aulas</h1><p>Ubicaciones del proyecto con sus incidencias abiertas.</p></div></div>
         <div id="c-sedes" class="sedes"></div>
       </section>
 
@@ -412,6 +416,10 @@
       <section id="v-config" class="oculto">
         <div class="cabecera"><div><h1>Configuración</h1><p>Tu cuenta y, si eres administrador, el equipo de Soporte.</p></div></div>
         <div class="caja" style="margin-bottom:16px"><h2>Mi cuenta</h2><dl class="fichas" id="mi-cuenta"></dl></div>
+        <div class="caja" style="margin-bottom:16px"><h2>Apariencia</h2>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:700"><input id="tema-oscuro" type="checkbox" style="width:20px;height:20px;min-height:0;accent-color:var(--brand)"> Modo oscuro</label>
+          <p class="aviso" style="margin:6px 0 0">Cambia los colores de la página a un fondo oscuro. Se guarda en este navegador.</p>
+        </div>
         <div class="caja oculto" id="c-usuarios">
           <div class="cabecera" style="margin-bottom:6px"><h2 style="margin:0">Equipo de Soporte</h2><button id="nuevo-usuario" class="btn chico primario" type="button">+ Nuevo usuario</button></div>
           <div class="tabla-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Sede</th><th>Estado</th><th></th></tr></thead><tbody id="t-usuarios"></tbody></table></div>
@@ -428,34 +436,6 @@
 </div></dialog>
 
 <dialog id="dlg-ticket" aria-labelledby="dt-titulo"><div class="dlg-int" id="dt-cuerpo"></div></dialog>
-
-<dialog id="dlg-activo" aria-labelledby="da-titulo">
-  <form class="dlg-int form-dlg" id="form-activo" novalidate>
-    <div class="dlg-cab"><h2 id="da-titulo">Nuevo activo</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
-    <div id="da-sede-caja" class="oculto"><label class="campo" for="da-sede">Sede</label><select id="da-sede"></select></div>
-    <label class="campo" for="da-tipo">Tipo de equipo</label><select id="da-tipo"></select>
-    <label class="campo" for="da-nombre">Nombre del activo</label><input id="da-nombre" type="text" maxlength="80" placeholder="Ej. Computadora Dell OptiPlex">
-    <div class="fila">
-      <div><label class="campo" for="da-amb">Aula o ambiente</label><input id="da-amb" type="text" maxlength="60" placeholder="Ej. 204 o Laboratorio 1"></div>
-      <div><label class="campo" for="da-piso">Piso</label><select id="da-piso"><option value="">Sin indicar</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
-    </div>
-    <label class="campo" for="da-codigo">Código <span class="aviso">(opcional; si lo dejas vacío se crea uno)</span></label><input id="da-codigo" type="text" maxlength="30" placeholder="Ej. PC-LO-0102">
-    <p id="da-error" class="error oculto"></p>
-    <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit" id="da-guardar">Guardar activo</button></div>
-  </form>
-</dialog>
-
-<dialog id="dlg-estado" aria-labelledby="de-titulo">
-  <form class="dlg-int form-dlg" id="form-estado" novalidate>
-    <div class="dlg-cab"><h2 id="de-titulo">Actualizar activo</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
-    <p id="de-nombre" class="aviso"></p>
-    <label class="campo" for="de-estado">Estado</label>
-    <select id="de-estado"><option value="operativo">Operativo</option><option value="en_mantenimiento">En mantenimiento</option><option value="en_revision">En revisión</option><option value="baja">De baja</option></select>
-    <label class="check"><input type="checkbox" id="de-mant"> Se hizo mantenimiento hoy</label>
-    <p id="de-error" class="error oculto"></p>
-    <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit">Guardar</button></div>
-  </form>
-</dialog>
 
 <dialog id="dlg-usuario" aria-labelledby="du-titulo">
   <form class="dlg-int form-dlg" id="form-usuario" novalidate autocomplete="off">
@@ -493,22 +473,34 @@ const VISTAS = {
   panel: { titulo: "Panel principal", icono: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>' },
   tickets: { titulo: "Gestión de tickets", icono: '<path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 0 0-6V6H3z"/><path d="M13 6v12" stroke-dasharray="2 3"/>' },
   docentes: { titulo: "Docentes", icono: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c3 .3 5 2.6 5 5.8"/>' },
-  activos: { titulo: "Activos tecnológicos", icono: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>' },
   sedes: { titulo: "Sedes y aulas", icono: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>' },
   encuestas: { titulo: "Encuestas", icono: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.3 2.2 2 3.5 2s2.5-.7 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/>' },
   reportes: { titulo: "Reportes", icono: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>' },
   config: { titulo: "Configuración", icono: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>' },
 };
 
+
+// ---------- modo oscuro ----------
+(function () {
+  const caja = $("tema-oscuro");
+  const oscuro = () => document.documentElement.getAttribute("data-tema") === "oscuro";
+  caja.checked = oscuro();
+  caja.addEventListener("change", () => {
+    if (caja.checked) document.documentElement.setAttribute("data-tema", "oscuro"); else document.documentElement.removeAttribute("data-tema");
+    try { localStorage.setItem("soporte_tema", caja.checked ? "oscuro" : "claro"); } catch (_) {}
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = caja.checked ? "#17120f" : "#f26b1d";
+    if (typeof pintarVista === "function") pintarVista();
+  });
+})();
+
 // ---------- estado de la aplicación ----------
-const S = { enc: null, docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null, catalogo: null };
+const S = { enc: null, docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, sedes: null, usuarios: null, catalogo: null };
 let vista = "panel";
 let offsetReloj = 0;
 let idsVistos = null;
 let temporizador = null;
 let ticketAbierto = null;      // id del ticket que se está gestionando
 const elegidoTecnico = {};
-let activoEditando = null;
 let sedesAbiertas = new Set();
 
 class SesionVencida extends Error {}
@@ -633,7 +625,7 @@ function cerrarSesion(mensaje) {
   guardarToken(null);
   clearInterval(temporizador);
   idsVistos = null;
-  Object.assign(S, { usuario: null, tickets: [], ind: null, activos: [], sedes: null, usuarios: null });
+  Object.assign(S, { usuario: null, tickets: [], ind: null, sedes: null, usuarios: null });
   document.title = "Soporte Trilce · Mesa de ayuda";
   mostrarPantalla("login");
   const err = $("login-error");
@@ -678,7 +670,6 @@ function entrarAlPanel(usuario) {
   document.querySelectorAll(".sede-admin").forEach((n) => n.classList.toggle("oculto", !admin));
   $("f-sede").parentElement.classList.toggle("oculto", false);
   $("f-sede").classList.toggle("oculto", !admin);
-  $("a-sede").classList.toggle("oculto", !admin);
   $("herr-tickets").classList.toggle("dos-col", !admin);
   mostrarPantalla("app");
   api("/catalogo").then((r) => r.json()).then((c) => { S.catalogo = c; llenarCatalogos(); }).catch(() => {});
@@ -691,15 +682,12 @@ function entrarAlPanel(usuario) {
 function llenarCatalogos() {
   if (!S.catalogo) return;
   const sedes = S.catalogo.sedes;
-  for (const id of ["f-sede", "a-sede"]) {
+  for (const id of ["f-sede"]) {
     const sel = $(id), actual = sel.value;
     sel.replaceChildren(new Option("Todas las sedes", "todas"), ...sedes.map((s) => new Option(s.nombre, s.nombre)));
     sel.value = actual || "todas";
   }
-  $("da-tipo").replaceChildren(...S.catalogo.tipos.map((t) => new Option(t.nombre, t.id)));
-  $("da-sede").replaceChildren(...sedes.map((s) => new Option(s.nombre, s.id)));
   $("du-sede").replaceChildren(...sedes.map((s) => new Option(s.nombre, s.id)));
-  $("da-sede-caja").classList.toggle("oculto", !!S.usuario.sede_id);
 }
 
 // ---------- menú y navegación ----------
@@ -732,14 +720,13 @@ window.addEventListener("hashchange", () => { const v = vistaDesdeHash(); if (v 
 // ---------- carga de datos ----------
 async function refrescar() {
   try {
-    const [rt, ri, ra, rtec] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/activos"), api("/soporte/tecnicos")]);
+    const [rt, ri, rtec] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/tecnicos")]);
     if (!rt.ok) throw new Error("tickets " + rt.status);
     const dt = await rt.json();
     offsetReloj = Date.parse(dt.ahora) - Date.now();
     detectarNuevos(dt.tickets);
     S.tickets = dt.tickets;
     if (ri.ok) S.ind = await ri.json();
-    if (ra.ok) S.activos = (await ra.json()).activos;
     if (rtec.ok) S.tecnicos = (await rtec.json()).tecnicos;
     $("panel-error").classList.add("oculto");
     $("actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
@@ -773,7 +760,7 @@ function pintarVista() {
   const nav = document.querySelector('.nav-item[data-vista="tickets"]');
   let cuenta = nav.querySelector(".cuenta");
   if (pend) { if (!cuenta) { cuenta = el("span", "cuenta"); nav.append(cuenta); } cuenta.textContent = pend; } else if (cuenta) cuenta.remove();
-  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, encuestas: pintarEncuestas, activos: pintarActivos, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
+  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, encuestas: pintarEncuestas, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
   if (ticketAbierto !== null && $("dlg-ticket").open) {
     const escribiendo = document.activeElement && ["TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && $("dlg-ticket").contains(document.activeElement);
     if (!escribiendo) pintarDialogoTicket();
@@ -790,7 +777,6 @@ function pintarPanel() {
   kpi("k-total", T.length);
   kpi("k-pend", T.filter((t) => t.estado === "nuevo").length);
   kpi("k-proc", T.filter((t) => ESTADOS_EN_PROCESO.includes(t.estado)).length);
-  kpi("k-act", S.activos.length);
   if (S.enc) { kpi("k-sat", S.enc.promedio != null ? S.enc.promedio.toFixed(1) + " / 5" : "–"); $("k-sat-nota").textContent = S.enc.total ? S.enc.total + (S.enc.total === 1 ? " encuesta" : " encuestas") + " · " + S.enc.satisfechos_pct + " % satisfechos" : "Sin encuestas todavía"; }
 
   pintarMeses();
@@ -1070,7 +1056,7 @@ async function cargarEncuestas() {
 $("e-periodo").addEventListener("change", cargarEncuestas);
 function barraH(etiqueta, n, total, color) {
   const f = el("div"); f.style.cssText = "display:grid;grid-template-columns:170px 1fr 70px;gap:10px;align-items:center;margin:7px 0;font-size:.9rem";
-  const riel = el("div"); riel.style.cssText = "height:12px;border-radius:999px;background:#f6ece4;overflow:hidden";
+  const riel = el("div"); riel.style.cssText = "height:12px;border-radius:999px;background:var(--line);overflow:hidden";
   const b = el("i"); b.style.cssText = "display:block;height:100%;border-radius:999px;width:" + (total ? Math.round((n / total) * 100) : 0) + "%;background:" + color;
   riel.append(b);
   f.append(el("span", null, etiqueta), riel, el("b", null, n + (total ? " · " + Math.round((n / total) * 100) + " %" : "")));
@@ -1207,90 +1193,6 @@ async function abrirDocente(x) {
 }
 
 // ============================================================
-// ACTIVOS TECNOLÓGICOS
-// ============================================================
-function pintarActivos() {
-  const q = $("a-buscar").value.trim().toLowerCase();
-  const est = $("a-estado").value, sd = $("a-sede").value;
-  const lista = S.activos.filter((a) => {
-    if (est !== "todos" && a.estado !== est) return false;
-    if (sd !== "todas" && !S.usuario.sede_id && a.sede !== sd) return false;
-    if (q && ![a.nombre, a.codigo, a.ambiente, a.sede, a.tipo].join(" ").toLowerCase().includes(q)) return false;
-    return true;
-  });
-  const cuerpo = $("t-activos");
-  cuerpo.replaceChildren();
-  if (!lista.length) { const tr = el("tr"); const td = el("td", "vacio", S.activos.length ? "Ningún activo coincide con los filtros." : "Aún no hay activos. Registra el primero con «Nuevo activo»."); td.colSpan = 6; tr.append(td); cuerpo.append(tr); }
-  for (const a of lista) {
-    const tr = el("tr");
-    const n = el("td"); n.append(a.nombre, el("span", "sub", a.tipo));
-    const u = el("td"); u.append(a.sede, el("span", "sub", fmtAula(a.ambiente) + (a.piso ? " · Piso " + a.piso : "")));
-    const e = el("td"); e.append(chip(a.estado, ETQ_ACTIVO[a.estado]));
-    const acc = el("td"); const b = el("button", "btn chico", "Actualizar"); b.type = "button"; b.addEventListener("click", () => abrirEstadoActivo(a)); acc.append(b);
-    tr.append(n, el("td", "cod", a.codigo || "—"), u, e, el("td", null, fmtDia(a.ultimo_mantenimiento)), acc);
-    cuerpo.append(tr);
-  }
-  $("pie-activos").textContent = lista.length + (lista.length === 1 ? " activo" : " activos");
-}
-["a-buscar", "a-estado", "a-sede"].forEach((id) => $(id).addEventListener("input", pintarActivos));
-
-document.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
-
-$("nuevo-activo").addEventListener("click", () => {
-  $("form-activo").reset();
-  $("da-error").classList.add("oculto");
-  $("dlg-activo").showModal();
-});
-$("form-activo").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const err = $("da-error"); err.classList.add("oculto");
-  const nombre = $("da-nombre").value.trim(), amb = $("da-amb").value.trim();
-  if (nombre.length < 2) { err.textContent = "Escribe el nombre del activo."; err.classList.remove("oculto"); return; }
-  if (!amb) { err.textContent = "Indica el aula o ambiente."; err.classList.remove("oculto"); return; }
-  const cuerpo = {
-    tipo_equipo_id: Number($("da-tipo").value), nombre, ambiente: amb,
-    piso: $("da-piso").value ? Number($("da-piso").value) : null,
-    codigo: $("da-codigo").value.trim() || null,
-    sede_id: !S.usuario.sede_id ? Number($("da-sede").value) : null,
-  };
-  const b = $("da-guardar"); b.disabled = true;
-  try {
-    const r = await api("/soporte/activos", json(cuerpo));
-    if (r.status === 409) throw new Error("Ya existe un activo con ese código.");
-    if (!r.ok) throw new Error("No se pudo guardar el activo. Revisa los datos.");
-    $("dlg-activo").close();
-    toast("Activo registrado.");
-    refrescar();
-  } catch (ex) {
-    if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    err.textContent = /^(Ya existe|No se pudo)/.test(ex.message) ? ex.message : "No se pudo conectar. Inténtalo otra vez.";
-    err.classList.remove("oculto");
-  } finally { b.disabled = false; }
-});
-
-function abrirEstadoActivo(a) {
-  activoEditando = a;
-  $("de-nombre").textContent = a.nombre + " · " + (a.codigo || "");
-  $("de-estado").value = a.estado;
-  $("de-mant").checked = false;
-  $("de-error").classList.add("oculto");
-  $("dlg-estado").showModal();
-}
-$("form-estado").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  try {
-    const r = await api("/soporte/activos/" + activoEditando.id, json({ estado: $("de-estado").value, mantenimiento_hoy: $("de-mant").checked }));
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    $("dlg-estado").close();
-    toast("Activo actualizado.");
-    refrescar();
-  } catch (ex) {
-    if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    $("de-error").textContent = "No se pudo actualizar. Inténtalo otra vez."; $("de-error").classList.remove("oculto");
-  }
-});
-
-// ============================================================
 // SEDES Y AULAS
 // ============================================================
 async function cargarSedes() {
@@ -1309,7 +1211,7 @@ function pintarSedes() {
     const c = el("div", "caja sede");
     c.append(el("h2", null, "Sede " + s.nombre));
     const nums = el("div", "nums");
-    for (const [v, n] of [[s.activos, "activos registrados"], [s.tickets_abiertos, "tickets abiertos"], [s.tickets_total, "incidencias en total"]]) {
+    for (const [v, n] of [[s.tickets_abiertos, "tickets abiertos"], [s.tickets_total, "incidencias en total"]]) {
       const d = el("div", "num"); d.append(el("b", null, v), el("span", null, n)); nums.append(d);
     }
     c.append(nums);
@@ -1319,8 +1221,8 @@ function pintarSedes() {
     c.append(b);
     if (abierta) {
       const ul = el("ul", "ambientes");
-      if (!s.ambientes.length) ul.append(el("li", null, "Aún no hay ambientes. Se crean al registrar un activo."));
-      for (const a of s.ambientes) { const li = el("li"); li.append(el("span", null, a.nombre + (a.piso ? " · Piso " + a.piso : "")), el("small", null, a.activos + (a.activos === 1 ? " activo" : " activos"))); ul.append(li); }
+      if (!s.ambientes.length) ul.append(el("li", null, "Aún no hay ambientes."));
+      for (const a of s.ambientes) { const li = el("li"); li.append(el("span", null, a.nombre + (a.piso ? " · Piso " + a.piso : ""))); ul.append(li); }
       c.append(ul);
     }
     cont.append(c);
@@ -1347,7 +1249,7 @@ function pintarReportes() {
   const cont = el("div", "donut-fila");
   const R = 54, C = 2 * Math.PI * R;
   const g = svg("svg", { viewBox: "0 0 150 150", role: "img", "aria-label": "Distribución de tickets por estado" });
-  g.append(svg("circle", { cx: 75, cy: 75, r: R, fill: "none", stroke: "#f6ece4", "stroke-width": 18 }));
+  g.append(svg("circle", { cx: 75, cy: 75, r: R, fill: "none", style: "stroke:var(--line)", "stroke-width": 18 }));
   let acum = 0;
   for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
     const n = T.filter((t) => t.estado === est).length;
@@ -1358,8 +1260,8 @@ function pintarReportes() {
     g.append(arco);
     acum += largo;
   }
-  g.append(svg("text", { x: 75, y: 76, "text-anchor": "middle", "font-size": 26, "font-weight": 800, fill: "#2a1a10", "font-family": "inherit" }, total));
-  g.append(svg("text", { x: 75, y: 94, "text-anchor": "middle", "font-size": 11, fill: "#7a6657", "font-family": "inherit" }, total === 1 ? "ticket" : "tickets"));
+  g.append(svg("text", { x: 75, y: 76, "text-anchor": "middle", "font-size": 26, "font-weight": 800, style: "fill:var(--text)", "font-family": "inherit" }, total));
+  g.append(svg("text", { x: 75, y: 94, "text-anchor": "middle", "font-size": 11, style: "fill:var(--muted)", "font-family": "inherit" }, total === 1 ? "ticket" : "tickets"));
   const ley = el("ul", "leyenda");
   for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
     const n = T.filter((t) => t.estado === est).length;
