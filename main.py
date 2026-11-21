@@ -24,9 +24,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 # En producción pon aquí las URLs de tus páginas, separadas por coma.
 URL_DOCENTE = os.environ.get("URL_DOCENTE", "https://soporte-trilce-docente.onrender.com")
 ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
-# Dominios de correo aceptados para docentes, separados por coma (por defecto, cuentas Gmail).
+# Dominios de correo aceptados para docentes, separados por coma (por defecto Gmail, Hotmail, Yahoo y Outlook).
 # Si la variable no existe, se usa el del colegio. Déjala vacía ("") para aceptar cualquier correo.
-DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "gmail.com").split(",") if d.strip()]
+DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "gmail.com,hotmail.com,yahoo.com,outlook.com").split(",") if d.strip()]
 
 # ------------------------------------------------------------------
 # Regla de prioridad PROVISIONAL (hasta confirmar la sección 5 del documento).
@@ -249,7 +249,7 @@ def normalizar_correo(correo: str) -> str:
     if not REGEX_CORREO.match(correo):
         raise HTTPException(status_code=400, detail="Escribe un correo válido")
     if DOMINIOS_DOCENTES and correo.split("@")[1] not in DOMINIOS_DOCENTES:
-        raise HTTPException(status_code=400, detail="Usa tu correo de Gmail (@" + DOMINIOS_DOCENTES[0] + ")")
+        raise HTTPException(status_code=400, detail="Usa un correo de Gmail, Hotmail, Yahoo u Outlook")
     return correo
 
 
