@@ -17,10 +17,11 @@
     --brand: #E85D35;
     --brand-ink: #ffffff;
     --brand-dark: #C14622;
+    --brand-strong: #C94420;
     --brand-soft: #FDEEE8;
     --aqua: #82B8C2;
     --aqua-soft: #EAF4F6;
-    --aqua-ink: #3F7A87;
+    --aqua-ink: #2F6A77;
     --line: #E3E7EB;
     --warn: #b45309;
     --err: #c0392b;
@@ -41,7 +42,7 @@
   /* ---------- Cabecera ---------- */
   .banda {
     position: relative; overflow: hidden; color: #fff;
-    background: linear-gradient(135deg, #F2784E 0%, #E85D35 55%, #D24A25 100%);
+    background: linear-gradient(135deg, #CC4824 0%, #E85D35 70%, #EF6F44 100%);
     border-radius: 0 0 64px 18px / 0 0 42px 22px;
     box-shadow: 0 10px 28px rgba(232,93,53,.28);
   }
@@ -50,7 +51,7 @@
   .marca { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; max-width: 480px; margin: 0 auto; padding: 20px 18px 34px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
   .marca-icono { width: 42px; height: 42px; border-radius: 14px; background: #fff; color: var(--brand); display: grid; place-items: center; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
   .marca b { font-weight: 800; letter-spacing: -.01em; font-size: 1.08rem; }
-  .marca span { opacity: .95; font-size: .85rem; display: block; line-height: 1.25; }
+  .marca span { font-size: .9rem; font-weight: 600; display: block; line-height: 1.25; }
 
   /* ---------- Piezas comunes ---------- */
   .bloque { background: var(--surface); border: 1px solid #EDEFF2; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sombra); scroll-margin-top: 12px; }
@@ -58,7 +59,8 @@
   @keyframes entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
   h2 { margin: 0 0 14px; font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
   .aviso { color: var(--muted); font-size: .9rem; margin: 0; }
-  .error { color: var(--err); font-weight: 600; margin: 0 0 12px; }
+  .error { color: #A93226; font-weight: 700; font-size: .92rem; margin: 0 0 12px; padding: 10px 12px 10px 14px; background: #FDEDEB; border-left: 4px solid var(--err); border-radius: 10px; }
+  .error::before { content: "⚠ "; }
 
   .pasos { display: flex; gap: 6px; margin: 0 0 16px; }
   .pasos span { flex: 1; height: 6px; border-radius: 999px; background: #DDE2E7; transition: background .25s; }
@@ -81,7 +83,7 @@
     display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; border: 1.5px solid var(--line); background: #FBFCFD;
     font-weight: 800; font-size: 1.1rem; transition: background .15s, color .15s, border-color .15s, transform .1s;
   }
-  .piso input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 6px 14px rgba(232,93,53,.3); }
+  .piso input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); color: #fff; box-shadow: 0 6px 14px rgba(232,93,53,.3); }
   .piso input:active + span { transform: scale(.94); }
   .piso input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
 
@@ -95,7 +97,7 @@
     transition: background .15s, border-color .15s, transform .1s, color .15s, box-shadow .15s;
   }
   .equipo svg { color: var(--aqua); transition: color .15s; }
-  .equipo input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 8px 18px rgba(232,93,53,.3); }
+  .equipo input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); color: #fff; box-shadow: 0 8px 18px rgba(232,93,53,.3); }
   .equipo input:checked + span svg { color: #fff; }
   .equipo input:active + span { transform: scale(.96); }
   .equipo input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
@@ -122,8 +124,8 @@
   }
   .barra-envio > div { max-width: 480px; margin: 0 auto; }
   button.principal {
-    width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #F2784E, #E85D35); color: var(--brand-ink);
-    font: inherit; font-size: 1.02rem; font-weight: 800; cursor: pointer; box-shadow: 0 8px 18px rgba(232,93,53,.32);
+    width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #E85D35, #C94420); color: var(--brand-ink);
+    font: inherit; font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 8px 18px rgba(232,93,53,.32);
   }
   button.principal:hover:not(:disabled) { filter: brightness(1.05); }
   button.principal:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
@@ -199,7 +201,7 @@
   #acceso .error { margin: 10px 0 0; }
   .tabs { display: flex; gap: 6px; padding: 4px; background: var(--aqua-soft); border-radius: 14px; margin-bottom: 16px; }
   .tab { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--aqua-ink); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
-  .tab.activa { background: var(--brand); color: #fff; }
+  .tab.activa { background: var(--brand-strong); color: #fff; }
   .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dos > div { min-width: 0; }
   .grupo-clave { position: relative; }
@@ -213,30 +215,55 @@
   #bloque-nombre .dos label.campo { margin-top: 0; }
   #correo-paso .error { margin: 10px 0 0; }
 
-  /* ---------- Escritorio ---------- */
-  @media (min-width: 768px) {
-    main { max-width: 560px; padding-top: 30px; }
-    .marca, .barra-envio > div { max-width: 560px; }
-    .bloque { padding: 24px; }
+  /* ---------- Ayudas visuales (heurísticas 1, 5, 6, 10) ---------- */
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .hero { display: none; }
+  .paso-etiqueta { margin: 0 0 8px; font-size: .88rem; font-weight: 800; color: var(--aqua-ink); }
+  .pista { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+  .ayuda { max-width: 480px; margin: 6px auto 0; text-align: center; font-size: .88rem; color: var(--muted); }
+
+  /* ---------- Tablet ---------- */
+  @media (min-width: 600px) and (max-width: 959px) {
+    .marca, main, .barra-envio > div, .ayuda { max-width: 560px; }
+  }
+
+  /* ---------- Escritorio: panel de marca a la izquierda + formulario a la derecha ---------- */
+  @media (min-width: 960px) {
+    :root { --panel: min(42vw, 620px); }
+    .banda { position: fixed; z-index: 5; top: 0; bottom: 0; left: 0; width: var(--panel); display: flex; flex-direction: column;
+      border-radius: 0 150px 80px 0 / 0 110px 170px 0; box-shadow: 16px 0 44px rgba(201,68,32,.22); }
+    .banda::before { width: 380px; height: 380px; right: -130px; top: -140px; }
+    .banda::after { width: 260px; height: 260px; left: -80px; bottom: -90px; }
+    .marca { max-width: none; width: 100%; margin: 0; padding: 40px 48px 0; }
+    .marca-icono { width: 48px; height: 48px; }
+    .hero { display: flex; flex-direction: column; justify-content: center; flex: 1; position: relative; z-index: 1; padding: 0 64px 56px 48px; }
+    .hero h1 { margin: 0 0 14px; font-size: clamp(2rem, 3vw, 2.9rem); line-height: 1.1; letter-spacing: -.02em; font-weight: 800; }
+    .hero p { margin: 0 0 26px; font-size: 1.1rem; line-height: 1.55; font-weight: 500; }
+    .hero ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; justify-items: start; }
+    .hero li { background: var(--aqua-soft); color: var(--aqua-ink); font-weight: 800; font-size: .95rem; padding: 9px 16px; border-radius: 999px; }
+    main { max-width: none; margin: 0 0 0 var(--panel); min-height: 100vh; display: flex; flex-direction: column; padding: 48px 48px 150px; }
+    main::before, main::after { content: ""; flex: 1 0 0; }
+    main > * { flex: none; width: 100%; max-width: 560px; margin-left: auto; margin-right: auto; }
+    .barra-envio { left: var(--panel); }
+    .barra-envio > div { max-width: 560px; }
+    .bloque { padding: 26px; }
   }
 
   /* ---------- Splash (video + pintura) ---------- */
   .splash { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #F2784E 0%, #E85D35 55%, #C14622 100%); display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
   .splash.fuera { opacity: 0; pointer-events: none; }
-  .sp-fondo { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(28px) brightness(.6); transform: scale(1.15); }
+  .sp-fondo { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(30px) brightness(.85) saturate(1.3); transform: scale(1.2); }
   .sp-video { position: relative; width: 100%; height: 100%; object-fit: cover; }
   @media (min-width: 900px) {
     .sp-fondo { display: block; }
-    .sp-video { width: auto; max-width: 100%; object-fit: contain; }
+    .sp-video { width: auto; height: 90%; max-width: 92%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 28px; box-shadow: 0 30px 90px rgba(0,0,0,.45); }
   }
-  .sp-saltar { position: absolute; z-index: 3; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.5); background: rgba(0,0,0,.3); backdrop-filter: blur(6px); color: #fff; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
-  .sp-saltar:hover { background: rgba(0,0,0,.5); }
+  .sp-saltar { position: absolute; z-index: 3; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: #fff; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+  .sp-saltar:hover { background: rgba(0,0,0,.55); }
   .sp-saltar:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
   .pintura { position: absolute; inset: -25%; z-index: 2; pointer-events: none; filter: url(#goo); }
-  .pintura .gota { position: absolute; left: 50%; top: 50%; width: 46px; height: 58px; margin: -29px 0 0 -23px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: linear-gradient(120deg, #fff 50%, #E85D35 50%); transform: translateY(-120vh); }
-  .pintura .mancha { position: absolute; left: 50%; top: 50%; width: 3vmax; height: 3vmax; margin: -1.5vmax 0 0 -1.5vmax; border-radius: 50%; transform: scale(0); }
-  .pintura .blanca { background: #fff; }
-  .pintura .naranja { background: #E85D35; }
+  .pintura .gota { position: absolute; left: 50%; top: 50%; width: 52px; height: 66px; margin: -33px 0 0 -26px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: linear-gradient(120deg, #fff 50%, #E85D35 50%); transform: translateY(-120vh); }
+  .pintura .mancha { position: absolute; left: 50%; top: 50%; border-radius: 50%; transform: scale(0); }
   .pintura .salpica { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; transform: scale(0); }
 </style>
 </head>
@@ -246,10 +273,8 @@
 <div id="splash" class="splash" aria-hidden="true">
   <video id="sp-fondo" class="sp-fondo" muted playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
   <video id="sp-video" class="sp-video" muted autoplay playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
-  <button id="sp-saltar" class="sp-saltar" type="button">Saltar</button>
+  <button id="sp-saltar" class="sp-saltar" type="button" aria-label="Saltar introducción">Saltar</button>
   <div id="pintura" class="pintura">
-    <i class="mancha blanca" id="m-blanca"></i>
-    <i class="mancha naranja" id="m-naranja"></i>
     <i class="gota" id="gota"></i>
   </div>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
@@ -270,6 +295,22 @@
     sp.classList.add("fuera");
     setTimeout(function () { sp.remove(); document.body.style.overflow = ""; }, 650);
   }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // una mancha circular que crece desde el punto de impacto (tamaño en vmax: cubre cualquier pantalla)
+  function mancha(color, size, dx, dy, delay, dur) {
+    var m = document.createElement("i"); m.className = "mancha";
+    m.style.background = color;
+    m.style.width = m.style.height = size + "vmax";
+    m.style.margin = (dy - size / 2) + "vmax 0 0 " + (dx - size / 2) + "vmax";
+    pint.appendChild(m);
+    m.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }],
+      { duration: dur, delay: delay, easing: "cubic-bezier(.22,.7,.2,1)", fill: "forwards" });
+  }
+  // una capa de color = una mancha grande + varias que brotan alrededor (el filtro "goo" las une como líquido)
+  function capa(color, retraso) {
+    mancha(color, 200, 0, 0, retraso, 1000);
+    for (var i = 0; i < 6; i++) mancha(color, rnd(110, 160), rnd(-22, 22), rnd(-22, 22), retraso + rnd(0, 220), rnd(800, 1000));
+  }
   function pintura() {
     if (pintando || done) return; pintando = true;
     try { v.pause(); f.pause(); } catch (_) {}
@@ -281,8 +322,7 @@
     );
     caida.onfinish = function () {
       gota.style.display = "none";
-      var ease = "cubic-bezier(.2,.75,.2,1)";
-      // gotitas que salpican
+      // salpicaduras
       for (var i = 0; i < 7; i++) {
         var s = document.createElement("i"); s.className = "salpica";
         s.style.background = i % 2 ? "#fff" : "#E85D35";
@@ -290,14 +330,12 @@
         var a = (Math.PI * 2 * i) / 7, d = 14 + Math.random() * 14;
         s.animate(
           [{ transform: "translate(0,0) scale(0)" }, { transform: "translate(" + Math.cos(a) * d + "vmin," + Math.sin(a) * d + "vmin) scale(" + (.5 + Math.random() * .8) + ")" }],
-          { duration: 800, easing: ease, fill: "forwards" }
+          { duration: 800, easing: "cubic-bezier(.2,.75,.2,1)", fill: "forwards" }
         );
       }
-      document.getElementById("m-blanca").animate(
-        [{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 950, easing: ease, fill: "forwards" });
-      var n = document.getElementById("m-naranja").animate(
-        [{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 1050, delay: 130, easing: ease, fill: "forwards" });
-      n.onfinish = function () { setTimeout(salir, 250); };
+      capa("#ffffff", 0);          // primero la pintura blanca...
+      capa("#E85D35", 180);        // ...y justo detrás la naranja, que termina cubriendo todo
+      setTimeout(salir, 1700);     // pantalla toda naranja → se desvanece y aparece la interfaz
     };
   }
   function vigilar() {
@@ -319,6 +357,7 @@
   var p = v.play(); if (p && p.catch) p.catch(function () { clearTimeout(seguro); setTimeout(pintura, FIN * 1000); });
   v.addEventListener("ended", pintura);
   document.getElementById("sp-saltar").addEventListener("click", salir);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") salir(); });   // salir con el teclado
 })();
 </script>
 
@@ -328,6 +367,15 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
+  </div>
+  <div class="hero">
+    <h1>Reporta tu problema técnico</h1>
+    <p>Cuéntanos qué pasa y el equipo de Soporte lo atenderá. Te avisamos por correo en cada paso.</p>
+    <ul>
+      <li>✓ Toma menos de 1 minuto</li>
+      <li>✓ Seguimiento por correo</li>
+      <li>✓ Disponible en todas las sedes</li>
+    </ul>
   </div>
 </header>
 <main>
@@ -402,6 +450,7 @@
           <input id="r-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
       </div>
     </section>
+    <p id="paso-etiqueta" class="paso-etiqueta" aria-live="polite">Paso 1 de 4 · Sede</p>
     <div class="pasos" aria-hidden="true"><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
 
     <section id="paso-sede" class="bloque">
@@ -413,6 +462,7 @@
       <h2>¿Dónde está el problema?</h2>
       <label class="campo" for="aula">Aula</label>
       <input id="aula" type="text" maxlength="40" placeholder="Ej. 305" enterkeyhint="next">
+      <p class="pista">El piso se marca solo con el primer número del aula (ej. 305 → piso 3). También puedes elegirlo tú.</p>
       <div class="espacio-sup">
         <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-piso">Piso</p>
         <div class="pisos" role="radiogroup" aria-labelledby="et-piso" id="pisos"></div>
@@ -456,6 +506,7 @@
     <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
   </section>
 
+  <p class="ayuda">¿Necesitas ayuda? Si algo no funciona o es urgente, avisa directamente al área de Soporte.</p>
 </main>
 
 <script>
@@ -951,6 +1002,22 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso", "g-dominio");
   if (haySesion() && leerIdentidad()) return irAlFormulario();   // p. ej. "Reportar otro problema"
   mostrarInicio();
   cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
+})();
+</script>
+<script>
+// Heurística 1 (visibilidad del estado): texto "Paso X de 4" que sigue a la barra de progreso existente
+(function () {
+  var barras = document.querySelectorAll("#formulario .pasos span"), et = document.getElementById("paso-etiqueta");
+  var nombres = ["Sede", "Lugar", "Equipo", "Problema"];
+  if (!barras.length || !et) return;
+  function act() {
+    var n = 0;
+    while (n < barras.length && barras[n].classList.contains("listo")) n++;
+    et.textContent = n >= barras.length ? "¡Todo listo! Presiona «Registrar problema»" : "Paso " + (n + 1) + " de 4 · " + nombres[n];
+  }
+  var mo = new MutationObserver(act);
+  barras.forEach(function (b) { mo.observe(b, { attributes: true, attributeFilter: ["class"] }); });
+  act();
 })();
 </script>
 </body>
