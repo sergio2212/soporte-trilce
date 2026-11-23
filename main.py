@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
+import unicodedata
 import correos
 import seguridad
 
@@ -29,14 +30,15 @@ ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "gmail.com,hotmail.com,yahoo.com,outlook.com").split(",") if d.strip()]
 
 # ------------------------------------------------------------------
-# Regla de prioridad PROVISIONAL (hasta confirmar la sección 5 del documento).
-# Charter: la prioridad depende de si hay una clase activa; el objetivo de
-# primera respuesta en clase activa es menor a 8 minutos.
+# SLA (definido por el profesor)
+#   Prioridad según el equipo con falla: PC = crítica, Proyector = media, Impresora = baja
+#   (Internet y Monitor, que no se definieron, quedan en media).
+#   Si el docente NO está en clase, la prioridad baja un nivel.
+#   Plazo de atención: crítica 15 min, media 30 min, baja 50 min.
 # ------------------------------------------------------------------
-# El docente ya no indica si está en clase: todo ticket nace con prioridad "media" y
-# este plazo de primera respuesta (PROVISIONAL). El equipo de Soporte ajusta la urgencia.
-PLAZO_RESPUESTA_MIN = 15
-PRIORIDAD_INICIAL = "media"
+PLAZOS_SLA_MIN = {"critica": 15, "media": 30, "baja": 50}
+PRIORIDAD_POR_EQUIPO = {"pc": "critica", "proyector": "media", "impresora": "baja"}
+BAJAR_PRIORIDAD = {"critica": "media", "media": "baja", "baja": "baja"}
 
 app = FastAPI(title="Soporte Trilce")
 app.add_middleware(
@@ -89,9 +91,17 @@ def notificar_estado(ticket_id: int):
         print("notificar_estado falló:", repr(ex))
 
 
-def calcular_prioridad(tipo_falla_id: int):
-    """Devuelve (prioridad, plazo_en_minutos). Regla provisional: ver arriba."""
-    return PRIORIDAD_INICIAL, PLAZO_RESPUESTA_MIN
+def calcular_prioridad(cur, tipo_falla_id: int, en_clase: bool):
+    """Devuelve (prioridad, plazo_en_minutos) según el SLA."""
+    cur.execute(
+        "SELECT te.nombre FROM tipos_falla f JOIN tipos_equipo te ON te.id = f.tipo_equipo_id WHERE f.id = %s",
+        (tipo_falla_id,),
+    )
+    fila = cur.fetchone()
+    prioridad = PRIORIDAD_POR_EQUIPO.get((fila["nombre"] if fila else "").strip().lower(), "media")
+    if not en_clase:
+        prioridad = BAJAR_PRIORIDAD[prioridad]
+    return prioridad, PLAZOS_SLA_MIN[prioridad]
 
 
 # ------------------------------------------------------------------
@@ -106,15 +116,15 @@ def secreto() -> str:
     return valor
 
 
-ROLES_SOPORTE = ("tecnico", "admin")
-ROLES_CAMPO = ("tecnico_campo", "admin")
+ROLES_SOPORTE = ("tecnico", "admin")   # pueden VER la información (cada uno según su sede)
+ROLES_GESTION = ("tecnico",)           # solo Soporte gestiona: atender, en camino, resolver y activos
 
 
 def autenticar(cur, cred: Optional[HTTPAuthorizationCredentials], roles=ROLES_SOPORTE):
     """Devuelve el usuario del token, verificando en la base que siga activo y su rol.
 
     roles=None acepta a cualquiera. 'tecnico' y 'admin' usan la página de Soporte;
-    'tecnico_campo' (técnico que va al aula) solo usa la página del técnico."""
+    El administrador solo observa; Soporte gestiona."""
     if cred is None:
         raise HTTPException(status_code=401, detail="Inicia sesión para continuar")
     datos = seguridad.leer_token(cred.credentials, secreto())
@@ -142,8 +152,8 @@ def exigir_admin(usuario):
 
 
 def filtro_sede(usuario):
-    """None = ve todas las sedes (admin, o Soporte sin sede fija). Los demás solo ven la suya."""
-    if usuario["rol"] == "admin" or (usuario["rol"] == "tecnico" and usuario["sede_id"] is None):
+    """None = ve todas las sedes (administrador). Cada cuenta de Soporte ve solo su sede."""
+    if usuario["rol"] == "admin":
         return None
     if usuario["sede_id"] is None:
         raise HTTPException(status_code=403, detail="Tu usuario no tiene una sede asignada")
@@ -233,7 +243,8 @@ class TicketNuevo(BaseModel):
     sede_id: Optional[int] = None
     tipo_falla_id: int
     aula: str = Field(min_length=1, max_length=40)
-    piso: str = Field(min_length=1, max_length=20)
+    piso: Optional[str] = Field(default=None, max_length=20)      # se deduce del aula (505 = piso 5)
+    en_clase: Optional[bool] = None
     descripcion: Optional[str] = Field(default=None, max_length=300)
     correo: str = Field(min_length=5, max_length=200)
     nombre: Optional[str] = Field(default=None, max_length=60)      # solo la primera vez
@@ -242,6 +253,36 @@ class TicketNuevo(BaseModel):
 
 REGEX_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 REGEX_NOMBRE = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$")
+REGEX_AULA = re.compile(r"^[1-6]0[1-6]$")          # 101-106, 201-206 ... 601-606 (el 1.er número es el piso)
+REGEX_PALABRA = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$")
+TECLADO = ("qwe", "wer", "ert", "rty", "tyu", "yui", "uio", "iop", "asdf", "sdf", "dfg", "fgh", "ghj", "hjk", "jkl", "zxc", "xcv", "cvb", "vbn", "bnm")
+
+
+def _plausible(palabra: str) -> bool:
+    """Descarta teclazos como 'jfdksaajfalkfdjlafk': necesita vocales, sin rachas imposibles."""
+    t = unicodedata.normalize("NFD", palabra.lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    vocales = sum(1 for c in t if c in "aeiou")
+    if vocales == 0 or vocales / len(t) < 0.2:
+        return False
+    if re.search(r"(.)\1\1", t) or re.search(r"[^aeiou]{5,}", t) or re.search(r"[aeiou]{4,}", t):
+        return False
+    if re.search(r"(..+)\1\1", t):
+        return False
+    return not any(k in t for k in TECLADO)
+
+
+def validar_nombres(nombre: str, apellido: str):
+    """Hasta 2 nombres y 2 apellidos, solo letras y con aspecto de nombre real."""
+    def revisar(texto, etiqueta):
+        palabras = texto.split()
+        if not 1 <= len(palabras) <= 2:
+            raise HTTPException(status_code=422, detail=f"Escribe {etiqueta} (máximo 2)")
+        for p in palabras:
+            if not REGEX_PALABRA.match(p) or not _plausible(p):
+                raise HTTPException(status_code=422, detail=f"«{p}» no parece un nombre válido. Usa solo letras y tu nombre real")
+        return " ".join(p[:1].upper() + p[1:].lower() for p in palabras)
+    return revisar(" ".join(nombre.split()), "tus nombres"), revisar(" ".join(apellido.split()), "tus apellidos")
 
 
 def normalizar_correo(correo: str) -> str:
@@ -263,8 +304,7 @@ def identificar_docente(cur, correo: str, nombre: Optional[str], apellido: Optio
     docente = cur.fetchone()
     if docente and (docente["nombre"] or "").strip():
         return docente                                   # ya identificado: no se piden ni se devuelven nombres
-    if not REGEX_NOMBRE.match(nombre) or not REGEX_NOMBRE.match(apellido):
-        raise HTTPException(status_code=422, detail="Escribe tus nombres y apellidos (solo letras)")
+    nombre, apellido = validar_nombres(nombre, apellido)
     cur.execute(
         """
         INSERT INTO docentes (correo, nombre, apellido) VALUES (%s, %s, %s)
@@ -303,8 +343,7 @@ def docente_registrar(datos: DocenteRegistro):
     correo = normalizar_correo(datos.correo)
     nombre = " ".join(datos.nombre.split())
     apellido = " ".join(datos.apellido.split())
-    if not REGEX_NOMBRE.match(nombre) or not REGEX_NOMBRE.match(apellido):
-        raise HTTPException(status_code=422, detail="Escribe tus nombres y apellidos (solo letras)")
+    nombre, apellido = validar_nombres(nombre, apellido)
     with conexion() as conn, conn.cursor() as cur:
         cur.execute("SELECT id FROM docentes WHERE correo = %s", (correo,))
         if cur.fetchone():
@@ -316,9 +355,11 @@ def docente_registrar(datos: DocenteRegistro):
 @app.post("/tickets", status_code=201)
 def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
     """El docente presiona 'Registrar problema'. Se identifica por su correo Gmail."""
-    aula, piso = datos.aula.strip(), datos.piso.strip()
-    if not aula or not piso:
-        raise HTTPException(status_code=400, detail="Indica el aula y el piso")
+    aula = datos.aula.strip()
+    if not REGEX_AULA.match(aula):
+        raise HTTPException(status_code=400, detail="Elige un aula válida (101 al 606)")
+    piso = aula[0]                       # el primer número del aula es el piso
+    en_clase = True if datos.en_clase is None else bool(datos.en_clase)
     with conexion() as conn, conn.cursor() as cur:
         docente = identificar_docente(cur, datos.correo, datos.nombre, datos.apellido)
         if datos.token_qr:
@@ -344,7 +385,7 @@ def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
         if not falla:
             raise HTTPException(status_code=400, detail="Falla no válida")
 
-        prioridad, plazo_min = calcular_prioridad(datos.tipo_falla_id)
+        prioridad, plazo_min = calcular_prioridad(cur, datos.tipo_falla_id, en_clase)
         token_seguimiento = secrets.token_urlsafe(16)
 
         cur.execute(
@@ -353,7 +394,7 @@ def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
                                  en_clase, contacto_docente, prioridad, token_seguimiento,
                                  plazo_atencion, aula_reportada, piso_reportado, tipo_equipo_id,
                                  docente_id)
-            VALUES (%s, %s, %s, %s, FALSE, %s, %s, %s,
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s,
                     now() + make_interval(mins => %s), %s, %s, %s, %s)
             RETURNING id, estado, prioridad, token_seguimiento
             """,
@@ -362,6 +403,7 @@ def crear_ticket(datos: TicketNuevo, tareas: BackgroundTasks):
                 equipo["id"],
                 datos.tipo_falla_id,
                 (datos.descripcion or "").strip() or None,
+                en_clase,
                 docente["correo"],
                 prioridad,
                 token_seguimiento,
@@ -458,7 +500,8 @@ SELECT t.id, t.estado, t.prioridad, t.en_clase, t.descripcion,
        CASE WHEN d.id IS NULL THEN NULL
             ELSE COALESCE(NULLIF(trim(coalesce(d.nombre,'') || ' ' || coalesce(d.apellido,'')), ''), d.correo)
        END AS docente, d.correo AS docente_correo,
-       t.tecnico_campo_id, tc.nombre AS tecnico_campo, t.tecnico_enviado_en
+       t.tecnico_campo_id, tc.nombre AS tecnico_campo, t.tecnico_enviado_en,
+       (COALESCE(t.atendido_en, now()) > t.plazo_atencion) AS atendido_tarde
 FROM tickets t
 LEFT JOIN equipos e ON e.id = t.equipo_id
 LEFT JOIN ambientes a ON a.id = e.ambiente_id
@@ -503,6 +546,9 @@ def listar_tickets(
         tickets = cur.fetchall()
         cur.execute("SELECT now() AS ahora")
         ahora = cur.fetchone()["ahora"]
+    if usuario["rol"] != "admin":          # la marca «Atendido tarde» es solo del administrador
+        for t in tickets:
+            t.pop("atendido_tarde", None)
     return {"ahora": ahora, "tickets": tickets}
 
 
@@ -531,7 +577,7 @@ def atender_ticket(
 ):
     """Primera acción de atención: marca el ticket 'en atención' y registra la hora."""
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
         ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
         if ticket["estado"] != "nuevo":
             raise HTTPException(status_code=409, detail="Este ticket ya fue tomado o resuelto")
@@ -555,227 +601,72 @@ def atender_ticket(
     return {"id": ticket_id, "estado": "en_atencion"}
 
 
-ETAPAS = ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]
+class NotaResolucion(BaseModel):
+    nota: str = Field(max_length=500)
 
 
-class EnvioTecnico(BaseModel):
-    tecnico_id: Optional[int] = None     # None = cualquier técnico de la sede
-
-
-@app.get("/soporte/tecnicos")
-def listar_tecnicos(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
-    """Técnicos de campo disponibles para enviar a un aula (los de la sede del usuario)."""
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
-        sede = filtro_sede(usuario)
-        sql = """
-            SELECT u.id, u.nombre, u.sede_id, s.nombre AS sede,
-                   (SELECT count(*) FROM tickets t
-                     WHERE t.tecnico_campo_id = u.id AND t.estado IN ('en_camino','solucionando')) AS ocupado_con
-            FROM usuarios u LEFT JOIN sedes s ON s.id = u.sede_id
-            WHERE u.activo AND (u.rol = 'tecnico_campo' OR u.rol = 'admin')
-        """
-        params = []
-        if sede is not None:   # el administrador también puede hacer de técnico, en cualquier sede
-            sql += " AND (u.sede_id = %s OR u.rol = 'admin')"
-            params.append(sede)
-        cur.execute(sql + " ORDER BY u.nombre", params)
-        tecnicos = cur.fetchall()
-    return {"tecnicos": tecnicos}
-
-
-@app.post("/soporte/tickets/{ticket_id}/enviar-tecnico")
-def enviar_tecnico(
+@app.post("/soporte/tickets/{ticket_id}/en-camino")
+def ticket_en_camino(
     ticket_id: int,
-    datos: EnvioTecnico,
     tareas: BackgroundTasks,
     cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ):
-    """Soporte llama a un técnico. Desde aquí solo el técnico puede dar el problema por resuelto."""
+    """Soporte sale hacia el aula. Desde este momento se mide el tiempo de resolución."""
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
         ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
         if ticket["estado"] == "nuevo":
             raise HTTPException(status_code=409, detail="Primero atiende el ticket")
         if ticket["estado"] == "resuelto":
             raise HTTPException(status_code=409, detail="Este ticket ya está resuelto")
         if ticket["estado"] != "en_atencion":
-            raise HTTPException(status_code=409, detail="Ya hay un técnico en este ticket")
-        nombre_tecnico = None
-        if datos.tecnico_id is not None:
-            cur.execute(
-                "SELECT id, nombre, sede_id, rol FROM usuarios WHERE id = %s AND rol IN ('tecnico_campo', 'admin') AND activo",
-                (datos.tecnico_id,),
-            )
-            tec = cur.fetchone()
-            if not tec or (tec["rol"] != "admin" and tec["sede_id"] != ticket["sede_id"]):
-                raise HTTPException(status_code=400, detail="Ese técnico no está disponible en esta sede")
-            nombre_tecnico = tec["nombre"]
+            raise HTTPException(status_code=409, detail="Este ticket ya está en camino")
         cur.execute(
-            """
-            UPDATE tickets
-            SET estado = 'en_camino', tecnico_campo_id = %s, tecnico_enviado_en = now()
-            WHERE id = %s
-            """,
-            (datos.tecnico_id, ticket_id),
-        )
-        nota = "Técnico en camino: " + (nombre_tecnico or "cualquier técnico de la sede")
-        cur.execute(
-            """
-            INSERT INTO ticket_historial
-                (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
-            VALUES (%s, %s, 'en_atencion', 'en_camino', %s, %s)
-            """,
-            (ticket_id, ticket["sede_id"], usuario["id"], nota),
-        )
-    tareas.add_task(notificar_estado, ticket_id)
-    return {"id": ticket_id, "estado": "en_camino", "tecnico": nombre_tecnico}
-
-
-# ------------------------------------------------------------------
-# Página del técnico (rol tecnico_campo): él decide si se resolvió o no
-# ------------------------------------------------------------------
-@app.get("/tecnico/tickets")
-def tecnico_tickets(
-    estado: Literal["pendientes", "resueltos"] = "pendientes",
-    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-):
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_CAMPO)
-        sede = filtro_sede(usuario)
-        condiciones, params = [], []
-        if sede is not None:
-            condiciones.append("t.sede_id = %s")
-            params.append(sede)
-        if estado == "pendientes":
-            condiciones.append("t.estado IN ('en_camino', 'solucionando')")
-            if usuario["rol"] != "admin":
-                condiciones.append("(t.tecnico_campo_id IS NULL OR t.tecnico_campo_id = %s)")
-                params.append(usuario["id"])
-            orden = " ORDER BY t.tecnico_enviado_en NULLS LAST, t.creado_en"
-        else:
-            condiciones.append("t.estado = 'resuelto'")
-            if usuario["rol"] != "admin":
-                condiciones.append("t.tecnico_campo_id = %s")
-                params.append(usuario["id"])
-            orden = " ORDER BY t.resuelto_en DESC LIMIT 30"
-        cur.execute(SQL_TICKETS + " WHERE " + " AND ".join(condiciones) + orden, params)
-        tickets = cur.fetchall()
-        cur.execute("SELECT now() AS ahora")
-        ahora = cur.fetchone()["ahora"]
-    return {"ahora": ahora, "tickets": tickets}
-
-
-def ticket_de_tecnico(cur, usuario, ticket_id: int):
-    ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
-    if ticket["estado"] not in ("en_camino", "solucionando"):
-        raise HTTPException(status_code=409, detail="Este ticket no está pendiente de técnico")
-    if (
-        usuario["rol"] != "admin"
-        and ticket["tecnico_campo_id"] is not None
-        and ticket["tecnico_campo_id"] != usuario["id"]
-    ):
-        raise HTTPException(status_code=409, detail="Este ticket fue asignado a otro técnico")
-    return ticket
-
-
-class NotaTecnico(BaseModel):
-    nota: str = Field(max_length=500)
-
-
-@app.post("/tecnico/tickets/{ticket_id}/solucionando")
-def tecnico_solucionando(
-    ticket_id: int,
-    tareas: BackgroundTasks,
-    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-):
-    """El técnico llegó y empezó a trabajar."""
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_CAMPO)
-        ticket = ticket_de_tecnico(cur, usuario, ticket_id)
-        if ticket["estado"] == "solucionando":
-            raise HTTPException(status_code=409, detail="Ya estás solucionando este ticket")
-        cur.execute(
-            "UPDATE tickets SET estado = 'solucionando', tecnico_campo_id = COALESCE(tecnico_campo_id, %s) WHERE id = %s",
-            (usuario["id"], ticket_id),
-        )
-        cur.execute(
-            """
-            INSERT INTO ticket_historial
-                (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
-            VALUES (%s, %s, 'en_camino', 'solucionando', %s, 'Técnico solucionando el problema')
-            """,
-            (ticket_id, ticket["sede_id"], usuario["id"]),
-        )
-    tareas.add_task(notificar_estado, ticket_id)
-    return {"id": ticket_id, "estado": "solucionando"}
-
-
-@app.post("/tecnico/tickets/{ticket_id}/resolver")
-def tecnico_resolver(
-    ticket_id: int,
-    datos: NotaTecnico,
-    tareas: BackgroundTasks,
-    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-):
-    """Solo el técnico puede marcar el problema como resuelto."""
-    nota = datos.nota.strip()
-    if len(nota) < 3:
-        raise HTTPException(status_code=400, detail="Describe brevemente qué se hizo")
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_CAMPO)
-        ticket = ticket_de_tecnico(cur, usuario, ticket_id)
-        cur.execute(
-            """
-            UPDATE tickets
-            SET estado = 'resuelto', resuelto_en = now(),
-                tecnico_campo_id = COALESCE(tecnico_campo_id, %s),
-                atendido_en = COALESCE(atendido_en, now())
-            WHERE id = %s
-            """,
-            (usuario["id"], ticket_id),
-        )
-        cur.execute(
-            """
-            INSERT INTO ticket_historial
-                (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
-            VALUES (%s, %s, %s, 'resuelto', %s, %s)
-            """,
-            (ticket_id, ticket["sede_id"], ticket["estado"], usuario["id"], "Técnico: " + nota),
-        )
-    tareas.add_task(notificar_estado, ticket_id)
-    return {"id": ticket_id, "estado": "resuelto"}
-
-
-@app.post("/tecnico/tickets/{ticket_id}/no-resuelto")
-def tecnico_no_resuelto(
-    ticket_id: int,
-    datos: NotaTecnico,
-    tareas: BackgroundTasks,
-    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-):
-    """El técnico no pudo resolverlo: el ticket vuelve a Soporte con su explicación."""
-    nota = datos.nota.strip()
-    if len(nota) < 3:
-        raise HTTPException(status_code=400, detail="Cuéntale a Soporte por qué no se pudo resolver")
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_CAMPO)
-        ticket = ticket_de_tecnico(cur, usuario, ticket_id)
-        cur.execute(
-            "UPDATE tickets SET estado = 'en_atencion', tecnico_campo_id = NULL, tecnico_enviado_en = NULL WHERE id = %s",
+            "UPDATE tickets SET estado = 'en_camino', tecnico_enviado_en = now() WHERE id = %s",
             (ticket_id,),
         )
         cur.execute(
             """
             INSERT INTO ticket_historial
                 (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
-            VALUES (%s, %s, %s, 'en_atencion', %s, %s)
+            VALUES (%s, %s, 'en_atencion', 'en_camino', %s, 'Soporte en camino al aula')
             """,
-            (ticket_id, ticket["sede_id"], ticket["estado"], usuario["id"], "Técnico: NO resuelto. " + nota),
+            (ticket_id, ticket["sede_id"], usuario["id"]),
         )
     tareas.add_task(notificar_estado, ticket_id)
-    return {"id": ticket_id, "estado": "en_atencion"}
+    return {"id": ticket_id, "estado": "en_camino"}
 
+
+@app.post("/soporte/tickets/{ticket_id}/resolver")
+def resolver_ticket(
+    ticket_id: int,
+    datos: NotaResolucion,
+    tareas: BackgroundTasks,
+    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+):
+    """Soporte da el problema por resuelto (solo después de 'En camino')."""
+    nota = datos.nota.strip()
+    if len(nota) < 3:
+        raise HTTPException(status_code=400, detail="Describe brevemente qué se hizo")
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
+        ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
+        if ticket["estado"] != "en_camino":
+            raise HTTPException(status_code=409, detail="Primero presiona «En camino»" if ticket["estado"] in ("nuevo", "en_atencion") else "Este ticket ya está resuelto")
+        cur.execute(
+            "UPDATE tickets SET estado = 'resuelto', resuelto_en = now() WHERE id = %s",
+            (ticket_id,),
+        )
+        cur.execute(
+            """
+            INSERT INTO ticket_historial
+                (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
+            VALUES (%s, %s, 'en_camino', 'resuelto', %s, %s)
+            """,
+            (ticket_id, ticket["sede_id"], usuario["id"], "Resuelto: " + nota),
+        )
+    tareas.add_task(notificar_estado, ticket_id)
+    return {"id": ticket_id, "estado": "resuelto"}
 
 
 # ------------------------------------------------------------------
@@ -790,7 +681,7 @@ class EncuestaRespuesta(BaseModel):
 def _ticket_de_encuesta(cur, token: str):
     cur.execute(
         """
-        SELECT t.id, t.estado, t.sede_id, t.docente_id, t.tecnico_campo_id, s.nombre AS sede,
+        SELECT t.id, t.estado, t.sede_id, t.docente_id, t.tecnico_id, s.nombre AS sede,
                te.nombre AS equipo, f.descripcion AS falla,
                EXISTS (SELECT 1 FROM encuestas e WHERE e.ticket_id = t.id) AS ya_respondida
         FROM tickets t
@@ -833,7 +724,7 @@ def encuesta_responder(token: str, datos: EncuestaRespuesta):
             ON CONFLICT (ticket_id) DO NOTHING
             RETURNING id
             """,
-            (t["id"], t["sede_id"], t["docente_id"], t["tecnico_campo_id"], datos.satisfaccion, datos.resolucion, comentario),
+            (t["id"], t["sede_id"], t["docente_id"], t["tecnico_id"], datos.satisfaccion, datos.resolucion, comentario),
         )
         if not cur.fetchone():
             raise HTTPException(status_code=409, detail="Esta encuesta ya fue completada")
@@ -931,6 +822,80 @@ def admin_habilitar_encuesta(encuesta_id: int, cred: Optional[HTTPAuthorizationC
 
 
 # ------------------------------------------------------------------
+# Mensajes del administrador a Soporte (por ticket o por encuesta)
+# ------------------------------------------------------------------
+class MensajeNuevo(BaseModel):
+    ticket_id: Optional[int] = None
+    encuesta_id: Optional[int] = None
+    texto: str = Field(min_length=3, max_length=500)
+
+
+@app.post("/admin/mensajes", status_code=201)
+def enviar_mensaje(datos: MensajeNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    """Solo el administrador. El mensaje le llega a Soporte de la sede del ticket o de la encuesta."""
+    if datos.ticket_id is None and datos.encuesta_id is None:
+        raise HTTPException(status_code=400, detail="Indica el ticket o la encuesta")
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        exigir_admin(usuario)
+        ticket_id = datos.ticket_id
+        if datos.encuesta_id is not None:
+            cur.execute("SELECT ticket_id FROM encuestas WHERE id = %s", (datos.encuesta_id,))
+            e = cur.fetchone()
+            if not e:
+                raise HTTPException(status_code=404, detail="Encuesta no encontrada")
+            ticket_id = e["ticket_id"]
+        cur.execute("SELECT id, sede_id FROM tickets WHERE id = %s", (ticket_id,))
+        t = cur.fetchone()
+        if not t:
+            raise HTTPException(status_code=404, detail="Ticket no encontrado")
+        cur.execute(
+            """
+            INSERT INTO mensajes (sede_id, ticket_id, encuesta_id, de_usuario_id, texto)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id
+            """,
+            (t["sede_id"], t["id"], datos.encuesta_id, usuario["id"], datos.texto.strip()),
+        )
+        nuevo = cur.fetchone()
+    return {"id": nuevo["id"]}
+
+
+@app.get("/soporte/mensajes")
+def listar_mensajes(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    """Soporte ve los mensajes de su sede; el administrador ve todos los que envió."""
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred)
+        sede = filtro_sede(usuario)
+        sql = """
+            SELECT m.id, m.ticket_id, m.encuesta_id, m.texto, m.creado_en, m.leido_en,
+                   s.nombre AS sede, u.nombre AS de
+            FROM mensajes m JOIN sedes s ON s.id = m.sede_id JOIN usuarios u ON u.id = m.de_usuario_id
+        """
+        params = []
+        if sede is not None:
+            sql += " WHERE m.sede_id = %s"
+            params.append(sede)
+        cur.execute(sql + " ORDER BY m.creado_en DESC LIMIT 100", params)
+        return {"mensajes": cur.fetchall()}
+
+
+@app.post("/soporte/mensajes/{mensaje_id}/leido")
+def marcar_mensaje_leido(mensaje_id: int, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    with conexion() as conn, conn.cursor() as cur:
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
+        sede = filtro_sede(usuario)
+        sql = "UPDATE mensajes SET leido_en = COALESCE(leido_en, now()) WHERE id = %s"
+        params = [mensaje_id]
+        if sede is not None:
+            sql += " AND sede_id = %s"
+            params.append(sede)
+        cur.execute(sql + " RETURNING id", params)
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Mensaje no encontrado")
+    return {"ok": True}
+
+
+# ------------------------------------------------------------------
 # Soporte: qué docentes reportan y con qué frecuencia
 # ------------------------------------------------------------------
 @app.get("/soporte/docentes")
@@ -993,41 +958,6 @@ def soporte_docente_tickets(
     return {"tickets": tickets}
 
 
-class CambioPrioridad(BaseModel):
-    prioridad: str = Field(max_length=10)
-
-
-@app.post("/soporte/tickets/{ticket_id}/prioridad")
-def cambiar_prioridad(
-    ticket_id: int,
-    datos: CambioPrioridad,
-    cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-):
-    """El técnico ajusta la urgencia del ticket (crítica, alta, media o baja)."""
-    nueva = datos.prioridad.strip().lower()
-    if nueva not in ("critica", "alta", "media", "baja"):
-        raise HTTPException(status_code=400, detail="Prioridad no válida")
-    with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
-        ticket = obtener_ticket(cur, usuario, ticket_id, bloquear=True)
-        if ticket["estado"] == "resuelto":
-            raise HTTPException(status_code=409, detail="Este ticket ya está resuelto")
-        cur.execute("SELECT prioridad FROM tickets WHERE id = %s", (ticket_id,))
-        anterior = cur.fetchone()["prioridad"]
-        if anterior != nueva:
-            cur.execute("UPDATE tickets SET prioridad = %s WHERE id = %s", (nueva, ticket_id))
-            cur.execute(
-                """
-                INSERT INTO ticket_historial
-                    (ticket_id, sede_id, estado_anterior, estado_nuevo, usuario_id, nota)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                (ticket_id, ticket["sede_id"], ticket["estado"], ticket["estado"],
-                 usuario["id"], "Prioridad cambiada de " + anterior + " a " + nueva),
-            )
-    return {"id": ticket_id, "prioridad": nueva}
-
-
 @app.get("/soporte/tickets/{ticket_id}/historial")
 def historial_ticket(
     ticket_id: int, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
@@ -1068,8 +998,11 @@ def indicadores(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
               ((avg(extract(epoch FROM (t.atendido_en - t.creado_en)))
                  FILTER (WHERE t.atendido_en IS NOT NULL)) / 60)::float8
                  AS primera_respuesta_min,
-              ((avg(extract(epoch FROM (t.resuelto_en - t.creado_en)))
-                 FILTER (WHERE t.resuelto_en IS NOT NULL)) / 60)::float8 AS mttr_min,
+              ((avg(extract(epoch FROM (t.resuelto_en - t.tecnico_enviado_en)))
+                 FILTER (WHERE t.resuelto_en IS NOT NULL AND t.tecnico_enviado_en IS NOT NULL)) / 60)::float8 AS mttr_min,
+              (count(*) FILTER (
+                 WHERE COALESCE(t.atendido_en, now()) > t.plazo_atencion
+              ))::int AS atendidos_tarde,
               (count(*) FILTER (
                  WHERE COALESCE(t.atendido_en, now()) > t.plazo_atencion
               ))::int AS en_clase_fuera_de_plazo
@@ -1156,9 +1089,9 @@ def crear_activo(
     datos: ActivoNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
 ):
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
         sede_id = filtro_sede(usuario)
-        if sede_id is None:                      # administrador: debe elegir la sede
+        if sede_id is None:                      # (cuenta de Soporte sin sede asignada)
             sede_id = datos.sede_id
             cur.execute("SELECT 1 FROM sedes WHERE id = %s AND activa", (sede_id,))
             if sede_id is None or not cur.fetchone():
@@ -1220,7 +1153,7 @@ def actualizar_activo(
     if datos.estado is not None and datos.estado not in ESTADOS_ACTIVO:
         raise HTTPException(status_code=400, detail="Estado no válido")
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
+        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
         sede = filtro_sede(usuario)
         sql = "SELECT id FROM equipos WHERE id = %s AND activo AND NOT es_punto_qr"
         params = [activo_id]
@@ -1309,7 +1242,7 @@ class UsuarioNuevo(BaseModel):
     nombre: str = Field(min_length=2, max_length=100)
     correo: str = Field(min_length=5, max_length=200)
     password: str = Field(min_length=8, max_length=200)
-    rol: Literal["tecnico", "admin", "tecnico_campo"]
+    rol: Literal["tecnico", "admin"]
     sede_id: Optional[int] = None
 
 
@@ -1319,8 +1252,8 @@ def crear_usuario(
 ):
     with conexion() as conn, conn.cursor() as cur:
         exigir_admin(autenticar(cur, cred))
-        if datos.rol == "tecnico_campo" and datos.sede_id is None:
-            raise HTTPException(status_code=400, detail="Un técnico necesita una sede")
+        if datos.rol in ("tecnico", "tecnico_campo") and datos.sede_id is None:
+            raise HTTPException(status_code=400, detail="Una cuenta de Soporte necesita una sede")
         if datos.sede_id is not None:
             cur.execute("SELECT 1 FROM sedes WHERE id = %s", (datos.sede_id,))
             if not cur.fetchone():

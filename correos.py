@@ -21,33 +21,29 @@ GRIS = "#C9CED6"
 TEXTO = "#1F2933"
 TEXTO_SUAVE = "#5B6670"
 
-# Lo que ve el docente (los estados internos son más finos: en_camino y solucionando = "Técnico asignado";
-# al resolverse el técnico, el reporte queda Resuelto y Cerrado).
+# Lo que ve el docente: 3 estados.
 ETAPAS = [
-    ("nuevo", "Reporte recibido"),
-    ("en_atencion", "En atención"),
-    ("tecnico", "Técnico asignado"),
-    ("resuelto", "Resuelto"),
+    ("pendiente", "Pendiente"),
+    ("proceso", "En proceso"),
     ("cerrado", "Cerrado"),
 ]
-INDICE_ETAPA = {"nuevo": 0, "en_atencion": 1, "en_camino": 2, "solucionando": 2, "resuelto": 4}
+# estados internos -> paso visible (Soporte atiende, sale en camino y resuelve = "En proceso")
+INDICE_ETAPA = {"nuevo": 0, "en_atencion": 1, "en_camino": 1, "solucionando": 1, "resuelto": 2}
 
-TEXTO_RESUELTO = "El técnico solucionó su problema. Gracias por reportarlo."
-TEXTO_INTERNET_RESUELTO = "El técnico solucionó el problema de internet. Gracias por reportarlo."
+TEXTO_RESUELTO = "Soporte solucionó su problema. Gracias por reportarlo."
+TEXTO_INTERNET_RESUELTO = "Soporte solucionó el problema de internet. Gracias por reportarlo."
 
 
 def mensaje(estado: str, falla: str):
-    """(título, texto, asunto corto) según el estado; mismos textos que la página."""
+    """(título, texto, asunto corto) según el estado. El docente solo ve 3 estados: Pendiente, En proceso y Cerrado."""
     if estado == "en_atencion":
-        return ("¡Gracias por la espera!", "Nuestro equipo de soporte está trabajando en ello.", "Soporte lo está atendiendo")
-    if estado == "en_camino":
-        return ("¡Gracias por la espera!", "Un técnico va en camino.", "Técnico en camino")
-    if estado == "solucionando":
-        return ("¡Gracias por la espera!", "El técnico está solucionando el problema.", "Técnico solucionando el problema")
+        return ("¡Gracias por la espera!", "Nuestro equipo de soporte está trabajando en ello.", "En proceso")
+    if estado in ("en_camino", "solucionando"):
+        return ("¡Gracias por la espera!", "Nuestro equipo de soporte va en camino a su aula.", "En proceso")
     if estado == "resuelto":
         texto = TEXTO_INTERNET_RESUELTO if "internet" in (falla or "").lower() else TEXTO_RESUELTO
-        return ("¡Listo!", texto, "Resuelto")
-    return ("Recibimos tu reporte", "Nuestro equipo de soporte lo atenderá en breve.", "Reporte registrado")
+        return ("¡Listo!", texto, "Cerrado")
+    return ("Recibimos tu reporte", "Nuestro equipo de soporte lo atenderá en breve.", "Pendiente")
 
 
 def _linea(color: str) -> str:
