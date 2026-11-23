@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#c4510e">
-<title>Soporte Trilce · Mesa de ayuda</title>
+<title>Soporte técnico · Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script>try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro"); } catch (_) {}</script>
+<script>const PAGINA = "soporte";
+try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro"); } catch (_) {}</script>
 <style>
   :root {
     --bg: #fff8f2;
@@ -27,7 +28,7 @@
     --radius: 16px;
   }
 
-  /* ---------- Modo oscuro (Configuración → Apariencia) ---------- */
+  /* ---------- Modo oscuro (botón luna / sol junto al perfil) ---------- */
   :root[data-tema="oscuro"] {
     color-scheme: dark;
     --bg: #17120f; --card: #221b16; --text: #f4eae2; --muted: #b9a89a;
@@ -39,12 +40,14 @@
   :root[data-tema="oscuro"] .chip.nuevo, :root[data-tema="oscuro"] .chip.contador { background: #4d2420; }
   :root[data-tema="oscuro"] .chip.en_atencion, :root[data-tema="oscuro"] .chip.en_camino, :root[data-tema="oscuro"] .chip.en_revision { background: #1e3350; }
   :root[data-tema="oscuro"] .chip.resuelto, :root[data-tema="oscuro"] .chip.operativo { background: #1c3d29; }
-  :root[data-tema="oscuro"] .btn.pendiente { background: #3d3210; border-color: #d9a400; color: #f0d37a; }
-  :root[data-tema="oscuro"] .aviso-tecnico { background: #1e3350; }
+  :root[data-tema="oscuro"] .chip.tarde, :root[data-tema="oscuro"] .chip.critica { background: #c0392b; color: #fff; }
   :root[data-tema="oscuro"] .nav-item[aria-current="page"], :root[data-tema="oscuro"] .nav-item .cuenta { background: #fff; color: #c4510e; }
   :root[data-tema="oscuro"] .btn.primario { color: #fff; }
   :root[data-tema="oscuro"] #tip { color: var(--bg); }
   :root[data-tema="oscuro"] dialog::backdrop { background: rgba(0,0,0,.65); }
+  #tema { border: 1.5px solid var(--line); background: var(--card); border-radius: 12px; width: 42px; height: 42px; font-size: 1.2rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  #tema:hover { border-color: var(--muted); }
+  #tema:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
@@ -168,6 +171,7 @@
 
   .chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; white-space: nowrap; background: var(--bg); color: var(--muted); }
   .chip.critica { background: var(--err); color: #fff; }
+  .chip.tarde { background: var(--err); color: #fff; margin-left: 6px; }
   .chip.alta { background: var(--brand-soft); color: var(--brand-dark); }
   .chip.media { background: #fff3c4; color: var(--warn); }
   .chip.baja { background: #ece6e1; color: var(--muted); }
@@ -248,7 +252,14 @@
     .herramientas > :first-child { grid-column: 1 / -1; }
     .usuario .rol { display: none; }
   }
-  @media (max-width: 520px) { .form-dlg .fila { grid-template-columns: 1fr; } .usuario { display: none; } }
+  @media (max-width: 520px) { .form-dlg .fila { grid-template-columns: 1fr; } .usuario { display: none; } .tarjetas { grid-template-columns: 1fr 1fr; } .cabecera h1 { font-size: 1.4rem; } .migas { display: none; } .dlg-int { padding: 16px; } .fichas { grid-template-columns: 1fr; gap: 0 } .fichas dd { margin-bottom: 8px; } .herramientas, .herramientas.dos-col { grid-template-columns: 1fr; } .kpi .valor { font-size: 1.7rem; } }
+  .fila-barrah { display: grid; grid-template-columns: minmax(90px, 170px) 1fr 70px; gap: 10px; align-items: center; margin: 7px 0; font-size: .9rem; }
+  @media (max-width: 520px) { .fila-barrah { grid-template-columns: 1fr 1fr; } .fila-barrah > div { grid-column: 1 / -1; order: 3; } }
+  .mensaje-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; }
+  .mensaje-item.nuevo { border-color: var(--brand); background: var(--brand-soft); }
+  .mensaje-item .meta { color: var(--muted); font-size: .82rem; margin-bottom: 4px; }
+  .mensaje-item .fila-acc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .topbar .perfil { display: flex; align-items: center; gap: 10px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
   @media print {
     #menu, .topbar, .acciones, #aviso-toast, #velo { display: none !important; }
@@ -270,9 +281,9 @@
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
-  <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte técnico</span></div></div>
-  <h1>Ingresa a la mesa de ayuda</h1>
-  <p class="sub">Usa la cuenta que te dio tu equipo de Soporte.</p>
+  <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
+  <h1 id="login-titulo">Ingresa a la mesa de ayuda</h1>
+  <p class="sub" id="login-sub">Usa tu cuenta.</p>
   <form id="form-login" class="panel" novalidate>
     <label class="campo" for="correo" style="margin-top:0">Correo</label>
     <input id="correo" type="email" autocomplete="username" inputmode="email" required>
@@ -287,14 +298,16 @@
 <!-- ===================== APLICACIÓN ===================== -->
 <div id="app" class="oculto">
   <aside id="menu" aria-label="Menú principal">
-    <div class="logo"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span>Soporte técnico</span></div></div>
+    <div class="logo"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
     <div class="nav-grupo">Menú principal</div>
     <button class="nav-item" data-vista="panel" type="button"></button>
     <button class="nav-item" data-vista="tickets" type="button"></button>
     <button class="nav-item" data-vista="docentes" type="button"></button>
     <button class="nav-item" data-vista="sedes" type="button"></button>
     <button class="nav-item" data-vista="encuestas" type="button"></button>
+    <button class="nav-item" data-vista="activos" type="button"></button>
     <button class="nav-item" data-vista="reportes" type="button"></button>
+    <button class="nav-item" data-vista="mensajes" type="button"></button>
     <div class="nav-grupo">Sistema</div>
     <button class="nav-item" data-vista="config" type="button"></button>
   </aside>
@@ -305,6 +318,7 @@
       <button id="abrir-menu" type="button" aria-label="Abrir menú"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="migas">Trilce TI / <b id="miga">Panel principal</b></div>
       <div class="espacio"></div>
+      <button id="tema" type="button" aria-label="Cambiar a modo oscuro" title="Modo oscuro">🌙</button>
       <div class="usuario"><b id="u-nombre"></b><br><span id="u-detalle"></span></div>
       <button id="salir" class="btn chico" type="button">Cerrar sesión</button>
     </header>
@@ -320,6 +334,9 @@
           <div class="caja kpi destacado" id="k-pend"><div class="nombre">Pendientes</div><div class="valor">–</div><div class="nota">Esperan primera atención</div></div>
           <div class="caja kpi" id="k-proc"><div class="nombre">En atención</div><div class="valor">–</div><div class="nota">Asignadas a Soporte</div></div>
           <div class="caja kpi" id="k-sat"><div class="nombre">Satisfacción</div><div class="valor">–</div><div class="nota" id="k-sat-nota">Sin encuestas todavía</div></div>
+          <div class="caja kpi" id="k-mttr"><div class="nombre">Tiempo de resolución</div><div class="valor">–</div><div class="nota">Promedio desde «En camino» hasta «Resuelto»</div></div>
+          <div class="caja kpi alerta" id="k-tarde"><div class="nombre">Atendidos tarde</div><div class="valor">–</div><div class="nota">Pasaron el plazo de atención</div></div>
+          <div class="caja kpi" id="k-act"><div class="nombre">Activos tecnológicos</div><div class="valor">–</div><div class="nota">Equipos registrados</div></div>
         </div>
         <div class="dos">
           <div class="caja grafico"><h2>Incidencias por mes <small>Últimos 6 meses</small></h2><div id="g-meses"></div></div>
@@ -333,12 +350,12 @@
 
       <!-- ===== Gestión de tickets ===== -->
       <section id="v-tickets" class="oculto">
-        <div class="cabecera"><div><h1>Gestión de tickets</h1><p>Consulta, atiende y actualiza el estado de las incidencias.</p></div></div>
+        <div class="cabecera"><div><h1>Gestión de tickets</h1><p id="sub-tickets">Consulta, atiende y actualiza el estado de las incidencias.</p></div></div>
         <div class="caja">
           <div class="herramientas" id="herr-tickets">
             <input id="f-buscar" type="search" placeholder="Buscar por código, falla, aula o docente" aria-label="Buscar tickets">
-            <select id="f-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="nuevo">Pendiente</option><option value="en_atencion">En atención</option><option value="en_camino">Técnico en camino</option><option value="solucionando">Técnico solucionando</option><option value="resuelto">Resuelto</option></select>
-            <select id="f-prio" aria-label="Urgencia"><option value="todas">Todas las urgencias</option><option value="critica">Crítica</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select>
+            <select id="f-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="nuevo">Pendiente</option><option value="en_atencion">En atención</option><option value="en_camino">En camino</option><option value="resuelto">Resuelto</option></select>
+            <select id="f-prio" aria-label="Urgencia"><option value="todas">Todas las urgencias</option><option value="critica">Crítica</option><option value="media">Media</option><option value="baja">Baja</option></select>
             <select id="f-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>
           </div>
           <div class="tabla-wrap"><table><thead><tr><th>Código</th><th>Descripción</th><th>Sede y aula</th><th>Prioridad</th><th>Estado</th><th>Plazo</th><th></th></tr></thead><tbody id="t-tickets"></tbody></table></div>
@@ -388,6 +405,26 @@
         </div>
       </section>
 
+      <!-- ===== Activos tecnológicos ===== -->
+      <section id="v-activos" class="oculto">
+        <div class="cabecera"><div><h1>Activos tecnológicos</h1><p id="sub-activos">Inventario de equipos de las sedes.</p></div><div class="acciones"><button id="nuevo-activo" class="btn primario" type="button">+ Nuevo activo</button></div></div>
+        <div class="caja">
+          <div class="herramientas dos-col" id="herr-activos">
+            <input id="a-buscar" type="search" placeholder="Buscar activo, código o ubicación" aria-label="Buscar activos">
+            <select id="a-estado" aria-label="Estado"><option value="todos">Todos los estados</option><option value="operativo">Operativo</option><option value="en_mantenimiento">En mantenimiento</option><option value="en_revision">En revisión</option><option value="baja">De baja</option></select>
+            <select id="a-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>
+          </div>
+          <div class="tabla-wrap"><table><thead><tr><th>Activo</th><th>Código</th><th>Sede y ubicación</th><th>Estado</th><th>Último mantenimiento</th><th id="th-acc-activo"></th></tr></thead><tbody id="t-activos"></tbody></table></div>
+          <p id="pie-activos" class="pie-tabla"></p>
+        </div>
+      </section>
+
+      <!-- ===== Mensajes ===== -->
+      <section id="v-mensajes" class="oculto">
+        <div class="cabecera"><div><h1>Mensajes</h1><p id="sub-mensajes"></p></div></div>
+        <div id="l-mensajes"></div>
+      </section>
+
       <!-- ===== Sedes y aulas ===== -->
       <section id="v-sedes" class="oculto">
         <div class="cabecera"><div><h1>Sedes y aulas</h1><p>Ubicaciones del proyecto con sus incidencias abiertas.</p></div></div>
@@ -414,12 +451,8 @@
 
       <!-- ===== Configuración ===== -->
       <section id="v-config" class="oculto">
-        <div class="cabecera"><div><h1>Configuración</h1><p>Tu cuenta y, si eres administrador, el equipo de Soporte.</p></div></div>
+        <div class="cabecera"><div><h1>Configuración</h1><p id='sub-config'>Tu cuenta.</p></div></div>
         <div class="caja" style="margin-bottom:16px"><h2>Mi cuenta</h2><dl class="fichas" id="mi-cuenta"></dl></div>
-        <div class="caja" style="margin-bottom:16px"><h2>Apariencia</h2>
-          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:700"><input id="tema-oscuro" type="checkbox" style="width:20px;height:20px;min-height:0;accent-color:var(--brand)"> Modo oscuro</label>
-          <p class="aviso" style="margin:6px 0 0">Cambia los colores de la página a un fondo oscuro. Se guarda en este navegador.</p>
-        </div>
         <div class="caja oculto" id="c-usuarios">
           <div class="cabecera" style="margin-bottom:6px"><h2 style="margin:0">Equipo de Soporte</h2><button id="nuevo-usuario" class="btn chico primario" type="button">+ Nuevo usuario</button></div>
           <div class="tabla-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Sede</th><th>Estado</th><th></th></tr></thead><tbody id="t-usuarios"></tbody></table></div>
@@ -444,11 +477,50 @@
     <label class="campo" for="du-correo">Correo</label><input id="du-correo" type="email" maxlength="200">
     <label class="campo" for="du-clave">Contraseña <span class="aviso">(mínimo 8 caracteres)</span></label><input id="du-clave" type="text" maxlength="200" autocomplete="off">
     <div class="fila">
-      <div><label class="campo" for="du-rol">Rol</label><select id="du-rol"><option value="tecnico">Soporte (atiende los tickets)</option><option value="tecnico_campo">Técnico de campo (va al aula)</option><option value="admin">Administrador</option></select></div>
+      <div><label class="campo" for="du-rol">Rol</label><select id="du-rol"><option value="tecnico">Soporte (atiende los tickets)</option><option value="admin">Administrador</option></select></div>
       <div id="du-sede-caja"><label class="campo" for="du-sede">Sede</label><select id="du-sede"></select></div>
     </div>
     <p id="du-error" class="error oculto"></p>
     <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit">Crear usuario</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-activo" aria-labelledby="da-titulo">
+  <form class="dlg-int form-dlg" id="form-activo" novalidate>
+    <div class="dlg-cab"><h2 id="da-titulo">Nuevo activo</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
+    <div id="da-sede-caja" class="oculto"><label class="campo" for="da-sede">Sede</label><select id="da-sede"></select></div>
+    <label class="campo" for="da-tipo">Tipo de equipo</label><select id="da-tipo"></select>
+    <label class="campo" for="da-nombre">Nombre del activo</label><input id="da-nombre" type="text" maxlength="80" placeholder="Ej. Computadora Dell OptiPlex">
+    <div class="fila">
+      <div><label class="campo" for="da-amb">Aula o ambiente</label><input id="da-amb" type="text" maxlength="60" placeholder="Ej. 204 o Laboratorio 1"></div>
+      <div><label class="campo" for="da-piso">Piso</label><select id="da-piso"><option value="">Sin indicar</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+    </div>
+    <label class="campo" for="da-codigo">Código <span class="aviso">(opcional; si lo dejas vacío se crea uno)</span></label><input id="da-codigo" type="text" maxlength="30" placeholder="Ej. PC-LO-0102">
+    <p id="da-error" class="error oculto"></p>
+    <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit" id="da-guardar">Guardar activo</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-estado" aria-labelledby="de-titulo">
+  <form class="dlg-int form-dlg" id="form-estado" novalidate>
+    <div class="dlg-cab"><h2 id="de-titulo">Actualizar activo</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
+    <p id="de-nombre" class="aviso"></p>
+    <label class="campo" for="de-estado">Estado</label>
+    <select id="de-estado"><option value="operativo">Operativo</option><option value="en_mantenimiento">En mantenimiento</option><option value="en_revision">En revisión</option><option value="baja">De baja</option></select>
+    <label class="check"><input type="checkbox" id="de-mant"> Se hizo mantenimiento hoy</label>
+    <p id="de-error" class="error oculto"></p>
+    <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit">Guardar</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-mensaje" aria-labelledby="dm-titulo">
+  <form class="dlg-int form-dlg" id="form-mensaje" novalidate>
+    <div class="dlg-cab"><h2 id="dm-titulo">Enviar mensaje a Soporte</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar">×</button></div>
+    <p id="dm-contexto" class="aviso"></p>
+    <label class="campo" for="dm-texto">Mensaje</label>
+    <textarea id="dm-texto" rows="4" maxlength="500" placeholder="Escribe tu observación para Soporte"></textarea>
+    <p id="dm-error" class="error oculto"></p>
+    <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn primario" type="submit" id="dm-enviar">Enviar mensaje</button></div>
   </form>
 </dialog>
 
@@ -464,10 +536,16 @@ const CADA_SEGUNDOS = 15;
 const AVISO_CERCA_MS = 2 * 60 * 1000;
 
 const $ = (id) => document.getElementById(id);
+const TITULO_BASE = PAGINA === "admin" ? "Administrador · Soporte Trilce" : "Soporte técnico · Trilce";
 const ETQ_ROL = { admin: "Administrador", tecnico: "Soporte", tecnico_campo: "Técnico de campo" };
-const ETQ_ESTADO = { nuevo: "Pendiente", en_atencion: "En atención", en_camino: "Técnico en camino", solucionando: "Técnico solucionando", resuelto: "Resuelto" };
+const ETQ_ESTADO = { nuevo: "Pendiente", en_atencion: "En atención", en_camino: "En camino", solucionando: "En camino", resuelto: "Resuelto" };
 const ESTADOS_EN_PROCESO = ["en_atencion", "en_camino", "solucionando"];
 const ETQ_PRIO = { critica: "Crítica", alta: "Alta", media: "Media", baja: "Baja" };
+const PLAZO_MIN = { critica: 15, alta: 15, media: 30, baja: 50 };
+const ADMIN = PAGINA === "admin";
+const ROL_PAGINA = ADMIN ? "admin" : "tecnico";
+const MENU = ADMIN ? ["panel", "tickets", "docentes", "sedes", "encuestas", "activos", "reportes", "mensajes", "config"] : ["tickets", "docentes", "encuestas", "activos", "mensajes", "config"];
+const INICIO = ADMIN ? "panel" : "tickets";
 const ETQ_ACTIVO = { operativo: "Operativo", en_mantenimiento: "En mantenimiento", en_revision: "En revisión", baja: "De baja" };
 const VISTAS = {
   panel: { titulo: "Panel principal", icono: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>' },
@@ -475,32 +553,40 @@ const VISTAS = {
   docentes: { titulo: "Docentes", icono: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c3 .3 5 2.6 5 5.8"/>' },
   sedes: { titulo: "Sedes y aulas", icono: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>' },
   encuestas: { titulo: "Encuestas", icono: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.3 2.2 2 3.5 2s2.5-.7 3.5-2"/><path d="M9 9.5h.01M15 9.5h.01"/>' },
+  activos: { titulo: "Activos tecnológicos", icono: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>' },
+  mensajes: { titulo: "Mensajes", icono: '<path d="M4 5h16v11H9l-5 4z"/>' },
   reportes: { titulo: "Reportes", icono: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>' },
   config: { titulo: "Configuración", icono: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>' },
 };
 
 
-// ---------- modo oscuro ----------
-(function () {
-  const caja = $("tema-oscuro");
-  const oscuro = () => document.documentElement.getAttribute("data-tema") === "oscuro";
-  caja.checked = oscuro();
-  caja.addEventListener("change", () => {
-    if (caja.checked) document.documentElement.setAttribute("data-tema", "oscuro"); else document.documentElement.removeAttribute("data-tema");
-    try { localStorage.setItem("soporte_tema", caja.checked ? "oscuro" : "claro"); } catch (_) {}
-    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = caja.checked ? "#17120f" : "#f26b1d";
-    if (typeof pintarVista === "function") pintarVista();
-  });
-})();
+// ---------- modo oscuro: botón luna / sol junto al perfil ----------
+function aplicarTema(oscuro, guardar) {
+  if (oscuro) document.documentElement.setAttribute("data-tema", "oscuro"); else document.documentElement.removeAttribute("data-tema");
+  const b = $("tema");
+  b.textContent = oscuro ? "☀️" : "🌙";
+  b.setAttribute("aria-label", oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+  b.title = oscuro ? "Modo claro" : "Modo oscuro";
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = oscuro ? "#17120f" : "#c4510e";
+  if (guardar) { try { localStorage.setItem("soporte_tema", oscuro ? "oscuro" : "claro"); } catch (_) {} if (typeof pintarVista === "function") pintarVista(); }
+}
+aplicarTema(document.documentElement.getAttribute("data-tema") === "oscuro", false);
+$("tema").addEventListener("click", () => aplicarTema(document.documentElement.getAttribute("data-tema") !== "oscuro", true));
+document.querySelectorAll(".nom-pagina").forEach((n) => { n.textContent = ADMIN ? "Administrador" : "Soporte técnico"; });
+$("login-titulo").textContent = ADMIN ? "Ingresa como administrador" : "Ingresa a la mesa de ayuda";
+$("login-sub").textContent = ADMIN ? "Aquí observas el servicio, creas usuarios y envías mensajes a Soporte." : "Usa la cuenta que te dio el administrador.";
+document.querySelectorAll(".nav-item").forEach((b) => { if (!MENU.includes(b.dataset.vista)) b.remove(); });
 
 // ---------- estado de la aplicación ----------
-const S = { enc: null, docentes: null, tecnicos: [], usuario: null, tickets: [], ind: null, sedes: null, usuarios: null, catalogo: null };
+const S = { enc: null, docentes: null, activos: [], mensajes: [], usuario: null, tickets: [], ind: null, sedes: null, usuarios: null, catalogo: null };
 let vista = "panel";
 let offsetReloj = 0;
 let idsVistos = null;
 let temporizador = null;
 let ticketAbierto = null;      // id del ticket que se está gestionando
-const elegidoTecnico = {};
+const notaBorrador = {};
+let activoEditando = null;
+let destinoMensaje = null;
 let sedesAbiertas = new Set();
 
 class SesionVencida extends Error {}
@@ -625,8 +711,8 @@ function cerrarSesion(mensaje) {
   guardarToken(null);
   clearInterval(temporizador);
   idsVistos = null;
-  Object.assign(S, { usuario: null, tickets: [], ind: null, sedes: null, usuarios: null });
-  document.title = "Soporte Trilce · Mesa de ayuda";
+  Object.assign(S, { usuario: null, tickets: [], ind: null, activos: [], mensajes: [], sedes: null, usuarios: null });
+  document.title = TITULO_BASE;
   mostrarPantalla("login");
   const err = $("login-error");
   if (mensaje) { err.textContent = mensaje; err.classList.remove("oculto"); } else { err.classList.add("oculto"); }
@@ -647,7 +733,7 @@ $("form-login").addEventListener("submit", async (e) => {
     if (r.status === 401) throw new Error("Correo o contraseña incorrectos.");
     if (!r.ok) throw new Error("No se pudo iniciar sesión. Inténtalo de nuevo.");
     const datos = await r.json();
-    if (datos.usuario.rol === "tecnico_campo") throw new Error("Tu cuenta es de técnico de campo. Ingresa por la página del técnico.");
+    if (datos.usuario.rol !== ROL_PAGINA) throw new Error(ADMIN ? "Esta cuenta es de Soporte. Ingresa por la página de Soporte técnico." : "Esta cuenta es de administrador. Ingresa por la página de Administrador.");
     guardarToken(datos.token);
     $("clave").value = "";
     entrarAlPanel(datos.usuario);
@@ -663,17 +749,23 @@ $("salir").addEventListener("click", () => cerrarSesion(""));
 
 function entrarAlPanel(usuario) {
   S.usuario = usuario;
-  const admin = usuario.rol === "admin" || !usuario.sede_id;   // ve todas las sedes
+  const admin = ADMIN || !usuario.sede_id;   // ve todas las sedes
   $("u-nombre").textContent = usuario.nombre;
   $("u-detalle").innerHTML = "";
-  $("u-detalle").append(usuario.sede + " · ", Object.assign(el("span", "rol"), { textContent: ETQ_ROL[usuario.rol] || usuario.rol }));
+  $("u-detalle").append((usuario.sede || "Todas las sedes") + " · ", Object.assign(el("span", "rol"), { textContent: ETQ_ROL[usuario.rol] || usuario.rol }));
   document.querySelectorAll(".sede-admin").forEach((n) => n.classList.toggle("oculto", !admin));
   $("f-sede").parentElement.classList.toggle("oculto", false);
   $("f-sede").classList.toggle("oculto", !admin);
   $("herr-tickets").classList.toggle("dos-col", !admin);
   mostrarPantalla("app");
   api("/catalogo").then((r) => r.json()).then((c) => { S.catalogo = c; llenarCatalogos(); }).catch(() => {});
-  irA(vistaDesdeHash() || "panel");
+  $("nuevo-activo").classList.toggle("oculto", ADMIN);
+  $("th-acc-activo").textContent = ADMIN ? "" : "Acciones";
+  $("sub-tickets").textContent = ADMIN ? "Solo observas: envía un mensaje a Soporte desde cada ticket." : "Atiende los tickets, sal «En camino» y márcalos como resueltos.";
+  $("sub-activos").textContent = ADMIN ? "Inventario de equipos de las sedes (solo lectura)." : "Registra y actualiza los equipos de tu sede.";
+  $("sub-mensajes").textContent = ADMIN ? "Mensajes que enviaste a Soporte." : "Observaciones del administrador sobre tickets y encuestas.";
+  $("sub-config").textContent = ADMIN ? "Tu cuenta y la creación de usuarios." : "Tu cuenta.";
+  irA(vistaDesdeHash() || INICIO);
   refrescar();
   clearInterval(temporizador);
   temporizador = setInterval(refrescar, CADA_SEGUNDOS * 1000);
@@ -682,7 +774,10 @@ function entrarAlPanel(usuario) {
 function llenarCatalogos() {
   if (!S.catalogo) return;
   const sedes = S.catalogo.sedes;
-  for (const id of ["f-sede"]) {
+  $("da-tipo").replaceChildren(...S.catalogo.tipos.map((t) => new Option(t.nombre, t.id)));
+  $("da-sede").replaceChildren(...sedes.map((x) => new Option(x.nombre, x.id)));
+  $("da-sede-caja").classList.toggle("oculto", !!(S.usuario && S.usuario.sede_id));
+  for (const id of ["f-sede", "a-sede"]) {
     const sel = $(id), actual = sel.value;
     sel.replaceChildren(new Option("Todas las sedes", "todas"), ...sedes.map((s) => new Option(s.nombre, s.nombre)));
     sel.value = actual || "todas";
@@ -700,10 +795,10 @@ document.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click"
 $("abrir-menu").addEventListener("click", () => $("app").classList.toggle("menu-abierto"));
 $("velo").addEventListener("click", () => $("app").classList.remove("menu-abierto"));
 
-function vistaDesdeHash() { const v = location.hash.replace("#/", ""); return VISTAS[v] ? v : null; }
+function vistaDesdeHash() { const v = location.hash.replace("#/", ""); return VISTAS[v] && MENU.includes(v) ? v : null; }
 function irA(v) {
   vista = v;
-  for (const k in VISTAS) $("v-" + k).classList.toggle("oculto", k !== v);
+  for (const k in VISTAS) { const sec = $("v-" + k); if (sec) sec.classList.toggle("oculto", k !== v); }
   document.querySelectorAll(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.vista === v));
   document.querySelectorAll(".nav-item").forEach((b) => { if (b.dataset.vista === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   $("miga").textContent = VISTAS[v].titulo;
@@ -713,6 +808,7 @@ function irA(v) {
   if (v === "docentes") cargarDocentes();
   if (v === "encuestas") cargarEncuestas();
   if (v === "config") cargarUsuarios();
+  if (v === "mensajes") cargarMensajes();
   pintarVista();
 }
 window.addEventListener("hashchange", () => { const v = vistaDesdeHash(); if (v && S.usuario && v !== vista) irA(v); });
@@ -720,20 +816,21 @@ window.addEventListener("hashchange", () => { const v = vistaDesdeHash(); if (v 
 // ---------- carga de datos ----------
 async function refrescar() {
   try {
-    const [rt, ri, rtec] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/tecnicos")]);
+    const [rt, ri, ra, rm] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/activos"), api("/soporte/mensajes")]);
     if (!rt.ok) throw new Error("tickets " + rt.status);
     const dt = await rt.json();
     offsetReloj = Date.parse(dt.ahora) - Date.now();
     detectarNuevos(dt.tickets);
     S.tickets = dt.tickets;
     if (ri.ok) S.ind = await ri.json();
-    if (rtec.ok) S.tecnicos = (await rtec.json()).tecnicos;
+    if (ra.ok) S.activos = (await ra.json()).activos;
+    if (rm.ok) S.mensajes = (await rm.json()).mensajes;
     $("panel-error").classList.add("oculto");
     $("actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-PE", { timeStyle: "short" });
     pintarVista();
     if (vista === "sedes") cargarSedes();
     if (vista === "docentes") cargarDocentes();
-    if (vista === "encuestas" || vista === "panel") cargarEncuestas();
+    if (vista === "encuestas" || (vista === "panel" && ADMIN)) cargarEncuestas();
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
     $("panel-error").textContent = "No se pudo actualizar. Reintentando…";
@@ -744,7 +841,7 @@ async function refrescar() {
 function detectarNuevos(tickets) {
   const ids = new Set(tickets.map((t) => t.id));
   if (idsVistos) {
-    const nuevos = tickets.filter((t) => !idsVistos.has(t.id) && t.estado === "nuevo");
+    const nuevos = ADMIN ? [] : tickets.filter((t) => !idsVistos.has(t.id) && t.estado === "nuevo");
     if (nuevos.length) {
       const t = nuevos[0];
       toast("Nuevo reporte: " + t.equipo + ": " + t.falla + " · " + fmtAula(t.ambiente) + (nuevos.length > 1 ? " (+" + (nuevos.length - 1) + " más)" : ""));
@@ -756,11 +853,14 @@ function detectarNuevos(tickets) {
 function pintarVista() {
   if (!S.usuario) return;
   const pend = S.tickets.filter((t) => t.estado === "nuevo").length;
-  document.title = (pend ? "(" + pend + ") " : "") + "Soporte Trilce · Mesa de ayuda";
+  document.title = (pend ? "(" + pend + ") " : "") + TITULO_BASE;
   const nav = document.querySelector('.nav-item[data-vista="tickets"]');
   let cuenta = nav.querySelector(".cuenta");
   if (pend) { if (!cuenta) { cuenta = el("span", "cuenta"); nav.append(cuenta); } cuenta.textContent = pend; } else if (cuenta) cuenta.remove();
-  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, encuestas: pintarEncuestas, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
+  const sinLeer = S.mensajes.filter((m) => !m.leido_en).length;
+  const navM = document.querySelector('.nav-item[data-vista="mensajes"]');
+  if (navM && !ADMIN) { let c2 = navM.querySelector(".cuenta"); if (sinLeer) { if (!c2) { c2 = el("span", "cuenta"); navM.append(c2); } c2.textContent = sinLeer; } else if (c2) c2.remove(); }
+  ({ panel: pintarPanel, tickets: pintarTickets, docentes: pintarDocentes, encuestas: pintarEncuestas, activos: pintarActivos, mensajes: pintarMensajes, sedes: pintarSedes, reportes: pintarReportes, config: pintarConfig }[vista] || (() => {}))();
   if (ticketAbierto !== null && $("dlg-ticket").open) {
     const escribiendo = document.activeElement && ["TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && $("dlg-ticket").contains(document.activeElement);
     if (!escribiendo) pintarDialogoTicket();
@@ -779,6 +879,8 @@ function pintarPanel() {
   kpi("k-proc", T.filter((t) => ESTADOS_EN_PROCESO.includes(t.estado)).length);
   if (S.enc) { kpi("k-sat", S.enc.promedio != null ? S.enc.promedio.toFixed(1) + " / 5" : "–"); $("k-sat-nota").textContent = S.enc.total ? S.enc.total + (S.enc.total === 1 ? " encuesta" : " encuestas") + " · " + S.enc.satisfechos_pct + " % satisfechos" : "Sin encuestas todavía"; }
 
+  kpi("k-act", S.activos.length);
+  if (S.ind) { kpi("k-mttr", S.ind.mttr_min != null ? fmtMin(S.ind.mttr_min) : "–"); kpi("k-tarde", S.ind.atendidos_tarde != null ? S.ind.atendidos_tarde : "–"); }
   pintarMeses();
 
   const activos = T.filter((t) => t.estado !== "resuelto");
@@ -876,10 +978,12 @@ function pintarTickets() {
     const sp = el("span", "plazo-" + p.clase, p.corto);
     if (t.estado === "nuevo") sp.dataset.plazo = t.id;
     plazo.append(sp);
-    const acc = el("td"); const b = el("button", "btn chico", t.estado === "resuelto" ? "Ver" : "Gestionar"); b.type = "button"; acc.append(b);
+    const acc = el("td"); const b = el("button", "btn chico", ADMIN || t.estado === "resuelto" ? "Ver" : "Gestionar"); b.type = "button"; acc.append(b);
     const tdp = el("td"); tdp.append(chip(t.prioridad, ETQ_PRIO[t.prioridad]));
     const tde = el("td"); tde.append(chip(t.estado, ETQ_ESTADO[t.estado]));
-    tr.append(el("td", "cod", codigo(t)), desc, lugar, tdp, tde, plazo, acc);
+    const tdc = el("td", "cod", codigo(t));
+    if (ADMIN && t.atendido_tarde) tdc.append(chip("tarde", "Atendido tarde"));
+    tr.append(tdc, desc, lugar, tdp, tde, plazo, acc);
     tr.addEventListener("click", () => abrirTicket(t.id));
     cuerpo.append(tr);
   }
@@ -908,15 +1012,19 @@ function pintarDialogoTicket() {
   frag.append(cab);
 
   const chips = el("div"); chips.style.cssText = "display:flex;gap:6px;flex-wrap:wrap";
-  chips.append(chip(t.prioridad, "Prioridad " + ETQ_PRIO[t.prioridad].toLowerCase()), chip(t.estado, ETQ_ESTADO[t.estado]));
+  chips.append(chip(t.prioridad, "Prioridad " + ETQ_PRIO[t.prioridad].toLowerCase() + " · plazo " + (PLAZO_MIN[t.prioridad] || "") + " min"), chip(t.estado, ETQ_ESTADO[t.estado]));
+  if (ADMIN && t.atendido_tarde) chips.append(chip("tarde", "Atendido tarde"));
   frag.append(chips);
 
   const dl = el("dl", "fichas");
   const fila = (a, b) => dl.append(el("dt", null, a), el("dd", null, b));
   fila("Equipo", t.equipo); fila("Sede", t.sede); fila("Ubicación", donde(t));
   if (t.docente) fila("Reportado por", t.docente);
-  fila("Registrado", fmtFecha(t.creado_en)); if (t.tecnico) fila("Atiende", t.tecnico); if (t.tecnico_campo) fila("Técnico enviado", t.tecnico_campo);
+  fila("Registrado", fmtFecha(t.creado_en)); if (t.en_clase !== null && t.en_clase !== undefined) fila("¿En clase?", t.en_clase ? "Sí" : "No");
+  if (t.tecnico) fila("Atiende", t.tecnico);
+  if (t.tecnico_enviado_en) fila("En camino", fmtFecha(t.tecnico_enviado_en));
   if (t.atendido_en) fila("Atendido", fmtFecha(t.atendido_en)); if (t.resuelto_en) fila("Resuelto", fmtFecha(t.resuelto_en));
+  if (t.resuelto_en && t.tecnico_enviado_en) fila("Tiempo de resolución", fmtDuracion(Date.parse(t.resuelto_en) - Date.parse(t.tecnico_enviado_en)));
   frag.append(dl);
   if (t.descripcion) frag.append(el("div", "cita", "“" + t.descripcion + "”"));
 
@@ -929,44 +1037,26 @@ function pintarDialogoTicket() {
     const r = document.createElement("i"); r.style.width = porcentajePlazo(t) + "%"; bar.append(r); frag.append(bar);
   }
 
-  if (t.estado !== "resuelto") {
-    const urg = el("div", "urgencia"); urg.append(el("span", null, "Urgencia"));
-    for (const pr of ["critica", "alta", "media", "baja"]) {
-      const b = el("button", "urg", ETQ_PRIO[pr]); b.type = "button"; b.dataset.p = pr;
-      b.setAttribute("aria-pressed", String(t.prioridad === pr));
-      b.addEventListener("click", () => accionPrioridad(t, pr));
-      urg.append(b);
-    }
-    frag.append(urg);
-
+  if (ADMIN) {
+    const acc = el("div", "acciones-dlg");
+    const b = el("button", "btn primario", "Enviar mensaje"); b.type = "button";
+    b.addEventListener("click", () => abrirMensaje({ ticket_id: t.id, titulo: codigo(t) + " · " + t.falla }));
+    acc.append(b); frag.append(acc);
+  } else if (t.estado !== "resuelto") {
     const acc = el("div", "acciones-dlg");
     if (t.estado === "nuevo") { const b = el("button", "btn primario", "Atender ticket"); b.type = "button"; b.addEventListener("click", () => accionAtender(t.id, b)); acc.append(b); }
-    if (t.estado === "en_atencion") {
-      // Soporte solo llama al técnico: quien resuelve es el técnico, no Soporte
-      if (S.tecnicos.length) {
-        const caja = el("div", "elige-tecnico");
-        const lab = el("label", null, "Técnico al que llamar"); lab.htmlFor = "sel-tecnico";
-        const sel = document.createElement("select"); sel.id = "sel-tecnico";
-        sel.append(new Option("Cualquier técnico de la sede", ""));
-        for (const tc of S.tecnicos) sel.append(new Option(tc.nombre + (!S.usuario.sede_id && tc.sede ? " · " + tc.sede : "") + (Number(tc.ocupado_con) ? " (ocupado)" : ""), tc.id));
-        sel.value = elegidoTecnico[t.id] || "";
-        sel.addEventListener("change", () => { elegidoTecnico[t.id] = sel.value; });
-        caja.append(lab, sel); frag.append(caja);
-      }
-      const fila2 = el("div", "acciones-dlg");
-      const pen = el("button", "btn pendiente", "Pendiente"); pen.type = "button"; pen.disabled = true;
-      pen.title = "Solo el técnico puede marcar el problema como resuelto";
-      const env = el("button", "btn primario", "Contactar técnico"); env.type = "button";
-      env.addEventListener("click", () => accionEnviarTecnico(t.id, (elegidoTecnico[t.id] || ""), env));
-      fila2.append(pen, env); frag.append(fila2);
-      frag.append(el("p", "aviso", "Solo el técnico puede marcar el problema como resuelto."));
-    } else if (t.estado === "en_camino" || t.estado === "solucionando") {
-      const fila2 = el("div", "acciones-dlg");
-      const pen = el("button", "btn pendiente", "Pendiente"); pen.type = "button"; pen.disabled = true;
-      fila2.append(pen); frag.append(fila2);
-      frag.append(el("div", "aviso-tecnico", (t.estado === "en_camino" ? "Técnico en camino" : "Técnico solucionando el problema") + (t.tecnico_campo ? ": " + t.tecnico_campo : " (cualquier técnico de la sede)") + ". Cuando termine, el técnico marcará si quedó resuelto o no."));
-    }
+    if (t.estado === "en_atencion") { const b = el("button", "btn primario", "En camino"); b.type = "button"; b.addEventListener("click", () => accionEnCamino(t.id, b)); acc.append(b); }
     if (acc.children.length) frag.append(acc);
+    if (t.estado === "en_camino" || t.estado === "solucionando") {
+      const caja = el("div", "resolver-caja");
+      const lab = el("label", "campo", "¿Qué se hizo para resolverlo?"); lab.htmlFor = "nota-res";
+      const ta = document.createElement("textarea"); ta.id = "nota-res"; ta.rows = 3; ta.maxLength = 500; ta.placeholder = "Ej. Se reinició el equipo y se cambió el cable";
+      ta.value = notaBorrador[t.id] || "";
+      ta.addEventListener("input", () => { notaBorrador[t.id] = ta.value; });
+      const b = el("button", "btn primario", "Resuelto"); b.type = "button"; b.style.marginTop = "10px";
+      b.addEventListener("click", () => accionResolver(t.id, ta.value.trim(), b));
+      caja.append(lab, ta, b); frag.append(caja);
+    }
   }
 
   frag.append(el("p", "historial-tit", "Historial"));
@@ -992,27 +1082,11 @@ async function cargarHistorial(id, ul) {
   }
 }
 
-async function accionPrioridad(t, nueva) {
-  if (t.prioridad === nueva) return;
-  const anterior = t.prioridad;
-  t.prioridad = nueva; pintarDialogoTicket(); pintarVista();
-  try {
-    const r = await api("/soporte/tickets/" + t.id + "/prioridad", json({ prioridad: nueva }));
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    toast(codigo(t) + ": urgencia " + ETQ_PRIO[nueva].toLowerCase() + ".");
-  } catch (e) {
-    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    t.prioridad = anterior; pintarDialogoTicket(); pintarVista();
-    toast("No se pudo cambiar la urgencia. Inténtalo otra vez."); return;
-  }
-  refrescar();
-}
-
 async function accionAtender(id, boton) {
   boton.disabled = true;
   try {
     const r = await api("/soporte/tickets/" + id + "/atender", { method: "POST" });
-    if (r.status === 409) toast("Otro técnico ya tomó este ticket.");
+    if (r.status === 409) toast("Otra persona de Soporte ya tomó este ticket.");
     else if (!r.ok) throw new Error("HTTP " + r.status);
     else toast("Ticket " + id + " en atención.");
   } catch (e) {
@@ -1022,22 +1096,147 @@ async function accionAtender(id, boton) {
   refrescar();
 }
 
-async function accionEnviarTecnico(id, tecnicoId, boton) {
+async function accionEnCamino(id, boton) {
   boton.disabled = true;
   try {
-    const r = await api("/soporte/tickets/" + id + "/enviar-tecnico", json({ tecnico_id: tecnicoId ? Number(tecnicoId) : null }));
-    if (r.status === 409 || r.status === 400) {
-      let msg = "No se pudo enviar al técnico."; try { msg = (await r.json()).detail || msg; } catch (_) {}
-      toast(msg);
-    } else if (!r.ok) throw new Error("HTTP " + r.status);
-    else { const d = await r.json(); toast("Ticket " + id + ": técnico en camino" + (d.tecnico ? " (" + d.tecnico + ")" : "") + ". El docente recibe el aviso en su correo."); delete elegidoTecnico[id]; }
+    const r = await api("/soporte/tickets/" + id + "/en-camino", { method: "POST" });
+    if (r.status === 409) { let m = "No se pudo marcar «En camino»."; try { m = (await r.json()).detail || m; } catch (_) {} toast(m); }
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else toast("Ticket " + id + ": en camino. El docente recibe el aviso en su correo.");
   } catch (e) {
     if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
-    toast("No se pudo contactar al técnico. Inténtalo otra vez.");
+    toast("No se pudo actualizar. Inténtalo otra vez.");
   }
   refrescar();
 }
 
+async function accionResolver(id, nota, boton) {
+  if (nota.length < 3) { toast("Escribe brevemente qué se hizo."); const ta = $("nota-res"); if (ta) ta.focus(); return; }
+  boton.disabled = true;
+  try {
+    const r = await api("/soporte/tickets/" + id + "/resolver", json({ nota }));
+    if (r.status === 409 || r.status === 400) { let m = "No se pudo marcar como resuelto."; try { m = (await r.json()).detail || m; } catch (_) {} toast(m); }
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else { delete notaBorrador[id]; toast("Ticket " + id + " resuelto. El docente recibe el correo con la encuesta."); }
+  } catch (e) {
+    if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    toast("No se pudo resolver. Inténtalo otra vez.");
+  }
+  refrescar();
+}
+
+// ---------- mensajes del administrador ----------
+function abrirMensaje(destino) {
+  destinoMensaje = destino;
+  $("dm-contexto").textContent = "Para Soporte · " + destino.titulo;
+  $("dm-texto").value = ""; $("dm-error").classList.add("oculto");
+  $("dlg-mensaje").showModal();
+  setTimeout(() => $("dm-texto").focus(), 50);
+}
+$("form-mensaje").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const texto = $("dm-texto").value.trim(), err = $("dm-error");
+  if (texto.length < 3) { err.textContent = "Escribe tu mensaje."; err.classList.remove("oculto"); return; }
+  const b = $("dm-enviar"); b.disabled = true;
+  try {
+    const cuerpo = { texto }; if (destinoMensaje.ticket_id) cuerpo.ticket_id = destinoMensaje.ticket_id; else cuerpo.encuesta_id = destinoMensaje.encuesta_id;
+    const r = await api("/admin/mensajes", json(cuerpo));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    $("dlg-mensaje").close(); toast("Mensaje enviado a Soporte."); refrescar();
+  } catch (ex) {
+    if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    err.textContent = "No se pudo enviar. Inténtalo otra vez."; err.classList.remove("oculto");
+  } finally { b.disabled = false; }
+});
+async function cargarMensajes() {
+  try { const r = await api("/soporte/mensajes"); if (r.ok) S.mensajes = (await r.json()).mensajes; }
+  catch (e) { if (e instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo."); }
+  pintarMensajes();
+}
+function pintarMensajes() {
+  const cont = $("l-mensajes"); cont.replaceChildren();
+  if (!S.mensajes.length) { cont.append(el("p", "vacio", ADMIN ? "Aún no enviaste mensajes. Usa «Enviar mensaje» en un ticket o una encuesta." : "No tienes mensajes del administrador.")); return; }
+  for (const m of S.mensajes) {
+    const d = el("div", "mensaje-item" + (!ADMIN && !m.leido_en ? " nuevo" : ""));
+    d.append(el("div", "meta", fmtFecha(m.creado_en) + " · " + m.sede + " · " + (m.encuesta_id ? "Encuesta del reporte " : "Ticket ") + "INC-" + String(m.ticket_id).padStart(4, "0")), el("div", null, m.texto));
+    const fa = el("div", "fila-acc");
+    const ver = el("button", "btn chico", "Ver ticket"); ver.type = "button"; ver.addEventListener("click", () => abrirTicket(m.ticket_id)); fa.append(ver);
+    if (!ADMIN && !m.leido_en) {
+      const b = el("button", "btn chico primario", "Marcar como leído"); b.type = "button";
+      b.addEventListener("click", async () => { b.disabled = true; try { await api("/soporte/mensajes/" + m.id + "/leido", { method: "POST" }); } catch (_) {} cargarMensajes(); refrescar(); });
+      fa.append(b);
+    }
+    if (ADMIN) fa.append(el("span", "aviso", m.leido_en ? "Leído por Soporte" : "Sin leer"));
+    d.append(fa); cont.append(d);
+  }
+}
+
+// ============================================================
+// ACTIVOS TECNOLÓGICOS
+// ============================================================
+function pintarActivos() {
+  const q = $("a-buscar").value.trim().toLowerCase();
+  const est = $("a-estado").value, sd = $("a-sede").value;
+  $("herr-activos").classList.toggle("dos-col", !!S.usuario.sede_id);
+  $("a-sede").classList.toggle("oculto", !!S.usuario.sede_id);
+  const lista = S.activos.filter((a) => {
+    if (est !== "todos" && a.estado !== est) return false;
+    if (sd !== "todas" && a.sede !== sd) return false;
+    if (q && ![a.nombre, a.codigo, a.ambiente, a.sede, a.tipo].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const cuerpo = $("t-activos"); cuerpo.replaceChildren();
+  if (!lista.length) { const tr = el("tr"); const td = el("td", "vacio", S.activos.length ? "Ningún activo coincide con los filtros." : "Aún no hay activos registrados."); td.colSpan = 6; tr.append(td); cuerpo.append(tr); }
+  for (const a of lista.slice(0, 300)) {
+    const tr = el("tr");
+    const n = el("td"); n.append(a.nombre, el("span", "sub", a.tipo));
+    const u = el("td"); u.append(a.sede, el("span", "sub", fmtAula(a.ambiente) + (a.piso ? " · Piso " + a.piso : "")));
+    const e = el("td"); e.append(chip(a.estado, ETQ_ACTIVO[a.estado]));
+    const acc = el("td");
+    if (!ADMIN) { const b = el("button", "btn chico", "Actualizar"); b.type = "button"; b.addEventListener("click", () => abrirEstadoActivo(a)); acc.append(b); }
+    tr.append(n, el("td", "cod", a.codigo || "—"), u, e, el("td", null, fmtDia(a.ultimo_mantenimiento)), acc);
+    cuerpo.append(tr);
+  }
+  $("pie-activos").textContent = lista.length > 300 ? "Mostrando 300 de " + lista.length + " activos. Usa los filtros." : lista.length + (lista.length === 1 ? " activo" : " activos");
+}
+["a-buscar", "a-estado", "a-sede"].forEach((id) => $(id).addEventListener("input", pintarActivos));
+document.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+$("nuevo-activo").addEventListener("click", () => { $("form-activo").reset(); $("da-error").classList.add("oculto"); $("dlg-activo").showModal(); });
+$("form-activo").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("da-error"); err.classList.add("oculto");
+  const nombre = $("da-nombre").value.trim(), amb = $("da-amb").value.trim();
+  if (nombre.length < 2) { err.textContent = "Escribe el nombre del activo."; err.classList.remove("oculto"); return; }
+  if (!amb) { err.textContent = "Indica el aula o ambiente."; err.classList.remove("oculto"); return; }
+  const cuerpo = { tipo_equipo_id: Number($("da-tipo").value), nombre, ambiente: amb, piso: $("da-piso").value ? Number($("da-piso").value) : null, codigo: $("da-codigo").value.trim() || null, sede_id: !S.usuario.sede_id ? Number($("da-sede").value) : null };
+  const b = $("da-guardar"); b.disabled = true;
+  try {
+    const r = await api("/soporte/activos", json(cuerpo));
+    if (r.status === 409) throw new Error("Ya existe un activo con ese código.");
+    if (!r.ok) throw new Error("No se pudo guardar el activo. Revisa los datos.");
+    $("dlg-activo").close(); toast("Activo registrado."); refrescar();
+  } catch (ex) {
+    if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    err.textContent = /^(Ya existe|No se pudo)/.test(ex.message) ? ex.message : "No se pudo conectar. Inténtalo otra vez."; err.classList.remove("oculto");
+  } finally { b.disabled = false; }
+});
+function abrirEstadoActivo(a) {
+  activoEditando = a;
+  $("de-nombre").textContent = a.nombre + " · " + (a.codigo || "");
+  $("de-estado").value = a.estado; $("de-mant").checked = false; $("de-error").classList.add("oculto");
+  $("dlg-estado").showModal();
+}
+$("form-estado").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const r = await api("/soporte/activos/" + activoEditando.id, json({ estado: $("de-estado").value, mantenimiento_hoy: $("de-mant").checked }));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    $("dlg-estado").close(); toast("Activo actualizado."); refrescar();
+  } catch (ex) {
+    if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+    $("de-error").textContent = "No se pudo actualizar. Inténtalo otra vez."; $("de-error").classList.remove("oculto");
+  }
+});
 
 // ============================================================
 // ENCUESTAS DE SATISFACCIÓN
@@ -1055,7 +1254,7 @@ async function cargarEncuestas() {
 }
 $("e-periodo").addEventListener("change", cargarEncuestas);
 function barraH(etiqueta, n, total, color) {
-  const f = el("div"); f.style.cssText = "display:grid;grid-template-columns:170px 1fr 70px;gap:10px;align-items:center;margin:7px 0;font-size:.9rem";
+  const f = el("div", "fila-barrah");
   const riel = el("div"); riel.style.cssText = "height:12px;border-radius:999px;background:var(--line);overflow:hidden";
   const b = el("i"); b.style.cssText = "display:block;height:100%;border-radius:999px;width:" + (total ? Math.round((n / total) * 100) : 0) + "%;background:" + color;
   riel.append(b);
@@ -1088,7 +1287,10 @@ function pintarEncuestas() {
     const tr = el("tr", "clic");
     const cal = el("td"); cal.append(CARITAS[x.satisfaccion - 1] + " " + x.satisfaccion + "/5", el("span", "sub", ETQ_SAT[x.satisfaccion - 1]));
     const acc = el("td");
-    if (S.usuario && S.usuario.rol === "admin") {
+    if (ADMIN) {
+      const bm = el("button", "btn chico primario", "Enviar mensaje"); bm.type = "button"; bm.style.marginRight = "6px";
+      bm.addEventListener("click", (ev) => { ev.stopPropagation(); abrirMensaje({ encuesta_id: x.id, titulo: "Encuesta del reporte #" + x.ticket_id }); });
+      acc.append(bm);
       const b = el("button", "btn chico", "Habilitar de nuevo"); b.type = "button";
       b.addEventListener("click", async (ev) => {
         ev.stopPropagation();
@@ -1251,8 +1453,8 @@ function pintarReportes() {
   const g = svg("svg", { viewBox: "0 0 150 150", role: "img", "aria-label": "Distribución de tickets por estado" });
   g.append(svg("circle", { cx: 75, cy: 75, r: R, fill: "none", style: "stroke:var(--line)", "stroke-width": 18 }));
   let acum = 0;
-  for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
-    const n = T.filter((t) => t.estado === est).length;
+  for (const est of ["nuevo", "en_atencion", "en_camino", "resuelto"]) {
+    const n = T.filter((t) => t.estado === est || (est === "en_camino" && t.estado === "solucionando")).length;
     if (!n) continue;
     const largo = (n / total) * C;
     const arco = svg("circle", { cx: 75, cy: 75, r: R, fill: "none", stroke: colores[est], "stroke-width": 18, "stroke-dasharray": Math.max(0, largo - 2) + " " + C, "stroke-dashoffset": -acum, transform: "rotate(-90 75 75)", tabindex: 0 });
@@ -1263,8 +1465,8 @@ function pintarReportes() {
   g.append(svg("text", { x: 75, y: 76, "text-anchor": "middle", "font-size": 26, "font-weight": 800, style: "fill:var(--text)", "font-family": "inherit" }, total));
   g.append(svg("text", { x: 75, y: 94, "text-anchor": "middle", "font-size": 11, style: "fill:var(--muted)", "font-family": "inherit" }, total === 1 ? "ticket" : "tickets"));
   const ley = el("ul", "leyenda");
-  for (const est of ["nuevo", "en_atencion", "en_camino", "solucionando", "resuelto"]) {
-    const n = T.filter((t) => t.estado === est).length;
+  for (const est of ["nuevo", "en_atencion", "en_camino", "resuelto"]) {
+    const n = T.filter((t) => t.estado === est || (est === "en_camino" && t.estado === "solucionando")).length;
     const li = el("li"); const i = el("i"); i.style.background = colores[est];
     li.append(i, el("span", null, ETQ_ESTADO[est]), el("b", null, n + (total ? " · " + Math.round((n / total) * 100) + " %" : "")));
     ley.append(li);
@@ -1287,7 +1489,7 @@ function pintarReportes() {
   // --- tiempos ---
   const ti = $("r-tiempos"); ti.replaceChildren();
   const d1 = el("div", "fila-barra"); d1.append(el("div", "aviso", "Primera respuesta (promedio)"), el("div", "valor-grande", fmtMin(S.ind && S.ind.primera_respuesta_min)));
-  const d2 = el("div", "fila-barra"); d2.append(el("div", "aviso", "Resolución (promedio)"), el("div", "valor-grande", fmtMin(S.ind && S.ind.mttr_min)));
+  const d2 = el("div", "fila-barra"); d2.append(el("div", "aviso", "Resolución (promedio, desde «En camino» hasta «Resuelto»)"), el("div", "valor-grande", fmtMin(S.ind && S.ind.mttr_min)));
   ti.append(d1, d2);
 
   // --- por sede ---
@@ -1312,11 +1514,11 @@ function pintarReportes() {
 }
 $("imprimir").addEventListener("click", () => window.print());
 $("csv").addEventListener("click", () => {
-  const filas = [["Código", "Fecha", "Sede", "Aula", "Piso", "Equipo", "Falla", "Descripción", "Prioridad", "Estado", "Técnico", "Primera respuesta (min)", "Resolución (min)"]];
+  const filas = [["Código", "Fecha", "Sede", "Aula", "Piso", "Equipo", "Falla", "Descripción", "Prioridad", "Estado", "Técnico", "Primera respuesta (min)", "Resolución desde En camino (min)" ,"En clase"]];
   for (const t of S.tickets) {
     const c = Date.parse(t.creado_en);
     filas.push([codigo(t), fmtFecha(t.creado_en), t.sede, t.ambiente || "", t.piso || "", t.equipo, t.falla, t.descripcion || "", ETQ_PRIO[t.prioridad], ETQ_ESTADO[t.estado], t.tecnico || "",
-      t.atendido_en ? ((Date.parse(t.atendido_en) - c) / 60000).toFixed(1) : "", t.resuelto_en ? ((Date.parse(t.resuelto_en) - c) / 60000).toFixed(1) : ""]);
+      t.atendido_en ? ((Date.parse(t.atendido_en) - c) / 60000).toFixed(1) : "", t.resuelto_en && t.tecnico_enviado_en ? ((Date.parse(t.resuelto_en) - Date.parse(t.tecnico_enviado_en)) / 60000).toFixed(1) : "", t.en_clase === true ? "Sí" : t.en_clase === false ? "No" : ""]);
   }
   const csv = "﻿" + filas.map((f) => f.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\r\n");
   const a = document.createElement("a");
@@ -1330,9 +1532,9 @@ $("csv").addEventListener("click", () => {
 // ============================================================
 function pintarConfig() {
   const u = S.usuario, dl = $("mi-cuenta"); dl.replaceChildren();
-  dl.append(el("dt", null, "Nombre"), el("dd", null, u.nombre), el("dt", null, "Rol"), el("dd", null, ETQ_ROL[u.rol] || u.rol), el("dt", null, "Sede"), el("dd", null, u.sede));
-  $("c-usuarios").classList.toggle("oculto", u.rol !== "admin");
-  if (u.rol !== "admin" || !S.usuarios) return;
+  dl.append(el("dt", null, "Nombre"), el("dd", null, u.nombre), el("dt", null, "Rol"), el("dd", null, ETQ_ROL[u.rol] || u.rol), el("dt", null, "Sede"), el("dd", null, u.sede || "Todas las sedes"));
+  $("c-usuarios").classList.toggle("oculto", !ADMIN);
+  if (!ADMIN || !S.usuarios) return;
   const cuerpo = $("t-usuarios"); cuerpo.replaceChildren();
   for (const x of S.usuarios) {
     const tr = el("tr");
@@ -1344,7 +1546,7 @@ function pintarConfig() {
   }
 }
 async function cargarUsuarios() {
-  if (!S.usuario || S.usuario.rol !== "admin") return pintarConfig();
+  if (!S.usuario || !ADMIN) return pintarConfig();
   try {
     const r = await api("/admin/usuarios");
     if (r.ok) S.usuarios = (await r.json()).usuarios;
@@ -1405,7 +1607,7 @@ setInterval(() => {
     const r = await api("/auth/yo");
     if (!r.ok) throw new Error("HTTP " + r.status);
     const yo = await r.json();
-    if (yo.rol === "tecnico_campo") return cerrarSesion("Tu cuenta es de técnico de campo. Ingresa por la página del técnico.");
+    if (yo.rol !== ROL_PAGINA) return cerrarSesion("Esta cuenta no corresponde a esta página.");
     entrarAlPanel(yo);
   } catch (_) { cerrarSesion(""); }
 })();
