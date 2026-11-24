@@ -251,7 +251,7 @@
           <input id="g-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
       </div>
       <label class="campo" for="g-usuario" style="margin-top:12px">Correo</label>
-      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60"><select class="sufijo" id="g-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option></select></div>
+      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60"><select class="sufijo" id="g-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option><option value="ucss.pe">@ucss.pe</option></select></div>
       <p id="g-correo-aviso" class="error oculto" role="alert"></p>
       <p id="g-error" class="error oculto" role="alert"></p>
       <button id="g-boton" class="principal espacio-sup" type="submit">Crear cuenta</button>
@@ -265,7 +265,7 @@
       <h2>Iniciar sesión</h2>
       <p class="aviso" style="margin:0 0 14px">Escribe tu correo. Así te avisamos por correo cómo va tu reporte.</p>
       <label class="campo" for="c-usuario">Correo</label>
-      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" aria-describedby="c-correo-aviso"><select class="sufijo" id="c-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option></select></div>
+      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" aria-describedby="c-correo-aviso"><select class="sufijo" id="c-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option><option value="ucss.pe">@ucss.pe</option></select></div>
       <p id="c-correo-aviso" class="error oculto" role="alert"></p>
       <p id="c-error" class="error oculto" role="alert"></p>
       <button id="c-boton" class="principal espacio-sup" type="submit">Iniciar sesión</button>
@@ -293,7 +293,6 @@
     <section id="paso-clase" class="bloque">
       <button class="enlace atras" type="button" data-atras="paso-clase">← Atrás</button>
       <h2>¿Estás actualmente en clase?</h2>
-      <p class="aviso" style="margin:0 0 12px">Nos ayuda a decidir qué tan rápido debemos atenderte.</p>
       <div class="opciones" id="clase" role="radiogroup" aria-label="¿Estás en clase?">
         <label class="opcion"><input type="radio" name="clase" value="si"><span class="punto"></span>Sí, estoy en clase</label>
         <label class="opcion"><input type="radio" name="clase" value="no"><span class="punto"></span>No, no estoy en clase</label>
@@ -392,7 +391,7 @@ async function llamar(ruta, opciones = {}, intentos = 4) {
 }
 
 // ---------- correo de Gmail: el docente solo escribe su usuario ----------
-const DOMINIOS = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com"];
+const DOMINIOS = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com", "ucss.pe"];
 function limpiarUsuario(texto) {
   // minúsculas, sin espacios, y solo letras, números, punto, guion y guion bajo
   return texto.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9._-]/g, "");
@@ -415,7 +414,7 @@ function prepararCampoCorreo(idInput, idAviso, idDominio) {
       // si escribe o pega el correo completo, se recorta desde la arroba
       const dominio = v.slice(arroba + 1).replace(/\s+/g, "");
       if (DOMINIOS.includes(dominio)) selDom.value = dominio;
-      else if (dominio) alerta = "Usa un correo de Gmail, Hotmail, Yahoo u Outlook.";
+      else if (dominio) alerta = "Usa un correo de Gmail, Hotmail, Yahoo, Outlook o UCSS.";
       v = v.slice(0, arroba);
       if (e.inputType === "insertText") { tras = true; fijo = limpiarUsuario(v); if (!alerta) alerta = "El @" + selDom.value + " ya está puesto: escribe solo tu usuario."; }
     }
@@ -474,12 +473,20 @@ function guardarIdentidad(correo, listo) {
   } catch (_) {}
 }
 const TECLADO = ["qwe","wer","ert","rty","tyu","yui","uio","iop","asdf","sdf","dfg","fgh","ghj","hjk","jkl","zxc","xcv","cvb","vbn","bnm"];
-function plausible(p) {
+function plausible(p, racha = 5, razon = 0.2) {
   const t = p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const v = (t.match(/[aeiou]/g) || []).length;
-  if (v === 0 || v / t.length < 0.2) return false;
-  if (/(.)\1\1/.test(t) || /[^aeiou]{5,}/.test(t) || /[aeiou]{4,}/.test(t) || /(..+)\1\1/.test(t)) return false;
+  if (v === 0 || v / t.length < razon) return false;
+  if (/(.)\1\1/.test(t) || new RegExp("[^aeiou]{" + racha + ",}").test(t) || /[aeiou]{4,}/.test(t) || /(..+)\1\1/.test(t)) return false;
   return !TECLADO.some((k) => t.includes(k));
+}
+function validarCorreoNuevo(correo) {
+  const u = correo.split("@")[0];
+  const malo = "Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido.";
+  if (u.length < 4 || u.length > 30 || !/^[a-z0-9]+([._-][a-z0-9]+)*$/.test(u)) return malo;
+  for (const seg of u.match(/[a-z]+/g) || []) if (seg.length >= 3 && !plausible(seg, 6, 0.14)) return malo;
+  if (u.replace(/\D/g, "").length > 8) return malo;
+  return null;
 }
 function validarNombres(nombre, apellido) {
   for (const [txt, et] of [[nombre, "tus nombres"], [apellido, "tus apellidos"]]) {
@@ -864,6 +871,8 @@ $("form-registro").addEventListener("submit", async (e) => {
   const malN = validarNombres(nombre, apellido);
   if (malN) return avisoRegistro(malN);
   if (!correo) return avisoRegistro("Escribe tu correo.");
+  const malC = validarCorreoNuevo(correo);
+  if (malC) return avisoRegistro(malC);
   const boton = $("g-boton"); boton.disabled = true; boton.textContent = "Creando cuenta…";
   try {
     const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo }), 2);
