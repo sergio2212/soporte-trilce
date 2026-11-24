@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#E85D35">
+<meta name="theme-color" content="#000000">
 <title>Reportar un problema · Soporte Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -239,7 +239,7 @@
   .marca-icono img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* ---------- Formulario al centro de la pantalla ---------- */
-  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 110px); min-height: calc(100svh - 110px); }
+  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 76px); min-height: calc(100svh - 76px); }
   main::before, main::after { content: ""; flex: 1 0 0; }
   main > * { flex: none; }
   /* cuando ya hay varios pasos, el formulario fluye desde arriba para que nada salte al avanzar */
@@ -302,6 +302,14 @@
   .ayuda { color: #C5CDD2; }
   .barra-envio { z-index: 20; background: rgba(8,8,10,.86); border-top: 1px solid rgba(255,255,255,.14); }
 
+  /* ---------- Cabecera minimalista: sin banda de color, solo marca y detalles discretos ---------- */
+  .banda { background: transparent; border-radius: 0; box-shadow: none; overflow: visible; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .banda::before, .banda::after { display: none; }
+  .marca { gap: 12px; padding: 14px 18px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  .marca-icono { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); box-shadow: none; }
+  .marca b { font-size: 1rem; font-weight: 700; letter-spacing: 0; color: #fff; }
+  .marca span { font-size: .85rem; font-weight: 500; color: var(--muted); }
+
   /* ---------- Tablet ---------- */
   @media (min-width: 600px) and (max-width: 959px) {
     .marca, main, .barra-envio > div, .ayuda { max-width: 560px; }
@@ -309,28 +317,22 @@
 
   /* ---------- Escritorio: cabecera sobrepuesta + formulario en el centro exacto ---------- */
   @media (min-width: 960px) {
-    .banda { position: absolute; top: 0; left: 0; right: 0; border-radius: 0 0 90px 26px / 0 0 46px 26px; }
-    .marca { max-width: 1120px; padding: 22px 32px 40px; }
-    .marca-icono { width: 60px; height: 60px; border-radius: 18px; }
-    .hero { display: block; position: absolute; z-index: 1; top: 36px; right: max(32px, calc((100vw - 1120px) / 2 + 32px)); }
+    .banda { position: absolute; top: 0; left: 0; right: 0; border-bottom-color: transparent; }
+    .marca { max-width: 1120px; padding: 24px 32px; }
+    .marca-icono { width: 48px; height: 48px; border-radius: 14px; }
+    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: max(32px, calc((100vw - 1120px) / 2 + 32px)); }
     .hero h1, .hero p { display: none; }
     .hero ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
-    .hero li { background: var(--aqua-soft); color: var(--aqua-ink); font-weight: 800; font-size: .88rem; padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
-    main { max-width: 600px; min-height: 100vh; padding: 130px 24px; }
+    .hero li { background: transparent; border: 1px solid rgba(255,255,255,.16); color: #C5CDD2; font-weight: 600; font-size: .82rem; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+    main { max-width: 600px; min-height: 100vh; padding: 110px 24px; }
     .barra-envio > div { max-width: 552px; }
-    .bloque { padding: 32px; }
+    .bloque { padding: 34px; }
     .bloque h2 { font-size: 1.35rem; }
   }
 
-  /* ---------- Splash (video + pintura) ---------- */
-  .splash { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #F2784E 0%, #E85D35 55%, #C14622 100%); display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
+  /* ---------- Splash (gota de pintura) ---------- */
+  .splash { position: fixed; inset: 0; z-index: 9999; background: #000; display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
   .splash.fuera { opacity: 0; pointer-events: none; }
-  .sp-fondo { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(30px) brightness(.85) saturate(1.3); transform: scale(1.2); }
-  .sp-video { position: relative; width: 100%; height: 100%; object-fit: cover; }
-  @media (min-width: 900px) {
-    .sp-fondo { display: block; }
-    .sp-video { width: auto; height: 90%; max-width: 92%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 28px; box-shadow: 0 30px 90px rgba(0,0,0,.45); }
-  }
   .sp-saltar { position: absolute; z-index: 3; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: #fff; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
   .sp-saltar:hover { background: rgba(0,0,0,.55); }
   .sp-saltar:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
@@ -343,9 +345,7 @@
 <body>
 
 <!-- Splash: se ve solo si no hay sesión activa -->
-<div id="splash" class="splash" aria-hidden="true">
-  <video id="sp-fondo" class="sp-fondo" muted playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
-  <video id="sp-video" class="sp-video" muted autoplay playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
+<div id="splash" class="splash">
   <button id="sp-saltar" class="sp-saltar" type="button" aria-label="Saltar introducción">Saltar</button>
   <div id="pintura" class="pintura">
     <i class="gota" id="gota"></i>
@@ -354,17 +354,14 @@
 </div>
 <script>
 (function () {
-  var FIN = 2.2;                                   // segundo en que se corta el video y cae la pintura
   var sp = document.getElementById("splash");
   try { if (sessionStorage.getItem("docente_sesion") === "1") { sp.remove(); return; } } catch (_) {}
-  var v = document.getElementById("sp-video"), f = document.getElementById("sp-fondo");
   var pint = document.getElementById("pintura");
   var done = false, pintando = false;
   document.body.style.overflow = "hidden";
 
   function salir() {
     if (done) return; done = true;
-    try { v.pause(); f.pause(); } catch (_) {}
     sp.classList.add("fuera");
     setTimeout(function () { sp.remove(); document.body.style.overflow = ""; }, 650);
   }
@@ -386,12 +383,11 @@
   }
   function pintura() {
     if (pintando || done) return; pintando = true;
-    try { v.pause(); f.pause(); } catch (_) {}
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !sp.animate) return salir();
     var gota = document.getElementById("gota");
     var caida = gota.animate(
       [{ transform: "translateY(-120vh) scaleY(1.25)" }, { transform: "translateY(0) scaleY(1.1)" }],
-      { duration: 600, easing: "cubic-bezier(.55,.05,.9,.5)", fill: "forwards" }
+      { duration: 650, easing: "cubic-bezier(.55,.05,.9,.5)", fill: "forwards" }
     );
     caida.onfinish = function () {
       gota.style.display = "none";
@@ -408,27 +404,10 @@
       }
       capa("#ffffff", 0);          // primero la pintura blanca...
       capa("#E85D35", 180);        // ...y justo detrás la naranja, que termina cubriendo todo
-      setTimeout(salir, 1700);     // pantalla toda naranja → se desvanece y aparece la interfaz
+      setTimeout(salir, 1600);     // pantalla toda naranja → se desvanece y aparece la interfaz
     };
   }
-  function vigilar() {
-    if (done || pintando) return;
-    if (v.currentTime >= FIN) return pintura();
-    if (Math.abs(f.currentTime - v.currentTime) > .3) { try { f.currentTime = v.currentTime; } catch (_) {} }
-    requestAnimationFrame(vigilar);
-  }
-  var seguro = setTimeout(pintura, 8000);                                     // si el video nunca arranca
-  v.addEventListener("playing", function () {
-    clearTimeout(seguro);
-    seguro = setTimeout(pintura, (FIN + 3) * 1000);                           // si el video se traba a mitad
-    try { f.play(); } catch (_) {}
-    requestAnimationFrame(vigilar);
-  });
-  // si ningún nombre de video existe: se ve el fondo naranja y la gota cae enseguida (sin pantalla negra)
-  var ultimo = v.querySelector("source:last-child");
-  if (ultimo) ultimo.addEventListener("error", function () { clearTimeout(seguro); v.style.display = "none"; f.style.display = "none"; setTimeout(pintura, 700); });
-  var p = v.play(); if (p && p.catch) p.catch(function () { clearTimeout(seguro); setTimeout(pintura, FIN * 1000); });
-  v.addEventListener("ended", pintura);
+  setTimeout(pintura, 400);        // pantalla negra un instante y cae la gota
   document.getElementById("sp-saltar").addEventListener("click", salir);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") salir(); });   // salir con el teclado
 })();
