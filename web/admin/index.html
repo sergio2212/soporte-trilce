@@ -255,6 +255,11 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
   @media (max-width: 520px) { .form-dlg .fila { grid-template-columns: 1fr; } .usuario { display: none; } .tarjetas { grid-template-columns: 1fr 1fr; } .cabecera h1 { font-size: 1.4rem; } .migas { display: none; } .dlg-int { padding: 16px; } .fichas { grid-template-columns: 1fr; gap: 0 } .fichas dd { margin-bottom: 8px; } .herramientas, .herramientas.dos-col { grid-template-columns: 1fr; } .kpi .valor { font-size: 1.7rem; } }
   .fila-barrah { display: grid; grid-template-columns: minmax(90px, 170px) 1fr 70px; gap: 10px; align-items: center; margin: 7px 0; font-size: .9rem; }
   @media (max-width: 520px) { .fila-barrah { grid-template-columns: 1fr 1fr; } .fila-barrah > div { grid-column: 1 / -1; order: 3; } }
+  .td-comentario { min-width: 220px; max-width: 360px; }
+  .comentario-txt { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .comentario-txt.recortado { display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+  .btn-mas { border: 0; background: none; color: var(--brand-dark); font: inherit; font-size: .8rem; font-weight: 700; padding: 2px 0; margin-top: 2px; cursor: pointer; text-decoration: underline; }
+  :root[data-tema="oscuro"] .btn-mas { color: var(--brand); }
   .mensaje-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; }
   .mensaje-item.nuevo { border-color: var(--brand); background: var(--brand-soft); }
   .mensaje-item .meta { color: var(--muted); font-size: .82rem; margin-bottom: 4px; }
@@ -544,7 +549,7 @@ const ETQ_PRIO = { critica: "Crítica", alta: "Alta", media: "Media", baja: "Baj
 const PLAZO_MIN = { critica: 15, alta: 15, media: 30, baja: 50 };
 const ADMIN = PAGINA === "admin";
 const ROL_PAGINA = ADMIN ? "admin" : "tecnico";
-const MENU = ADMIN ? ["panel", "tickets", "docentes", "sedes", "encuestas", "activos", "reportes", "mensajes", "config"] : ["tickets", "docentes", "encuestas", "activos", "mensajes", "config"];
+const MENU = ADMIN ? ["panel", "tickets", "docentes", "sedes", "encuestas", "activos", "reportes", "mensajes", "config"] : ["tickets", "docentes", "encuestas", "mensajes", "config"];
 const INICIO = ADMIN ? "panel" : "tickets";
 const ETQ_ACTIVO = { operativo: "Operativo", en_mantenimiento: "En mantenimiento", en_revision: "En revisión", baja: "De baja" };
 const VISTAS = {
@@ -759,10 +764,10 @@ function entrarAlPanel(usuario) {
   $("herr-tickets").classList.toggle("dos-col", !admin);
   mostrarPantalla("app");
   api("/catalogo").then((r) => r.json()).then((c) => { S.catalogo = c; llenarCatalogos(); }).catch(() => {});
-  $("nuevo-activo").classList.toggle("oculto", ADMIN);
-  $("th-acc-activo").textContent = ADMIN ? "" : "Acciones";
-  $("sub-tickets").textContent = ADMIN ? "Solo observas: envía un mensaje a Soporte desde cada ticket." : "Atiende los tickets, sal «En camino» y márcalos como resueltos.";
-  $("sub-activos").textContent = ADMIN ? "Inventario de equipos de las sedes (solo lectura)." : "Registra y actualiza los equipos de tu sede.";
+  $("nuevo-activo").classList.toggle("oculto", !ADMIN);
+  $("th-acc-activo").textContent = ADMIN ? "Acciones" : "";
+  $("sub-tickets").textContent = ADMIN ? "Solo observas: envía un mensaje a Soporte desde cada ticket." : "Atiende los tickets, marca «En camino» y luego «Resuelto».";
+  $("sub-activos").textContent = "Inventario de equipos: solo el administrador lo ve y lo modifica.";
   $("sub-mensajes").textContent = ADMIN ? "Mensajes que enviaste a Soporte." : "Observaciones del administrador sobre tickets y encuestas.";
   $("sub-config").textContent = ADMIN ? "Tu cuenta y la creación de usuarios." : "Tu cuenta.";
   irA(vistaDesdeHash() || INICIO);
@@ -816,7 +821,7 @@ window.addEventListener("hashchange", () => { const v = vistaDesdeHash(); if (v 
 // ---------- carga de datos ----------
 async function refrescar() {
   try {
-    const [rt, ri, ra, rm] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), api("/soporte/activos"), api("/soporte/mensajes")]);
+    const [rt, ri, ra, rm] = await Promise.all([api("/soporte/tickets?estado=todos"), api("/soporte/indicadores"), ADMIN ? api("/soporte/activos") : Promise.resolve({ ok: false }), api("/soporte/mensajes")]);
     if (!rt.ok) throw new Error("tickets " + rt.status);
     const dt = await rt.json();
     offsetReloj = Date.parse(dt.ahora) - Date.now();
@@ -1193,7 +1198,7 @@ function pintarActivos() {
     const u = el("td"); u.append(a.sede, el("span", "sub", fmtAula(a.ambiente) + (a.piso ? " · Piso " + a.piso : "")));
     const e = el("td"); e.append(chip(a.estado, ETQ_ACTIVO[a.estado]));
     const acc = el("td");
-    if (!ADMIN) { const b = el("button", "btn chico", "Actualizar"); b.type = "button"; b.addEventListener("click", () => abrirEstadoActivo(a)); acc.append(b); }
+    if (ADMIN) { const b = el("button", "btn chico", "Actualizar"); b.type = "button"; b.addEventListener("click", () => abrirEstadoActivo(a)); acc.append(b); }
     tr.append(n, el("td", "cod", a.codigo || "—"), u, e, el("td", null, fmtDia(a.ultimo_mantenimiento)), acc);
     cuerpo.append(tr);
   }
@@ -1261,6 +1266,23 @@ function barraH(etiqueta, n, total, color) {
   f.append(el("span", null, etiqueta), riel, el("b", null, n + (total ? " · " + Math.round((n / total) * 100) + " %" : "")));
   return f;
 }
+// Comentario largo: se ve en 5 líneas y un botón chico lo expande o lo contrae
+function comentarioTd(texto) {
+  const td = el("td", "td-comentario");
+  if (!texto) { td.textContent = "—"; return td; }
+  const p = el("div", "comentario-txt recortado", texto);
+  const b = el("button", "btn-mas oculto", "Ver más"); b.type = "button";
+  b.setAttribute("aria-expanded", "false");
+  b.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    const abierto = p.classList.toggle("recortado") === false;
+    b.textContent = abierto ? "Ver menos" : "Ver más"; b.setAttribute("aria-expanded", String(abierto));
+  });
+  td.append(p, b);
+  requestAnimationFrame(() => { if (p.scrollHeight > p.clientHeight + 1) b.classList.remove("oculto"); });
+  return td;
+}
+
 function pintarEncuestas() {
   const E = S.enc;
   if (!E) return;
@@ -1300,7 +1322,7 @@ function pintarEncuestas() {
       });
       acc.append(b);
     }
-    tr.append(el("td", null, "#" + x.ticket_id), el("td", null, x.docente || "—"), el("td", null, x.sede), el("td", null, x.tecnico || "—"), cal, el("td", null, ETQ_RESOL[x.resolucion]), el("td", null, x.comentario || "—"), el("td", null, fmtFecha(x.creado_en)), acc);
+    tr.append(el("td", null, "#" + x.ticket_id), el("td", null, x.docente || "—"), el("td", null, x.sede), el("td", null, x.tecnico || "—"), cal, el("td", null, ETQ_RESOL[x.resolucion]), comentarioTd(x.comentario), el("td", null, fmtFecha(x.creado_en)), acc);
     tr.addEventListener("click", () => abrirTicket(x.ticket_id));
     cuerpo.append(tr);
   }
