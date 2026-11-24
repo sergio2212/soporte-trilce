@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
+<script>try { var _t = localStorage.getItem("tema_visual"); if (_t === "dark" || _t === "light") document.documentElement.setAttribute("data-theme", _t); } catch (e) {}</script>
 <title>Reportar un problema · Soporte Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -298,7 +299,7 @@
     .banda { position: absolute; top: 0; left: 0; right: 0; }
     .marca { padding: 16px 32px; }
     .marca-icono { width: 48px; height: 48px; border-radius: 14px; }
-    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: max(32px, calc((100vw - 1120px) / 2 + 32px)); }
+    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: calc(max(32px, (100vw - 1120px) / 2 + 32px) + 88px); }
     .hero h1, .hero p { display: none; }
     .hero ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
     .hero li { background: rgba(255,255,255,.75); border: 1px solid rgba(232,93,53,.3); color: var(--ink); font-weight: 600; font-size: .82rem; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
@@ -310,6 +311,66 @@
     main { max-width: 660px; }
     .barra-envio > div { max-width: 612px; }
   }
+
+  /* ---------- Botón sol / luna ---------- */
+  .tema { position: relative; flex: none; display: block; width: 72px; height: 40px; margin-left: auto; padding: 0; cursor: pointer; border-radius: 999px;
+    border: 1px solid rgba(232,93,53,.4); background: rgba(255,255,255,.75); color: #6B7178; }
+  .tema svg { position: absolute; top: 50%; margin-top: -9px; z-index: 1; transition: color .25s; }
+  .tema .t-sol { left: 11px; }
+  .tema .t-luna { right: 11px; }
+  .tema .t-bola { position: absolute; top: 3px; left: 3px; width: 32px; height: 32px; border-radius: 50%; background: var(--brand-strong); transition: transform .25s ease; }
+  .tema:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+  html[data-theme="light"] .tema .t-sol, html[data-theme="dark"] .tema .t-luna { color: #fff; }
+  html[data-theme="dark"] .tema .t-bola { transform: translateX(32px); }
+  .bloque, .banda, .barra-envio { transition: background-color .3s ease, border-color .3s ease, color .3s ease; }
+  @media (min-width: 960px) and (max-width: 1099px) { .hero { display: none; } }
+
+  /* ---------- Modo oscuro (se activa con el botón sol / luna) ---------- */
+  html[data-theme="dark"]{ --bg: #000000; --ink: #F4F6F8; --muted: #A9B3BA; --line: rgba(255,255,255,.16); color-scheme: dark; }
+  html[data-theme="dark"] .halo { background:
+      radial-gradient(ellipse 46% 46% at 50% 50%, rgba(232,93,53,.16), rgba(232,93,53,0) 72%),
+      radial-gradient(ellipse 28% 30% at 66% 38%, rgba(130,184,194,.12), rgba(130,184,194,0) 70%); }
+  html[data-theme="dark"] .bloque { background: rgba(255,255,255,.06); border-color: rgba(232,93,53,.34);
+    -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 24px 70px rgba(0,0,0,.45), 0 0 44px rgba(232,93,53,.07), inset 0 1px 0 rgba(255,255,255,.08); }
+  html[data-theme="dark"] label.campo { color: #E6EBEE; }
+  html[data-theme="dark"] textarea, html[data-theme="dark"] input[type="email"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="password"] { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); color: #fff; }
+  html[data-theme="dark"] textarea::placeholder, html[data-theme="dark"] input::placeholder { color: rgba(255,255,255,.55); }
+  html[data-theme="dark"] textarea:focus, html[data-theme="dark"] input[type="email"]:focus, html[data-theme="dark"] input[type="text"]:focus, html[data-theme="dark"] input[type="password"]:focus { background: rgba(255,255,255,.1); border-color: var(--brand); outline: 3px solid rgba(232,93,53,.3); }
+  html[data-theme="dark"] input:-webkit-autofill { -webkit-text-fill-color: #fff; caret-color: #fff; box-shadow: 0 0 0 1000px #1b1d20 inset; }
+  html[data-theme="dark"] .grupo-correo .sufijo { background: rgba(130,184,194,.14); color: #BFE3EA; border-color: rgba(255,255,255,.2); }
+  html[data-theme="dark"] select.sufijo option { background: #17191c; color: #fff; }
+  html[data-theme="dark"] .piso span, html[data-theme="dark"] .equipo span, html[data-theme="dark"] .opcion { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.16); color: #fff; }
+  html[data-theme="dark"] .piso input:not(:checked):hover + span, html[data-theme="dark"] .equipo input:not(:checked):hover + span, html[data-theme="dark"] .opcion:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.09); }
+  html[data-theme="dark"] .piso input:checked + span, html[data-theme="dark"] .equipo input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); }
+  html[data-theme="dark"] .equipo svg { color: #82B8C2; }
+  html[data-theme="dark"] .equipo input:checked + span svg { color: #fff; }
+  html[data-theme="dark"] .opcion:has(input:checked) { border-color: var(--brand); background: rgba(232,93,53,.16); }
+  html[data-theme="dark"] .punto { border-color: rgba(255,255,255,.4); }
+  html[data-theme="dark"] .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
+  html[data-theme="dark"] button.principal:focus-visible { outline-color: #fff; }
+  html[data-theme="dark"] button.secundario { background: transparent; border-color: rgba(255,255,255,.28); color: #fff; }
+  html[data-theme="dark"] button.secundario:hover { background: rgba(255,255,255,.08); }
+  html[data-theme="dark"] button.enlace { color: #9ED0DA; }
+  html[data-theme="dark"] .barra-sesion { background: rgba(130,184,194,.10); border: 1px solid rgba(130,184,194,.22); }
+  html[data-theme="dark"] .barra-sesion small { color: #9ED0DA; }
+  html[data-theme="dark"] .barra-sesion b { color: #fff; }
+  html[data-theme="dark"] .error { color: #FFB4A8; background: rgba(255,107,87,.12); border-left-color: #FF6B57; }
+  html[data-theme="dark"] .nota-final { background: rgba(130,184,194,.10); border-color: rgba(130,184,194,.25); color: #fff; }
+  html[data-theme="dark"] .giro { border-color: rgba(255,255,255,.2); border-top-color: var(--brand); }
+  html[data-theme="dark"] #ev-pasos span[style*="e6d9cf"] { background: rgba(255,255,255,.22) !important; }
+  html[data-theme="dark"] .paso-etiqueta { color: #82B8C2; }
+  html[data-theme="dark"] .pasos span { background: rgba(255,255,255,.22); }
+  html[data-theme="dark"] .pasos span.listo { background: var(--brand); }
+  html[data-theme="dark"] .paso-etiqueta, html[data-theme="dark"] .ayuda { text-shadow: none; }
+  html[data-theme="dark"] .ayuda { color: #C5CDD2; }
+  html[data-theme="dark"] .barra-envio { background: rgba(8,8,10,.86); border-top-color: rgba(255,255,255,.14); }
+  html[data-theme="dark"] .banda { background: linear-gradient(120deg, rgba(232,93,53,.34) 0%, rgba(232,93,53,.13) 100%); border-bottom-color: rgba(232,93,53,.5);
+    box-shadow: 0 10px 34px rgba(232,93,53,.12), inset 0 1px 0 rgba(255,255,255,.08); }
+  html[data-theme="dark"] .marca-icono { border-color: rgba(255,255,255,.3); }
+  html[data-theme="dark"] .marca span { color: #D0D6DB; }
+  html[data-theme="dark"] .hero li { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.2); color: #E9EDF0; }
+  html[data-theme="dark"] .tema { background: rgba(255,255,255,.08); border-color: rgba(232,93,53,.5); color: #A9B3BA; }
 
   /* ---------- Splash (gota de pintura) ---------- */
   .splash { position: fixed; inset: 0; z-index: 9999; background: #000; display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
@@ -405,6 +466,11 @@
       <svg id="marca-svg" class="oculto" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
+    <button id="tema" class="tema" type="button" role="switch" aria-checked="false" aria-label="Modo oscuro" title="Cambiar entre modo claro y oscuro">
+      <i class="t-bola"></i>
+      <svg class="t-sol" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg class="t-luna" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
   </div>
   <div class="hero">
     <h1>Reporta tu problema técnico</h1>
@@ -1066,7 +1132,8 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso", "g-dominio");
     if (!window.VANTA || !window.THREE) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var movil = window.innerWidth < 700;
-    VANTA.DOTS({
+    var oscuro = document.documentElement.getAttribute("data-theme") === "dark";
+    window.__vanta = VANTA.DOTS({
       el: "#fondo-vanta",
       mouseControls: true,
       touchControls: true,
@@ -1077,7 +1144,7 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso", "g-dominio");
       scaleMobile: 1.00,
       color: 0xe85d35,            // naranja Trilce
       color2: 0x82b8c2,           // celeste agua
-      backgroundColor: 0xffffff,  // blanco
+      backgroundColor: oscuro ? 0x000000 : 0xffffff,  // blanco (claro) o negro (oscuro)
       size: movil ? 3.4 : 3.8,
       spacing: movil ? 38 : 34,
       showLines: false            // sin líneas: menos ruido visual detrás del formulario
@@ -1099,6 +1166,25 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso", "g-dominio");
   var mo = new MutationObserver(act);
   barras.forEach(function (b) { mo.observe(b, { attributes: true, attributeFilter: ["class"] }); });
   act();
+})();
+</script>
+<script>
+// Modo claro / oscuro: se recuerda la elección en este navegador
+(function () {
+  var raiz = document.documentElement, btn = document.getElementById("tema");
+  function aplicar(t) {
+    raiz.setAttribute("data-theme", t);
+    if (btn) btn.setAttribute("aria-checked", t === "dark" ? "true" : "false");
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", t === "dark" ? "#000000" : "#FFFFFF");
+    try { if (window.__vanta) window.__vanta.setOptions({ backgroundColor: t === "dark" ? 0x000000 : 0xffffff }); } catch (_) {}
+  }
+  aplicar(raiz.getAttribute("data-theme") === "dark" ? "dark" : "light");
+  if (btn) btn.addEventListener("click", function () {
+    var nuevo = raiz.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    aplicar(nuevo);
+    try { localStorage.setItem("tema_visual", nuevo); } catch (_) {}
+  });
 })();
 </script>
 </body>
