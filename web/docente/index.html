@@ -2,27 +2,32 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f26b1d">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E85D35">
 <title>Reportar un problema · Soporte Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fff8f2;
-    --surface: #ffffff;
-    --ink: #2a1a10;
-    --muted: #7a6657;
-    --brand: #f26b1d;
+    --bg: #000000;
+    --surface: #FFFFFF;
+    --ink: #373B3F;
+    --muted: #6B7178;
+    --brand: #E85D35;
     --brand-ink: #ffffff;
-    --brand-dark: #c4510e;
-    --brand-soft: #ffeadb;
-    --line: #f0dfd2;
+    --brand-dark: #C14622;
+    --brand-strong: #C94420;
+    --brand-soft: #FDEEE8;
+    --aqua: #82B8C2;
+    --aqua-soft: #EAF4F6;
+    --aqua-ink: #2F6A77;
+    --line: #E3E7EB;
     --warn: #b45309;
     --err: #c0392b;
     --ok: #1d8a4a;
-    --radius: 16px;
+    --radius: 20px;
+    --sombra: 0 6px 22px rgba(55,59,63,.07), 0 1px 3px rgba(55,59,63,.05);
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
@@ -32,76 +37,80 @@
     line-height: 1.5; font-size: 16px;
   }
   .oculto { display: none !important; }
-  main { max-width: 480px; margin: 0 auto; padding: 16px 16px 140px; }
+  main { max-width: 480px; margin: 0 auto; padding: 18px 16px 140px; }
 
   /* ---------- Cabecera ---------- */
-  .banda { background: var(--brand); color: #fff; }
-  .marca { display: flex; align-items: center; gap: 10px; max-width: 480px; margin: 0 auto; padding: 16px; }
-  .marca-icono { width: 38px; height: 38px; border-radius: 12px; background: #fff; color: var(--brand); display: grid; place-items: center; flex: none; }
-  .marca b { font-weight: 800; letter-spacing: -.01em; }
-  .marca span { opacity: .92; font-size: .88rem; display: block; line-height: 1.2; }
+  .banda {
+    position: relative; overflow: hidden; color: #fff;
+    background: linear-gradient(135deg, #CC4824 0%, #E85D35 70%, #EF6F44 100%);
+    border-radius: 0 0 64px 18px / 0 0 42px 22px;
+    box-shadow: 0 10px 28px rgba(232,93,53,.28);
+  }
+  .banda::before { content: ""; position: absolute; width: 190px; height: 190px; border-radius: 50%; right: -50px; top: -80px; background: rgba(255,255,255,.12); }
+  .banda::after { content: ""; position: absolute; width: 110px; height: 110px; border-radius: 50%; left: -30px; bottom: -60px; background: rgba(130,184,194,.35); }
+  .marca { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; max-width: 480px; margin: 0 auto; padding: 20px 18px 34px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
+  .marca-icono { width: 42px; height: 42px; border-radius: 14px; background: #fff; color: var(--brand); display: grid; place-items: center; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  .marca b { font-weight: 800; letter-spacing: -.01em; font-size: 1.08rem; }
+  .marca span { font-size: .9rem; font-weight: 600; display: block; line-height: 1.25; }
 
   /* ---------- Piezas comunes ---------- */
-  .bloque { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; scroll-margin-top: 12px; }
+  .bloque { background: var(--surface); border: 1px solid #EDEFF2; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--sombra); scroll-margin-top: 12px; }
   .bloque.entra { animation: entra .35s ease-out; }
   @keyframes entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  h2 { margin: 0 0 12px; font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+  h2 { margin: 0 0 14px; font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
   .aviso { color: var(--muted); font-size: .9rem; margin: 0; }
-  .error { color: var(--err); font-weight: 600; margin: 0 0 12px; }
+  .error { color: #A93226; font-weight: 700; font-size: .92rem; margin: 0 0 12px; padding: 10px 12px 10px 14px; background: #FDEDEB; border-left: 4px solid var(--err); border-radius: 10px; }
+  .error::before { content: "⚠ "; }
 
-  .pasos { display: flex; gap: 6px; margin: 0 0 14px; }
-  .pasos span { flex: 1; height: 6px; border-radius: 999px; background: var(--line); transition: background .25s; }
+  .pasos { display: flex; gap: 6px; margin: 0 0 16px; }
+  .pasos span { flex: 1; height: 6px; border-radius: 999px; background: #DDE2E7; transition: background .25s; }
   .pasos span.listo { background: var(--brand); }
 
   label.campo { display: block; font-size: .9rem; font-weight: 700; margin: 0 0 6px; }
   label.campo + input, label.campo + textarea { margin-bottom: 0; }
   textarea, input[type="email"], input[type="text"], input[type="password"] {
-    width: 100%; font: inherit; color: var(--ink); background: var(--surface);
-    border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px;
+    width: 100%; font: inherit; color: var(--ink); background: #FBFCFD;
+    border: 1.5px solid var(--line); border-radius: 14px; padding: 13px 14px;
   }
-  textarea:focus, input[type="email"]:focus, input[type="text"]:focus, input[type="password"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
+  textarea:focus, input[type="email"]:focus, input[type="text"]:focus, input[type="password"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 30%, transparent); border-color: var(--brand); background: #fff; }
   .espacio-sup { margin-top: 18px; }
 
-  /* ---------- Piso: botones redondos ---------- */
+  /* ---------- Piso: botones ---------- */
   .pisos { display: flex; flex-wrap: wrap; gap: 8px; }
   .piso { position: relative; }
   .piso input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
   .piso span {
-    display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; border: 1.5px solid var(--line);
+    display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; border: 1.5px solid var(--line); background: #FBFCFD;
     font-weight: 800; font-size: 1.1rem; transition: background .15s, color .15s, border-color .15s, transform .1s;
   }
-  .piso input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .piso input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); color: #fff; box-shadow: 0 6px 14px rgba(232,93,53,.3); }
   .piso input:active + span { transform: scale(.94); }
   .piso input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
 
-  .aulas .piso span { width: auto; min-width: 58px; padding: 0 14px; border-radius: 999px; }
-  button.atras { margin: 0 0 10px; text-decoration: none; display: inline-block; }
-  @media (max-width: 360px) { .dos { grid-template-columns: 1fr; } }
-
   /* ---------- Equipos: mosaicos ---------- */
-  .equipos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .equipos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .equipo { position: relative; }
   .equipo input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
   .equipo span {
-    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 8px 14px;
-    border: 1.5px solid var(--line); border-radius: 16px; font-weight: 800;
-    transition: background .15s, border-color .15s, transform .1s, color .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 8px 16px;
+    border: 1.5px solid var(--line); border-radius: 18px; font-weight: 800; background: #FBFCFD;
+    transition: background .15s, border-color .15s, transform .1s, color .15s, box-shadow .15s;
   }
-  .equipo svg { color: var(--brand); transition: color .15s; }
-  .equipo input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .equipo svg { color: var(--aqua); transition: color .15s; }
+  .equipo input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); color: #fff; box-shadow: 0 8px 18px rgba(232,93,53,.3); }
   .equipo input:checked + span svg { color: #fff; }
   .equipo input:active + span { transform: scale(.96); }
   .equipo input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
 
-  /* ---------- Fallas ---------- */
-  .opciones { display: grid; gap: 8px; }
+  /* ---------- Fallas / opciones ---------- */
+  .opciones { display: grid; gap: 10px; }
   .opcion {
     position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 14px;
-    border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; font-weight: 700;
+    border: 1.5px solid var(--line); border-radius: 16px; cursor: pointer; font-weight: 700; background: #FBFCFD;
     transition: border-color .15s, background .15s;
   }
   .opcion input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
-  .punto { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; transition: border-color .15s, background .15s; }
+  .punto { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C9D0D6; flex: none; display: grid; place-items: center; transition: border-color .15s, background .15s; }
   .punto::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform .15s; }
   .opcion:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
   .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
@@ -111,17 +120,17 @@
   /* ---------- Botón fijo ---------- */
   .barra-envio {
     position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line);
   }
   .barra-envio > div { max-width: 480px; margin: 0 auto; }
   button.principal {
-    width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink);
-    font: inherit; font-size: 1.02rem; font-weight: 800; cursor: pointer;
+    width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #E85D35, #C94420); color: var(--brand-ink);
+    font: inherit; font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 8px 18px rgba(232,93,53,.32);
   }
-  button.principal:hover:not(:disabled) { filter: brightness(1.06); }
+  button.principal:hover:not(:disabled) { filter: brightness(1.05); }
   button.principal:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
   button.principal:disabled { opacity: .6; cursor: not-allowed; }
-  button.secundario { width: 100%; min-height: 48px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+  button.secundario { width: 100%; min-height: 50px; border: 1.5px solid var(--aqua); border-radius: 16px; background: var(--aqua-soft); color: var(--aqua-ink); font: inherit; font-weight: 800; cursor: pointer; }
   .barra-envio .error { margin-bottom: 8px; font-size: .92rem; }
 
   /* ---------- Cargando ---------- */
@@ -130,7 +139,7 @@
   @keyframes gira { to { transform: rotate(360deg); } }
 
   /* ---------- Seguimiento ---------- */
-  .mensaje { border-radius: var(--radius); padding: 22px 20px; margin-bottom: 14px; background: var(--brand-soft); border: 1px solid var(--line); }
+  .mensaje { border-radius: var(--radius); padding: 22px 20px; margin-bottom: 14px; background: var(--aqua-soft); border: 1px solid var(--line); }
   .mensaje.en_atencion, .mensaje.en_camino, .mensaje.solucionando { background: var(--brand); border-color: var(--brand); color: #fff; }
   .mensaje.resuelto { background: var(--ok); border-color: var(--ok); color: #fff; }
   .mensaje-icono { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 14px; background: #fff; color: var(--brand); }
@@ -173,30 +182,31 @@
   .reporte-cab { margin: 0 0 12px; }
   .reporte-cab b { display: block; font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
   .reporte-cab span { color: var(--muted); font-size: .9rem; }
-  .barra-sesion { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; }
+  .barra-sesion { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; padding: 12px 16px; background: var(--aqua-soft); border-radius: 16px; }
   .barra-sesion h2 { margin: 0; font-size: 1.2rem; }
-  .barra-sesion small { color: var(--muted); display: block; font-weight: 600; font-size: .85rem; }
+  .barra-sesion small { color: var(--aqua-ink); display: block; font-weight: 700; font-size: .8rem; }
+  .barra-sesion b { word-break: break-all; font-size: .92rem; }
   .acciones-fila { display: grid; gap: 10px; margin-top: 4px; }
   button.enlace { background: none; border: 0; padding: 0; color: var(--brand-dark); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
-  .nota-final { background: var(--brand-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin: 14px 0; font-weight: 600; }
+  .nota-final { background: var(--aqua-soft); border: 1px solid #D3E6EA; border-radius: var(--radius); padding: 16px 18px; margin: 14px 0; font-weight: 600; }
   .vacio { text-align: center; color: var(--muted); padding: 30px 10px; font-weight: 600; }
   .grupo-correo { display: flex; align-items: stretch; }
   .grupo-correo input { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; min-width: 0; flex: 1; }
-  .grupo-correo .sufijo { display: flex; align-items: center; padding: 0 12px; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; border: 1.5px solid var(--line); border-left: 0; border-radius: 0 12px 12px 0; white-space: nowrap; font-size: .95rem; }
+  .grupo-correo .sufijo { display: flex; align-items: center; padding: 0 12px; background: var(--aqua-soft); color: var(--aqua-ink); font-weight: 700; border: 1.5px solid var(--line); border-left: 0; border-radius: 0 14px 14px 0; white-space: nowrap; font-size: .95rem; }
   .grupo-correo:focus-within .sufijo { border-color: var(--brand); }
   .grupo-correo select.sufijo { width: auto; min-height: 0; cursor: pointer; padding-right: 8px; appearance: auto; }
   #correo-aviso, #e-correo-aviso { margin: 6px 0 0; font-size: .88rem; }
   #acceso label.campo { margin-top: 16px; }
   #acceso .dos label.campo, #form-login > label.campo:first-child { margin-top: 0; }
   #acceso .error { margin: 10px 0 0; }
-  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--brand-soft); border-radius: 12px; margin-bottom: 16px; }
-  .tab { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
-  .tab.activa { background: var(--brand); color: #fff; }
+  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--aqua-soft); border-radius: 14px; margin-bottom: 16px; }
+  .tab { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--aqua-ink); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
+  .tab.activa { background: var(--brand-strong); color: #fff; }
   .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dos > div { min-width: 0; }
   .grupo-clave { position: relative; }
   .grupo-clave input { padding-right: 92px !important; }
-  .ojo { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--brand-soft); color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
+  .ojo { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--aqua-soft); color: var(--aqua-ink); font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
   .reglas { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: .86rem; color: var(--muted); }
   .reglas li::before { content: "○ "; }
   .reglas li.ok { color: #1E9E57; font-weight: 700; }
@@ -204,17 +214,263 @@
   #correo-paso label.campo { margin-top: 0; }
   #bloque-nombre .dos label.campo { margin-top: 0; }
   #correo-paso .error { margin: 10px 0 0; }
+
+  /* ---------- Ayudas visuales (heurísticas 1, 5, 6, 10) ---------- */
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .hero { display: none; }
+  .paso-etiqueta { margin: 0 0 8px; font-size: .88rem; font-weight: 800; color: var(--aqua-ink); }
+  .pista { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+  .ayuda { max-width: 480px; margin: 6px auto 0; text-align: center; font-size: .88rem; color: var(--muted); }
+
+  /* ---------- Fondo negro animado (Vanta DOTS) + halo de luz detrás del formulario ---------- */
+  html { background: var(--bg); }
+  #fondo-vanta { position: fixed; inset: 0; z-index: 0; background: var(--bg); }
+  .halo {
+    position: fixed; z-index: 1; left: 50%; top: 52%; width: min(1000px, 140vw); height: min(760px, 100vh);
+    transform: translate(-50%, -50%); pointer-events: none; filter: blur(34px);
+    background:
+      radial-gradient(ellipse 46% 46% at 50% 50%, rgba(232,93,53,.30), rgba(232,93,53,0) 72%),
+      radial-gradient(ellipse 28% 30% at 66% 38%, rgba(130,184,194,.20), rgba(130,184,194,0) 70%);
+  }
+  .banda { z-index: 3; }
+
+  /* Foto de la marca (reemplaza el icono de la llave) */
+  .marca-icono { width: 54px; height: 54px; border-radius: 16px; overflow: hidden; border: 2px solid rgba(255,255,255,.9); background: #fff; }
+  .marca-icono img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ---------- Formulario al centro de la pantalla ---------- */
+  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 110px); min-height: calc(100svh - 110px); }
+  main::before, main::after { content: ""; flex: 1 0 0; }
+  main > * { flex: none; }
+  /* cuando ya hay varios pasos, el formulario fluye desde arriba para que nada salte al avanzar */
+  main:has(#paso-lugar:not(.oculto))::before { flex: 0 0 0; }
+
+  /* ---------- Tema cristal: tarjetas translúcidas, minimalistas y elegantes ---------- */
+  :root { --muted: #A9B3BA; }
+  .halo { background:
+      radial-gradient(ellipse 46% 46% at 50% 50%, rgba(232,93,53,.16), rgba(232,93,53,0) 72%),
+      radial-gradient(ellipse 28% 30% at 66% 38%, rgba(130,184,194,.12), rgba(130,184,194,0) 70%); }
+  .bloque {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 24px; color: #F4F6F8;
+    -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 24px 70px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .bloque::before { display: none; }
+  h2 { color: #fff; font-weight: 700; }
+  .aviso, .pista, .vacio { color: var(--muted); }
+  label.campo { color: #E6EBEE; }
+
+  /* Campos */
+  textarea, input[type="email"], input[type="text"], input[type="password"] { background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.2); color: #fff; }
+  textarea::placeholder, input::placeholder { color: rgba(255,255,255,.55); }
+  textarea:focus, input[type="email"]:focus, input[type="text"]:focus, input[type="password"]:focus { background: rgba(255,255,255,.1); border-color: var(--brand); outline: 3px solid rgba(232,93,53,.3); }
+  input:-webkit-autofill { -webkit-text-fill-color: #fff; caret-color: #fff; box-shadow: 0 0 0 1000px #1b1d20 inset; }
+  .grupo-correo .sufijo { background: rgba(130,184,194,.14); color: #BFE3EA; border-color: rgba(255,255,255,.2); }
+  select.sufijo option { background: #17191c; color: #fff; }
+
+  /* Pisos, equipos y fallas */
+  .piso span, .equipo span, .opcion { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.16); color: #fff; }
+  .piso input:not(:checked):hover + span, .equipo input:not(:checked):hover + span, .opcion:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.09); }
+  .piso input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); box-shadow: none; }
+  .equipo svg { color: #82B8C2; }
+  .equipo input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); box-shadow: none; }
+  .equipo input:checked + span svg { color: #fff; }
+  .opcion:has(input:checked) { border-color: var(--brand); background: rgba(232,93,53,.16); }
+  .punto { border-color: rgba(255,255,255,.4); }
+  .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
+
+  /* Botones: uno principal sólido, el resto discreto */
+  button.principal { background: var(--brand-strong); box-shadow: none; border-radius: 14px; min-height: 52px; font-size: 1.05rem; letter-spacing: .01em; }
+  button.principal:hover:not(:disabled) { background: #D44A24; filter: none; }
+  button.principal:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  button.secundario { background: transparent; border: 1.5px solid rgba(255,255,255,.28); color: #fff; border-radius: 14px; }
+  button.secundario:hover { background: rgba(255,255,255,.08); }
+  button.enlace { color: #9ED0DA; }
+
+  /* Avisos y estados */
+  .barra-sesion { background: rgba(130,184,194,.10); border: 1px solid rgba(130,184,194,.22); }
+  .barra-sesion small { color: #9ED0DA; }
+  .barra-sesion b { color: #fff; }
+  .error { color: #FFB4A8; background: rgba(255,107,87,.12); border-left-color: #FF6B57; }
+  .nota-final { background: rgba(130,184,194,.10); border-color: rgba(130,184,194,.25); color: #fff; }
+  .giro { border-color: rgba(255,255,255,.2); border-top-color: var(--brand); }
+  #ev-pasos span[style*="e6d9cf"] { background: rgba(255,255,255,.22) !important; }
+
+  /* ---------- Textos que quedan sobre el fondo negro (contraste legible) ---------- */
+  .paso-etiqueta { color: #82B8C2; }
+  .pasos span { background: rgba(255,255,255,.22); }
+  .ayuda { color: #C5CDD2; }
+  .barra-envio { z-index: 20; background: rgba(8,8,10,.86); border-top: 1px solid rgba(255,255,255,.14); }
+
+  /* ---------- Tablet ---------- */
+  @media (min-width: 600px) and (max-width: 959px) {
+    .marca, main, .barra-envio > div, .ayuda { max-width: 560px; }
+  }
+
+  /* ---------- Escritorio: cabecera sobrepuesta + formulario en el centro exacto ---------- */
+  @media (min-width: 960px) {
+    .banda { position: absolute; top: 0; left: 0; right: 0; border-radius: 0 0 90px 26px / 0 0 46px 26px; }
+    .marca { max-width: 1120px; padding: 22px 32px 40px; }
+    .marca-icono { width: 60px; height: 60px; border-radius: 18px; }
+    .hero { display: block; position: absolute; z-index: 1; top: 36px; right: max(32px, calc((100vw - 1120px) / 2 + 32px)); }
+    .hero h1, .hero p { display: none; }
+    .hero ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+    .hero li { background: var(--aqua-soft); color: var(--aqua-ink); font-weight: 800; font-size: .88rem; padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
+    main { max-width: 600px; min-height: 100vh; padding: 130px 24px; }
+    .barra-envio > div { max-width: 552px; }
+    .bloque { padding: 32px; }
+    .bloque h2 { font-size: 1.35rem; }
+  }
+
+  /* ---------- Splash (video + pintura) ---------- */
+  .splash { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #F2784E 0%, #E85D35 55%, #C14622 100%); display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
+  .splash.fuera { opacity: 0; pointer-events: none; }
+  .sp-fondo { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(30px) brightness(.85) saturate(1.3); transform: scale(1.2); }
+  .sp-video { position: relative; width: 100%; height: 100%; object-fit: cover; }
+  @media (min-width: 900px) {
+    .sp-fondo { display: block; }
+    .sp-video { width: auto; height: 90%; max-width: 92%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 28px; box-shadow: 0 30px 90px rgba(0,0,0,.45); }
+  }
+  .sp-saltar { position: absolute; z-index: 3; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: #fff; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+  .sp-saltar:hover { background: rgba(0,0,0,.55); }
+  .sp-saltar:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .pintura { position: absolute; inset: -25%; z-index: 2; pointer-events: none; filter: url(#goo); }
+  .pintura .gota { position: absolute; left: 50%; top: 50%; width: 52px; height: 66px; margin: -33px 0 0 -26px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: linear-gradient(120deg, #fff 50%, #E85D35 50%); transform: translateY(-120vh); }
+  .pintura .mancha { position: absolute; left: 50%; top: 50%; border-radius: 50%; transform: scale(0); }
+  .pintura .salpica { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; transform: scale(0); }
 </style>
 </head>
 <body>
+
+<!-- Splash: se ve solo si no hay sesión activa -->
+<div id="splash" class="splash" aria-hidden="true">
+  <video id="sp-fondo" class="sp-fondo" muted playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
+  <video id="sp-video" class="sp-video" muted autoplay playsinline preload="auto"><source src="intro.mp4" type="video/mp4"><source src="introduccion.mp4" type="video/mp4"><source src="introducci%C3%B3n.mp4" type="video/mp4"></video>
+  <button id="sp-saltar" class="sp-saltar" type="button" aria-label="Saltar introducción">Saltar</button>
+  <div id="pintura" class="pintura">
+    <i class="gota" id="gota"></i>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
+</div>
+<script>
+(function () {
+  var FIN = 2.2;                                   // segundo en que se corta el video y cae la pintura
+  var sp = document.getElementById("splash");
+  try { if (sessionStorage.getItem("docente_sesion") === "1") { sp.remove(); return; } } catch (_) {}
+  var v = document.getElementById("sp-video"), f = document.getElementById("sp-fondo");
+  var pint = document.getElementById("pintura");
+  var done = false, pintando = false;
+  document.body.style.overflow = "hidden";
+
+  function salir() {
+    if (done) return; done = true;
+    try { v.pause(); f.pause(); } catch (_) {}
+    sp.classList.add("fuera");
+    setTimeout(function () { sp.remove(); document.body.style.overflow = ""; }, 650);
+  }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // una mancha circular que crece desde el punto de impacto (tamaño en vmax: cubre cualquier pantalla)
+  function mancha(color, size, dx, dy, delay, dur) {
+    var m = document.createElement("i"); m.className = "mancha";
+    m.style.background = color;
+    m.style.width = m.style.height = size + "vmax";
+    m.style.margin = (dy - size / 2) + "vmax 0 0 " + (dx - size / 2) + "vmax";
+    pint.appendChild(m);
+    m.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }],
+      { duration: dur, delay: delay, easing: "cubic-bezier(.22,.7,.2,1)", fill: "forwards" });
+  }
+  // una capa de color = una mancha grande + varias que brotan alrededor (el filtro "goo" las une como líquido)
+  function capa(color, retraso) {
+    mancha(color, 200, 0, 0, retraso, 1000);
+    for (var i = 0; i < 6; i++) mancha(color, rnd(110, 160), rnd(-22, 22), rnd(-22, 22), retraso + rnd(0, 220), rnd(800, 1000));
+  }
+  function pintura() {
+    if (pintando || done) return; pintando = true;
+    try { v.pause(); f.pause(); } catch (_) {}
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !sp.animate) return salir();
+    var gota = document.getElementById("gota");
+    var caida = gota.animate(
+      [{ transform: "translateY(-120vh) scaleY(1.25)" }, { transform: "translateY(0) scaleY(1.1)" }],
+      { duration: 600, easing: "cubic-bezier(.55,.05,.9,.5)", fill: "forwards" }
+    );
+    caida.onfinish = function () {
+      gota.style.display = "none";
+      // salpicaduras
+      for (var i = 0; i < 7; i++) {
+        var s = document.createElement("i"); s.className = "salpica";
+        s.style.background = i % 2 ? "#fff" : "#E85D35";
+        pint.appendChild(s);
+        var a = (Math.PI * 2 * i) / 7, d = 14 + Math.random() * 14;
+        s.animate(
+          [{ transform: "translate(0,0) scale(0)" }, { transform: "translate(" + Math.cos(a) * d + "vmin," + Math.sin(a) * d + "vmin) scale(" + (.5 + Math.random() * .8) + ")" }],
+          { duration: 800, easing: "cubic-bezier(.2,.75,.2,1)", fill: "forwards" }
+        );
+      }
+      capa("#ffffff", 0);          // primero la pintura blanca...
+      capa("#E85D35", 180);        // ...y justo detrás la naranja, que termina cubriendo todo
+      setTimeout(salir, 1700);     // pantalla toda naranja → se desvanece y aparece la interfaz
+    };
+  }
+  function vigilar() {
+    if (done || pintando) return;
+    if (v.currentTime >= FIN) return pintura();
+    if (Math.abs(f.currentTime - v.currentTime) > .3) { try { f.currentTime = v.currentTime; } catch (_) {} }
+    requestAnimationFrame(vigilar);
+  }
+  var seguro = setTimeout(pintura, 8000);                                     // si el video nunca arranca
+  v.addEventListener("playing", function () {
+    clearTimeout(seguro);
+    seguro = setTimeout(pintura, (FIN + 3) * 1000);                           // si el video se traba a mitad
+    try { f.play(); } catch (_) {}
+    requestAnimationFrame(vigilar);
+  });
+  // si ningún nombre de video existe: se ve el fondo naranja y la gota cae enseguida (sin pantalla negra)
+  var ultimo = v.querySelector("source:last-child");
+  if (ultimo) ultimo.addEventListener("error", function () { clearTimeout(seguro); v.style.display = "none"; f.style.display = "none"; setTimeout(pintura, 700); });
+  var p = v.play(); if (p && p.catch) p.catch(function () { clearTimeout(seguro); setTimeout(pintura, FIN * 1000); });
+  v.addEventListener("ended", pintura);
+  document.getElementById("sp-saltar").addEventListener("click", salir);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") salir(); });   // salir con el teclado
+})();
+</script>
+
+<!-- Fondo negro animado (Vanta DOTS) y halo de luz; son decorativos -->
+<div id="fondo-vanta" aria-hidden="true"></div>
+<div class="halo" aria-hidden="true"></div>
+
 <header class="banda">
   <div class="marca">
-    <div class="marca-icono" aria-hidden="true">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
+    <div class="marca-icono">
+      <img id="marca-foto" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSII9laDPu64gWbkyGTn1FfRWt-kP9cwdorxPSLdDa-W0OZG5rfeEAJvEF2&s=10" alt="Soporte técnico Trilce" width="60" height="60" referrerpolicy="no-referrer" decoding="async">
+      <svg id="marca-svg" class="oculto" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
   </div>
+  <div class="hero">
+    <h1>Reporta tu problema técnico</h1>
+    <p>Cuéntanos qué pasa y el equipo de Soporte lo atenderá. Te avisamos por correo en cada paso.</p>
+    <ul>
+      <li>✓ Toma menos de 1 minuto</li>
+      <li>✓ Seguimiento por correo</li>
+      <li>✓ Disponible en todas las sedes</li>
+    </ul>
+  </div>
 </header>
+<script>
+// Foto de la marca: si el enlace de Google deja de funcionar, prueba logo.jpg / logo.png (misma carpeta) y, si no, muestra el icono de la llave
+(function () {
+  var img = document.getElementById("marca-foto"), svg = document.getElementById("marca-svg");
+  if (!img) return;
+  var otros = ["logo.jpg", "logo.png"], i = 0;
+  function fallo() {
+    if (i < otros.length) { img.src = otros[i++]; return; }
+    img.classList.add("oculto");
+    if (svg) svg.classList.remove("oculto");
+  }
+  img.addEventListener("error", fallo);
+  if (img.complete && img.naturalWidth === 0) fallo();
+})();
+</script>
 <main>
   <!-- Cargando -->
   <section id="cargando" class="bloque carga" aria-live="polite">
@@ -251,7 +507,7 @@
           <input id="g-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
       </div>
       <label class="campo" for="g-usuario" style="margin-top:12px">Correo</label>
-      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60"><select class="sufijo" id="g-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option><option value="ucss.pe">@ucss.pe</option></select></div>
+      <div class="grupo-correo"><input id="g-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60"><select class="sufijo" id="g-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option></select></div>
       <p id="g-correo-aviso" class="error oculto" role="alert"></p>
       <p id="g-error" class="error oculto" role="alert"></p>
       <button id="g-boton" class="principal espacio-sup" type="submit">Crear cuenta</button>
@@ -265,7 +521,7 @@
       <h2>Iniciar sesión</h2>
       <p class="aviso" style="margin:0 0 14px">Escribe tu correo. Así te avisamos por correo cómo va tu reporte.</p>
       <label class="campo" for="c-usuario">Correo</label>
-      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" aria-describedby="c-correo-aviso"><select class="sufijo" id="c-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option><option value="ucss.pe">@ucss.pe</option></select></div>
+      <div class="grupo-correo"><input id="c-usuario" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="60" aria-describedby="c-correo-aviso"><select class="sufijo" id="c-dominio" aria-label="Proveedor de correo"><option value="gmail.com">@gmail.com</option><option value="hotmail.com">@hotmail.com</option><option value="yahoo.com">@yahoo.com</option><option value="outlook.com">@outlook.com</option></select></div>
       <p id="c-correo-aviso" class="error oculto" role="alert"></p>
       <p id="c-error" class="error oculto" role="alert"></p>
       <button id="c-boton" class="principal espacio-sup" type="submit">Iniciar sesión</button>
@@ -280,7 +536,6 @@
     </div>
     <section id="bloque-nombre" class="bloque oculto">
       <h2>Primera vez: ¿cómo te llamas?</h2>
-      <p class="aviso" style="margin:0 0 10px">Máximo 2 nombres y 2 apellidos, solo letras.</p>
       <div class="dos">
         <div><label class="campo" for="r-nombre">Nombres</label>
           <input id="r-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60"></div>
@@ -288,42 +543,31 @@
           <input id="r-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
       </div>
     </section>
-    <div class="pasos" aria-hidden="true"><span id="pc"></span><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
+    <p id="paso-etiqueta" class="paso-etiqueta" aria-live="polite">Paso 1 de 4 · Sede</p>
+    <div class="pasos" aria-hidden="true"><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
 
-    <section id="paso-clase" class="bloque">
-      <button class="enlace atras" type="button" data-atras="paso-clase">← Atrás</button>
-      <h2>¿Estás actualmente en clase?</h2>
-      <div class="opciones" id="clase" role="radiogroup" aria-label="¿Estás en clase?">
-        <label class="opcion"><input type="radio" name="clase" value="si"><span class="punto"></span>Sí, estoy en clase</label>
-        <label class="opcion"><input type="radio" name="clase" value="no"><span class="punto"></span>No, no estoy en clase</label>
-      </div>
-    </section>
-
-    <section id="paso-sede" class="bloque oculto">
-      <button class="enlace atras" type="button" data-atras="paso-sede">← Atrás</button>
+    <section id="paso-sede" class="bloque">
       <h2>¿En qué sede estás?</h2>
       <div class="opciones" id="sedes" role="radiogroup" aria-label="Sede"></div>
     </section>
 
     <section id="paso-lugar" class="bloque oculto">
-      <button class="enlace atras" type="button" data-atras="paso-lugar">← Atrás</button>
       <h2>¿Dónde está el problema?</h2>
-      <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-piso">Piso</p>
-      <div class="pisos" role="radiogroup" aria-labelledby="et-piso" id="pisos"></div>
-      <div id="bloque-aula" class="oculto espacio-sup">
-        <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-aula">Aula</p>
-        <div class="pisos aulas" role="radiogroup" aria-labelledby="et-aula" id="aulas"></div>
+      <label class="campo" for="aula">Aula</label>
+      <input id="aula" type="text" maxlength="40" placeholder="Ej. 305" enterkeyhint="next">
+      <p class="pista">El piso se marca solo con el primer número del aula (ej. 305 → piso 3). También puedes elegirlo tú.</p>
+      <div class="espacio-sup">
+        <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-piso">Piso</p>
+        <div class="pisos" role="radiogroup" aria-labelledby="et-piso" id="pisos"></div>
       </div>
     </section>
 
     <section id="paso-equipo" class="bloque oculto">
-      <button class="enlace atras" type="button" data-atras="paso-equipo">← Atrás</button>
       <h2>Selecciona el equipo</h2>
       <div class="equipos" id="equipos" role="radiogroup" aria-label="Equipo"></div>
     </section>
 
     <section id="paso-falla" class="bloque oculto">
-      <button class="enlace atras" type="button" data-atras="paso-falla">← Atrás</button>
       <h2 id="titulo-falla">¿Qué le pasa al equipo?</h2>
       <div class="opciones" id="fallas" role="radiogroup" aria-labelledby="titulo-falla"></div>
       <div id="bloque-otro" class="oculto espacio-sup">
@@ -344,7 +588,7 @@
   <section id="enviado" class="oculto" aria-live="polite">
     <div class="nota-final" style="text-align:center;padding:28px 20px">
       <h2 style="margin:0 0 10px">Recibimos tu reporte</h2>
-      <p style="margin:0 0 6px;font-weight:600">Aquí abajo ves el estado de tu reporte.</p>
+      <p style="margin:0 0 6px;font-weight:600">Puede ver el estado de su reporte en su correo.</p>
       <p id="enviado-correo" style="margin:0;font-weight:400;color:var(--muted,#5b6670)"></p>
     </div>
     <div class="bloque" id="estado-vivo" style="margin-top:14px">
@@ -355,6 +599,7 @@
     <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
   </section>
 
+  <p class="ayuda">¿Necesitas ayuda? Si algo no funciona o es urgente, avisa directamente al área de Soporte.</p>
 </main>
 
 <script>
@@ -391,7 +636,7 @@ async function llamar(ruta, opciones = {}, intentos = 4) {
 }
 
 // ---------- correo de Gmail: el docente solo escribe su usuario ----------
-const DOMINIOS = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com", "ucss.pe"];
+const DOMINIOS = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com"];
 function limpiarUsuario(texto) {
   // minúsculas, sin espacios, y solo letras, números, punto, guion y guion bajo
   return texto.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9._-]/g, "");
@@ -414,7 +659,7 @@ function prepararCampoCorreo(idInput, idAviso, idDominio) {
       // si escribe o pega el correo completo, se recorta desde la arroba
       const dominio = v.slice(arroba + 1).replace(/\s+/g, "");
       if (DOMINIOS.includes(dominio)) selDom.value = dominio;
-      else if (dominio) alerta = "Usa un correo de Gmail, Hotmail, Yahoo, Outlook o UCSS.";
+      else if (dominio) alerta = "Usa un correo de Gmail, Hotmail, Yahoo u Outlook.";
       v = v.slice(0, arroba);
       if (e.inputType === "insertText") { tras = true; fijo = limpiarUsuario(v); if (!alerta) alerta = "El @" + selDom.value + " ya está puesto: escribe solo tu usuario."; }
     }
@@ -472,30 +717,6 @@ function guardarIdentidad(correo, listo) {
     else { localStorage.removeItem("docente_correo"); localStorage.removeItem("docente_listo"); }
   } catch (_) {}
 }
-const TECLADO = ["qwe","wer","ert","rty","tyu","yui","uio","iop","asdf","sdf","dfg","fgh","ghj","hjk","jkl","zxc","xcv","cvb","vbn","bnm"];
-function plausible(p, racha = 5, razon = 0.2) {
-  const t = p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const v = (t.match(/[aeiou]/g) || []).length;
-  if (v === 0 || v / t.length < razon) return false;
-  if (/(.)\1\1/.test(t) || new RegExp("[^aeiou]{" + racha + ",}").test(t) || /[aeiou]{4,}/.test(t) || /(..+)\1\1/.test(t)) return false;
-  return !TECLADO.some((k) => t.includes(k));
-}
-function validarCorreoNuevo(correo) {
-  const u = correo.split("@")[0];
-  const malo = "Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido.";
-  if (u.length < 4 || u.length > 30 || !/^[a-z0-9]+([._-][a-z0-9]+)*$/.test(u)) return malo;
-  for (const seg of u.match(/[a-z]+/g) || []) if (seg.length >= 3 && !plausible(seg, 6, 0.14)) return malo;
-  if (u.replace(/\D/g, "").length > 8) return malo;
-  return null;
-}
-function validarNombres(nombre, apellido) {
-  for (const [txt, et] of [[nombre, "tus nombres"], [apellido, "tus apellidos"]]) {
-    const pal = txt.split(" ").filter(Boolean);
-    if (pal.length < 1 || pal.length > 2) return "Escribe " + et + " (máximo 2).";
-    for (const w of pal) if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$/.test(w) || !plausible(w)) return "«" + w + "» no parece un nombre válido. Usa solo letras y tu nombre real.";
-  }
-  return null;
-}
 const visible = (m) => Object.assign(new Error(m), { visible: true });
 async function detalle(r, porDefecto) {
   try { const d = await r.json(); return typeof d.detail === "string" ? d.detail : porDefecto; } catch (_) { return porDefecto; }
@@ -517,61 +738,36 @@ function revelar(seccion) {
 }
 
 function pintarPasos() {
-  $("pc").classList.toggle("listo", !!document.querySelector('input[name="clase"]:checked'));
   $("p0").classList.toggle("listo", sedeId !== null);
+  const aula = $("aula").value.trim();
+  const piso = document.querySelector('input[name="piso"]:checked');
   const equipo = document.querySelector('input[name="equipo"]:checked');
   const falla = document.querySelector('input[name="falla"]:checked');
-  $("p1").classList.toggle("listo", !!aulaElegida);
+  $("p1").classList.toggle("listo", !!(aula && piso));
   $("p2").classList.toggle("listo", !!equipo);
   $("p3").classList.toggle("listo", !!falla);
 }
-let aulaElegida = null;   // p. ej. "505": el primer número es el piso
-let aulaQR = false;       // true si el QR ya trae el aula
+
+function lugarCompleto() {
+  return $("aula").value.trim() && document.querySelector('input[name="piso"]:checked');
+}
 
 function siguienteDesdeLugar() {
-  if (!aulaElegida) return;
+  if (!lugarCompleto()) return;
   const eq = $("paso-equipo");
   if (eq.classList.contains("oculto")) revelar(eq);
 }
 
-function pintarAulas(piso) {
-  const cont = $("aulas"); cont.replaceChildren();
-  for (let n = 1; n <= 6; n++) {
-    const cod = piso + "0" + n;
-    const l = document.createElement("label"); l.className = "piso";
-    const i = document.createElement("input"); i.type = "radio"; i.name = "aula"; i.value = cod;
-    const sp = document.createElement("span"); sp.textContent = cod;
-    l.append(i, sp); cont.append(l);
-  }
-  $("bloque-aula").classList.remove("oculto");
-}
+// El piso se determina automáticamente según el primer dígito del aula
+function sincronizarPiso() {
+  const aula = $("aula").value.trim();
+  const coincidencia = aula.match(/^([1-6])/);
+  const pisoCorrecto = coincidencia ? coincidencia[1] : null;
 
-// ---------- botón "← Atrás" ----------
-const ORDEN = ["paso-clase", "paso-sede", "paso-lugar", "paso-equipo", "paso-falla"];
-function saltado(id) { return (id === "paso-sede" && qrValido) || (id === "paso-lugar" && aulaQR); }
-function limpiarPaso(id) {
-  const q = (sel) => document.querySelectorAll(sel).forEach((x) => { x.checked = false; });
-  if (id === "paso-clase") q('input[name="clase"]');
-  if (id === "paso-sede") { q('input[name="sede"]'); if (!qrValido) { sedeId = null; $("sub-marca").textContent = "Trilce"; } }
-  if (id === "paso-lugar" && !aulaQR) { q('input[name="piso"]'); aulaElegida = null; $("aulas").replaceChildren(); $("bloque-aula").classList.add("oculto"); }
-  if (id === "paso-equipo") q('input[name="equipo"]');
-  if (id === "paso-falla") { q('input[name="falla"]'); $("bloque-otro").classList.add("oculto"); $("descripcion").value = ""; }
+  document.querySelectorAll('input[name="piso"]').forEach((input) => {
+    input.checked = input.value === pisoCorrecto;
+  });
 }
-function atras(id) {
-  const i = ORDEN.indexOf(id);
-  for (let k = ORDEN.length - 1; k >= i; k--) { limpiarPaso(ORDEN[k]); if (k > 0) $(ORDEN[k]).classList.add("oculto"); }
-  $("barra-envio").classList.add("oculto");
-  let previo = null;
-  for (let k = i - 1; k >= 0; k--) if (!saltado(ORDEN[k])) { previo = ORDEN[k]; break; }
-  if (previo) limpiarPaso(previo);   // el paso anterior vuelve a quedar sin responder
-  pintarPasos();
-  if (!previo) { $("paso-clase").classList.remove("oculto"); return mostrarInicio(); }
-  $(previo).scrollIntoView({ behavior: "smooth", block: "start" });
-}
-document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest("button.atras");
-  if (b) atras(b.dataset.atras);
-});
 
 function elegirSede(id, nombre) {
   sedeId = id;
@@ -621,14 +817,9 @@ async function _cargarFormulario() {
   if (porQR) {
     // el QR ya dice la sede: se salta ese paso
     qrValido = true;
+    $("paso-sede").classList.add("oculto");
+    $("paso-lugar").classList.remove("oculto");
     elegirSede(datos.sede_id, datos.sede);
-    const aq = (params.get("aula") || "").trim();
-    if (/^[1-6]0[1-6]$/.test(aq)) {   // el QR también dice el aula (y por tanto el piso)
-      aulaQR = true; aulaElegida = aq;
-      const pi = document.querySelector('input[name="piso"][value="' + aq[0] + '"]'); if (pi) pi.checked = true;
-      pintarAulas(aq[0]);
-      const au = document.querySelector('input[name="aula"][value="' + aq + '"]'); if (au) au.checked = true;
-    }
   } else {
     const lista = $("sedes");
     for (const sd of sedes) {
@@ -667,19 +858,26 @@ async function irAlFormulario() {
 $("sedes").addEventListener("change", (e) => {
   elegirSede(Number(e.target.value), e.target.dataset.nombre);
   revelar($("paso-lugar"));
+  setTimeout(() => $("aula").focus({ preventScroll: true }), 500);
 });
 
-$("clase").addEventListener("change", () => {
+$("pisos").addEventListener("change", () => {
+  sincronizarPiso();
   pintarPasos();
-  revelar(qrValido ? (aulaQR ? $("paso-equipo") : $("paso-lugar")) : $("paso-sede"));
+
+  if ($("aula").value.trim()) siguienteDesdeLugar();
+  else $("aula").focus();
 });
-$("pisos").addEventListener("change", (e) => {
-  aulaElegida = null; pintarPasos();
-  pintarAulas(e.target.value);
-  setTimeout(() => $("bloque-aula").scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+
+$("aula").addEventListener("input", () => {
+  sincronizarPiso();
+  pintarPasos();
 });
-$("aulas").addEventListener("change", (e) => {
-  aulaElegida = e.target.value; pintarPasos(); siguienteDesdeLugar();
+
+$("aula").addEventListener("change", () => {
+  sincronizarPiso();
+  pintarPasos();
+  siguienteDesdeLugar();
 });
 
 $("equipos").addEventListener("change", (e) => {
@@ -731,12 +929,12 @@ $("formulario").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("error-form").classList.add("oculto");
 
-  const aula = aulaElegida;
-  const clase = document.querySelector('input[name="clase"]:checked');
+  const aula = $("aula").value.trim();
+  sincronizarPiso();
+  const piso = document.querySelector('input[name="piso"]:checked');
   const falla = document.querySelector('input[name="falla"]:checked');
-  if (!clase) { $("paso-clase").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Indica si estás en clase."); }
   if (sedeId === null) { $("paso-sede").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige tu sede."); }
-  if (!aula) { $("paso-lugar").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige el piso y el aula."); }
+  if (!aula || !piso) { $("paso-lugar").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Indica el aula y el piso."); }
   if (!falla) return mensajeForm("Elige qué le pasa al equipo.");
   const esOtro = falla.dataset.otro === "1";
   const descripcion = $("descripcion").value.trim();
@@ -747,8 +945,7 @@ $("formulario").addEventListener("submit", async (e) => {
   let nombre = null, apellido = null;
   if (!ident.listo) {
     nombre = $("r-nombre").value.trim().replace(/\s+/g, " "); apellido = $("r-apellido").value.trim().replace(/\s+/g, " ");
-    const mal = validarNombres(nombre, apellido);
-    if (mal) { $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" }); return mensajeForm(mal); }
+    if (nombre.length < 2 || apellido.length < 2) { $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" }); return mensajeForm("Escribe tus nombres y apellidos."); }
   }
 
   const boton = $("enviar");
@@ -762,16 +959,15 @@ $("formulario").addEventListener("submit", async (e) => {
         token_qr: qrValido ? tokenQR : null,
         sede_id: sedeId,
         tipo_falla_id: Number(falla.value),
-        aula, piso: aula[0], en_clase: clase.value === "si",
+        aula, piso: piso.value,
         descripcion: esOtro ? descripcion : null,
         correo: ident.correo, nombre, apellido,
       }),
     }, 2);
-    if (r.status === 422) {   // nombres faltantes o no válidos: se piden ahora
-      const det = await detalle(r, "Escribe tus nombres y apellidos.");
+    if (r.status === 422) {   // el sistema no tiene sus nombres: se piden ahora
       guardarIdentidad(ident.correo, false); boton.disabled = false; actualizarBoton();
       $("bloque-nombre").classList.remove("oculto"); $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" });
-      return mensajeForm(det);
+      return mensajeForm("Escribe tus nombres y apellidos.");
     }
     if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
     let creado = null; try { creado = await r.json(); } catch (_) {}
@@ -789,15 +985,21 @@ $("formulario").addEventListener("submit", async (e) => {
 
 
 // ---------- estado del reporte en vivo (pantalla "Recibimos tu reporte") ----------
-const ETAPAS = [["nuevo", "Pendiente"], ["proceso", "En proceso"], ["cerrado", "Cerrado"]];
-// estados internos -> los 3 que ve el docente
-const PASO_DOCENTE = { nuevo: 0, en_atencion: 1, en_camino: 1, solucionando: 1, resuelto: 2 };
+const ETAPAS = [
+  ["nuevo", "Reporte recibido"],
+  ["en_atencion", "En atención"],
+  ["tecnico", "Técnico asignado"],
+  ["resuelto", "Resuelto"],
+  ["cerrado", "Cerrado"],
+];
+// estados internos -> paso que ve el docente (al resolverse, el reporte queda Resuelto y Cerrado)
+const PASO_DOCENTE = { nuevo: 0, en_atencion: 1, en_camino: 2, solucionando: 2, resuelto: 4 };
 const TEXTO_ESTADO = {
-  nuevo: ["Recibimos tu reporte", "Está pendiente: el equipo de soporte lo atenderá en breve."],
-  en_atencion: ["Tu reporte está en proceso", "Nuestro equipo de soporte está trabajando en ello."],
-  en_camino: ["Tu reporte está en proceso", "Un técnico va en camino."],
-  solucionando: ["Tu reporte está en proceso", "Un técnico está trabajando en ello."],
-  resuelto: ["Reporte cerrado", "Tu problema fue resuelto. Revisa tu correo para responder la encuesta."],
+  nuevo: ["Recibimos tu reporte", "Nuestro equipo de soporte lo atenderá en breve."],
+  en_atencion: ["¡Gracias por la espera!", "Nuestro equipo de soporte está trabajando en ello."],
+  en_camino: ["¡Gracias por la espera!", "Un técnico va en camino."],
+  solucionando: ["¡Gracias por la espera!", "El técnico está solucionando el problema."],
+  resuelto: ["¡Listo!", "Tu problema fue resuelto."],
 };
 let temporizadorEstado = null;
 function pintarEstado(estado) {
@@ -868,11 +1070,8 @@ $("form-registro").addEventListener("submit", async (e) => {
   avisoRegistro("");
   const nombre = $("g-nombre").value.trim().replace(/\s+/g, " "), apellido = $("g-apellido").value.trim().replace(/\s+/g, " ");
   const correo = correoCompleto("g-usuario", "g-dominio");
-  const malN = validarNombres(nombre, apellido);
-  if (malN) return avisoRegistro(malN);
+  if (nombre.length < 2 || apellido.length < 2) return avisoRegistro("Escribe tus nombres y apellidos.");
   if (!correo) return avisoRegistro("Escribe tu correo.");
-  const malC = validarCorreoNuevo(correo);
-  if (malC) return avisoRegistro(malC);
   const boton = $("g-boton"); boton.disabled = true; boton.textContent = "Creando cuenta…";
   try {
     const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo }), 2);
@@ -896,6 +1095,50 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso", "g-dominio");
   if (haySesion() && leerIdentidad()) return irAlFormulario();   // p. ej. "Reportar otro problema"
   mostrarInicio();
   cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js"></script>
+<script>
+// Fondo animado. Si las librerías no cargan o la persona prefiere menos movimiento, queda un fondo liso (la página funciona igual).
+(function () {
+  try {
+    if (!window.VANTA || !window.THREE) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var movil = window.innerWidth < 700;
+    VANTA.DOTS({
+      el: "#fondo-vanta",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0xe85d35,            // naranja Trilce
+      color2: 0x82b8c2,           // celeste agua
+      backgroundColor: 0x000000,  // negro
+      size: movil ? 3.4 : 3.8,
+      spacing: movil ? 38 : 34,
+      showLines: false            // sin líneas: menos ruido visual detrás del formulario
+    });
+  } catch (e) { /* sin fondo animado, todo sigue funcionando */ }
+})();
+</script>
+<script>
+// Heurística 1 (visibilidad del estado): texto "Paso X de 4" que sigue a la barra de progreso existente
+(function () {
+  var barras = document.querySelectorAll("#formulario .pasos span"), et = document.getElementById("paso-etiqueta");
+  var nombres = ["Sede", "Lugar", "Equipo", "Problema"];
+  if (!barras.length || !et) return;
+  function act() {
+    var n = 0;
+    while (n < barras.length && barras[n].classList.contains("listo")) n++;
+    et.textContent = n >= barras.length ? "¡Todo listo! Presiona «Registrar problema»" : "Paso " + (n + 1) + " de 4 · " + nombres[n];
+  }
+  var mo = new MutationObserver(act);
+  barras.forEach(function (b) { mo.observe(b, { attributes: true, attributeFilter: ["class"] }); });
+  act();
 })();
 </script>
 </body>
