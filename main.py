@@ -28,6 +28,8 @@ ORIGENES = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 # Dominios de correo aceptados para docentes, separados por coma (por defecto Gmail, Hotmail, Yahoo y Outlook).
 # Si la variable no existe, se usa el del colegio. Déjala vacía ("") para aceptar cualquier correo.
 DOMINIOS_DOCENTES = [d.strip().lower().lstrip("@") for d in os.environ.get("DOMINIO_DOCENTES", "gmail.com,hotmail.com,yahoo.com,outlook.com").split(",") if d.strip()]
+if DOMINIOS_DOCENTES and "ucss.pe" not in DOMINIOS_DOCENTES:
+    DOMINIOS_DOCENTES.append("ucss.pe")          # correo institucional
 
 # ------------------------------------------------------------------
 # SLA (definido por el profesor)
@@ -117,7 +119,8 @@ def secreto() -> str:
 
 
 ROLES_SOPORTE = ("tecnico", "admin")   # pueden VER la información (cada uno según su sede)
-ROLES_GESTION = ("tecnico",)           # solo Soporte gestiona: atender, en camino, resolver y activos
+ROLES_GESTION = ("tecnico",)           # solo Soporte gestiona: atender, en camino y resolver
+ROLES_INVENTARIO = ("admin",)          # el inventario (activos) solo lo ve y modifica el administrador
 
 
 def autenticar(cur, cred: Optional[HTTPAuthorizationCredentials], roles=ROLES_SOPORTE):
@@ -258,14 +261,14 @@ REGEX_PALABRA = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$")
 TECLADO = ("qwe", "wer", "ert", "rty", "tyu", "yui", "uio", "iop", "asdf", "sdf", "dfg", "fgh", "ghj", "hjk", "jkl", "zxc", "xcv", "cvb", "vbn", "bnm")
 
 
-def _plausible(palabra: str) -> bool:
+def _plausible(palabra: str, racha: int = 5, razon: float = 0.2) -> bool:
     """Descarta teclazos como 'jfdksaajfalkfdjlafk': necesita vocales, sin rachas imposibles."""
     t = unicodedata.normalize("NFD", palabra.lower())
     t = "".join(c for c in t if unicodedata.category(c) != "Mn")
     vocales = sum(1 for c in t if c in "aeiou")
-    if vocales == 0 or vocales / len(t) < 0.2:
+    if vocales == 0 or vocales / len(t) < razon:
         return False
-    if re.search(r"(.)\1\1", t) or re.search(r"[^aeiou]{5,}", t) or re.search(r"[aeiou]{4,}", t):
+    if re.search(r"(.)\1\1", t) or re.search(r"[^aeiou]{%d,}" % racha, t) or re.search(r"[aeiou]{4,}", t):
         return False
     if re.search(r"(..+)\1\1", t):
         return False
@@ -285,12 +288,24 @@ def validar_nombres(nombre: str, apellido: str):
     return revisar(" ".join(nombre.split()), "tus nombres"), revisar(" ".join(apellido.split()), "tus apellidos")
 
 
+def validar_correo_nuevo(correo: str) -> None:
+    """Solo para cuentas NUEVAS: rechaza correos tecleados al azar (fasfdgsfdhsfddasdawsfeddf312)."""
+    usuario = correo.split("@")[0]
+    if not 4 <= len(usuario) <= 30 or not re.fullmatch(r"[a-z0-9]+([._-][a-z0-9]+)*", usuario):
+        raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad (4 a 30 caracteres, solo letras, números y puntos)")
+    for seg in re.findall(r"[a-z]+", usuario):
+        if len(seg) >= 3 and not _plausible(seg, racha=6, razon=0.14):
+            raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido@gmail.com")
+    if len(re.sub(r"[^0-9]", "", usuario)) > 8:
+        raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad")
+
+
 def normalizar_correo(correo: str) -> str:
     correo = correo.strip().lower()
     if not REGEX_CORREO.match(correo):
         raise HTTPException(status_code=400, detail="Escribe un correo válido")
     if DOMINIOS_DOCENTES and correo.split("@")[1] not in DOMINIOS_DOCENTES:
-        raise HTTPException(status_code=400, detail="Usa un correo de Gmail, Hotmail, Yahoo u Outlook")
+        raise HTTPException(status_code=400, detail="Usa un correo de Gmail, Hotmail, Yahoo, Outlook o UCSS")
     return correo
 
 
@@ -305,6 +320,7 @@ def identificar_docente(cur, correo: str, nombre: Optional[str], apellido: Optio
     if docente and (docente["nombre"] or "").strip():
         return docente                                   # ya identificado: no se piden ni se devuelven nombres
     nombre, apellido = validar_nombres(nombre, apellido)
+    validar_correo_nuevo(correo)
     cur.execute(
         """
         INSERT INTO docentes (correo, nombre, apellido) VALUES (%s, %s, %s)
@@ -344,6 +360,7 @@ def docente_registrar(datos: DocenteRegistro):
     nombre = " ".join(datos.nombre.split())
     apellido = " ".join(datos.apellido.split())
     nombre, apellido = validar_nombres(nombre, apellido)
+    validar_correo_nuevo(correo)
     with conexion() as conn, conn.cursor() as cur:
         cur.execute("SELECT id FROM docentes WHERE correo = %s", (correo,))
         if cur.fetchone():
@@ -1055,7 +1072,7 @@ AMBIENTE_QR = "Código QR de la sede"      # ambiente interno donde viven los QR
 @app.get("/soporte/activos")
 def listar_activos(cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred)
+        usuario = autenticar(cur, cred, roles=ROLES_INVENTARIO)
         sede = filtro_sede(usuario)
         sql = """
             SELECT e.id, e.codigo, e.nombre, te.nombre AS tipo, s.id AS sede_id, s.nombre AS sede,
@@ -1089,9 +1106,9 @@ def crear_activo(
     datos: ActivoNuevo, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)
 ):
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
+        usuario = autenticar(cur, cred, roles=ROLES_INVENTARIO)
         sede_id = filtro_sede(usuario)
-        if sede_id is None:                      # (cuenta de Soporte sin sede asignada)
+        if sede_id is None:                      # el administrador elige la sede
             sede_id = datos.sede_id
             cur.execute("SELECT 1 FROM sedes WHERE id = %s AND activa", (sede_id,))
             if sede_id is None or not cur.fetchone():
@@ -1153,7 +1170,7 @@ def actualizar_activo(
     if datos.estado is not None and datos.estado not in ESTADOS_ACTIVO:
         raise HTTPException(status_code=400, detail="Estado no válido")
     with conexion() as conn, conn.cursor() as cur:
-        usuario = autenticar(cur, cred, roles=ROLES_GESTION)
+        usuario = autenticar(cur, cred, roles=ROLES_INVENTARIO)
         sede = filtro_sede(usuario)
         sql = "SELECT id FROM equipos WHERE id = %s AND activo AND NOT es_punto_qr"
         params = [activo_id]
