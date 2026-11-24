@@ -239,7 +239,7 @@
   .marca-icono img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* ---------- Formulario al centro de la pantalla ---------- */
-  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 76px); min-height: calc(100svh - 76px); }
+  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 92px); min-height: calc(100svh - 92px); }
   main::before, main::after { content: ""; flex: 1 0 0; }
   main > * { flex: none; }
   /* cuando ya hay varios pasos, el formulario fluye desde arriba para que nada salte al avanzar */
@@ -302,29 +302,36 @@
   .ayuda { color: #C5CDD2; }
   .barra-envio { z-index: 20; background: rgba(8,8,10,.86); border-top: 1px solid rgba(255,255,255,.14); }
 
-  /* ---------- Cabecera minimalista: sin banda de color, solo marca y detalles discretos ---------- */
-  .banda { background: transparent; border-radius: 0; box-shadow: none; overflow: visible; border-bottom: 1px solid rgba(255,255,255,.08); }
+  /* ---------- Cabecera: recuadro flotante, naranja suave y minimalista ---------- */
+  .banda {
+    position: relative; z-index: 3; overflow: hidden; color: #fff;
+    width: calc(100% - 24px); max-width: 480px; margin: calc(12px + env(safe-area-inset-top, 0px)) auto 0;
+    background: linear-gradient(120deg, rgba(232,93,53,.34) 0%, rgba(232,93,53,.13) 100%);
+    border: 1px solid rgba(232,93,53,.45); border-radius: 20px;
+    box-shadow: 0 10px 34px rgba(232,93,53,.12), inset 0 1px 0 rgba(255,255,255,.08);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
   .banda::before, .banda::after { display: none; }
-  .marca { gap: 12px; padding: 14px 18px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
-  .marca-icono { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); box-shadow: none; }
+  .marca { max-width: none; margin: 0; gap: 12px; padding: 12px 16px; }
+  .marca-icono { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.3); box-shadow: none; }
   .marca b { font-size: 1rem; font-weight: 700; letter-spacing: 0; color: #fff; }
-  .marca span { font-size: .85rem; font-weight: 500; color: var(--muted); }
+  .marca span { font-size: .85rem; font-weight: 500; color: #D0D6DB; }
 
   /* ---------- Tablet ---------- */
   @media (min-width: 600px) and (max-width: 959px) {
-    .marca, main, .barra-envio > div, .ayuda { max-width: 560px; }
+    .banda, main, .barra-envio > div, .ayuda { max-width: 560px; }
   }
 
-  /* ---------- Escritorio: cabecera sobrepuesta + formulario en el centro exacto ---------- */
+  /* ---------- Escritorio: recuadro centrado arriba + formulario en el centro exacto ---------- */
   @media (min-width: 960px) {
-    .banda { position: absolute; top: 0; left: 0; right: 0; border-bottom-color: transparent; }
-    .marca { max-width: 1120px; padding: 24px 32px; }
+    .banda { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); margin: 0; width: min(1120px, calc(100% - 48px)); max-width: none; }
+    .marca { padding: 14px 22px; }
     .marca-icono { width: 48px; height: 48px; border-radius: 14px; }
-    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: max(32px, calc((100vw - 1120px) / 2 + 32px)); }
+    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: 22px; }
     .hero h1, .hero p { display: none; }
     .hero ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
-    .hero li { background: transparent; border: 1px solid rgba(255,255,255,.16); color: #C5CDD2; font-weight: 600; font-size: .82rem; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
-    main { max-width: 600px; min-height: 100vh; padding: 110px 24px; }
+    .hero li { background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.2); color: #E9EDF0; font-weight: 600; font-size: .82rem; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+    main { max-width: 600px; min-height: 100vh; padding: 120px 24px; }
     .barra-envio > div { max-width: 552px; }
     .bloque { padding: 34px; }
     .bloque h2 { font-size: 1.35rem; }
