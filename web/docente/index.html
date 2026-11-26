@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f26b1d">
+<title>Reportar un problema · Soporte Trilce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff8f2;
+    --surface: #ffffff;
+    --ink: #2a1a10;
+    --muted: #7a6657;
+    --brand: #f26b1d;
+    --brand-ink: #ffffff;
+    --brand-dark: #c4510e;
+    --brand-soft: #ffeadb;
+    --line: #f0dfd2;
+    --warn: #b45309;
+    --err: #c0392b;
+    --ok: #1d8a4a;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5; font-size: 16px;
+  }
+  .oculto { display: none !important; }
+  main { max-width: 480px; margin: 0 auto; padding: 16px 16px 140px; }
+
+  /* ---------- Cabecera ---------- */
+  .banda { background: var(--brand); color: #fff; }
+  .marca { display: flex; align-items: center; gap: 10px; max-width: 480px; margin: 0 auto; padding: 16px; }
+  .marca-icono { width: 38px; height: 38px; border-radius: 12px; background: #fff; color: var(--brand); display: grid; place-items: center; flex: none; }
+  .marca b { font-weight: 800; letter-spacing: -.01em; }
+  .marca span { opacity: .92; font-size: .88rem; display: block; line-height: 1.2; }
+
+  /* ---------- Piezas comunes ---------- */
+  .bloque { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; scroll-margin-top: 12px; }
+  .bloque.entra { animation: entra .35s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  h2 { margin: 0 0 12px; font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+  .aviso { color: var(--muted); font-size: .9rem; margin: 0; }
+  .error { color: var(--err); font-weight: 600; margin: 0 0 12px; }
+
+  .pasos { display: flex; gap: 6px; margin: 0 0 14px; }
+  .pasos span { flex: 1; height: 6px; border-radius: 999px; background: var(--line); transition: background .25s; }
+  .pasos span.listo { background: var(--brand); }
+
+  label.campo { display: block; font-size: .9rem; font-weight: 700; margin: 0 0 6px; }
+  label.campo + input, label.campo + textarea { margin-bottom: 0; }
+  textarea, input[type="email"], input[type="text"], input[type="password"] {
+    width: 100%; font: inherit; color: var(--ink); background: var(--surface);
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px;
+  }
+  textarea:focus, input[type="email"]:focus, input[type="text"]:focus, input[type="password"]:focus { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
+  .espacio-sup { margin-top: 18px; }
+
+  /* ---------- Piso: botones redondos ---------- */
+  .pisos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .piso { position: relative; }
+  .piso input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
+  .piso span {
+    display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; border: 1.5px solid var(--line);
+    font-weight: 800; font-size: 1.1rem; transition: background .15s, color .15s, border-color .15s, transform .1s;
+  }
+  .piso input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .piso input:active + span { transform: scale(.94); }
+  .piso input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  .aulas .piso span { width: auto; min-width: 58px; padding: 0 14px; border-radius: 999px; }
+  button.atras { margin: 0 0 10px; text-decoration: none; display: inline-block; }
+  @media (max-width: 360px) { .dos { grid-template-columns: 1fr; } }
+
+  /* ---------- Equipos: mosaicos ---------- */
+  .equipos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .equipo { position: relative; }
+  .equipo input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
+  .equipo span {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 8px 14px;
+    border: 1.5px solid var(--line); border-radius: 16px; font-weight: 800;
+    transition: background .15s, border-color .15s, transform .1s, color .15s;
+  }
+  .equipo svg { color: var(--brand); transition: color .15s; }
+  .equipo input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .equipo input:checked + span svg { color: #fff; }
+  .equipo input:active + span { transform: scale(.96); }
+  .equipo input:focus-visible + span { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  /* ---------- Fallas ---------- */
+  .opciones { display: grid; gap: 8px; }
+  .opcion {
+    position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 14px;
+    border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; font-weight: 700;
+    transition: border-color .15s, background .15s;
+  }
+  .opcion input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
+  .punto { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; transition: border-color .15s, background .15s; }
+  .punto::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform .15s; }
+  .opcion:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+  .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
+  .opcion:has(input:checked) .punto::after { transform: scale(1); }
+  .opcion:has(input:focus-visible) { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  /* ---------- Botón fijo ---------- */
+  .barra-envio {
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--line);
+  }
+  .barra-envio > div { max-width: 480px; margin: 0 auto; }
+  button.principal {
+    width: 100%; min-height: 54px; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink);
+    font: inherit; font-size: 1.02rem; font-weight: 800; cursor: pointer;
+  }
+  button.principal:hover:not(:disabled) { filter: brightness(1.06); }
+  button.principal:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  button.principal:disabled { opacity: .6; cursor: not-allowed; }
+  button.secundario { width: 100%; min-height: 48px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+  .barra-envio .error { margin-bottom: 8px; font-size: .92rem; }
+
+  /* ---------- Cargando ---------- */
+  .carga { display: flex; align-items: center; gap: 14px; }
+  .giro { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: gira .9s linear infinite; flex: none; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+
+  /* ---------- Seguimiento ---------- */
+  .mensaje { border-radius: var(--radius); padding: 22px 20px; margin-bottom: 14px; background: var(--brand-soft); border: 1px solid var(--line); }
+  .mensaje.en_atencion, .mensaje.en_camino, .mensaje.solucionando { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .mensaje.resuelto { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .mensaje-icono { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 14px; background: #fff; color: var(--brand); }
+  .mensaje.resuelto .mensaje-icono { color: var(--ok); }
+  .mensaje h1 { margin: 0 0 6px; font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+  .mensaje p { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .vivo { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .85rem; margin: 0 0 14px; font-weight: 600; }
+  .vivo i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); animation: late 1.6s ease-in-out infinite; }
+  .vivo.perdido i { background: var(--warn); animation: none; }
+  @keyframes late { 50% { opacity: .3; } }
+  .linea { list-style: none; margin: 0; padding: 0; }
+  .linea li { position: relative; padding: 0 0 22px 36px; color: var(--muted); }
+  .linea li:last-child { padding-bottom: 0; }
+  .linea li::before { content: ""; position: absolute; left: 0; top: 2px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); }
+  .linea li::after { content: ""; position: absolute; left: 10px; top: 28px; bottom: 2px; width: 2px; background: var(--line); }
+  .linea li:last-child::after { display: none; }
+  .linea li.hecho, .linea li.actual { color: var(--ink); }
+  .linea li.hecho::before { background: var(--brand); border-color: var(--brand); }
+  .linea li.hecho::after { background: var(--brand); }
+  .linea li.verde::before { background: var(--ok); border-color: var(--ok); }
+  .linea li.verde b { color: var(--ok); }
+  .linea li.actual::before { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 22%, transparent); }
+  .linea b { display: block; font-weight: 700; }
+  .linea small { color: var(--muted); font-size: .86rem; }
+  dl.ficha { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: .94rem; }
+  dl.ficha dt { color: var(--muted); }
+  dl.ficha dd { margin: 0; font-weight: 700; }
+  .separador { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .bloque.entra, .vivo i, .giro { animation: none; }
+    * { transition: none !important; }
+  }
+  .banda .marca { justify-content: space-between; }
+  .banda .marca > div:nth-child(2) { margin-right: auto; }
+  .btn-banda { border: 1.5px solid rgba(255,255,255,.75); background: transparent; color: #fff; border-radius: 12px; padding: 8px 14px; min-height: 40px; font: inherit; font-weight: 700; cursor: pointer; }
+  .btn-banda:hover { background: rgba(255,255,255,.16); border-color: #fff; }
+  .btn-banda:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .reporte-cab { margin: 0 0 12px; }
+  .reporte-cab b { display: block; font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+  .reporte-cab span { color: var(--muted); font-size: .9rem; }
+  .barra-sesion { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; }
+  .barra-sesion h2 { margin: 0; font-size: 1.2rem; }
+  .barra-sesion small { color: var(--muted); display: block; font-weight: 600; font-size: .85rem; }
+  .acciones-fila { display: grid; gap: 10px; margin-top: 4px; }
+  button.enlace { background: none; border: 0; padding: 0; color: var(--brand-dark); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+  .nota-final { background: var(--brand-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin: 14px 0; font-weight: 600; }
+  .vacio { text-align: center; color: var(--muted); padding: 30px 10px; font-weight: 600; }
+  .grupo-correo { display: flex; align-items: stretch; }
+  .grupo-correo input { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; min-width: 0; flex: 1; }
+  .grupo-correo .sufijo { display: flex; align-items: center; padding: 0 12px; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; border: 1.5px solid var(--line); border-left: 0; border-radius: 0 12px 12px 0; white-space: nowrap; font-size: .95rem; }
+  .grupo-correo:focus-within .sufijo { border-color: var(--brand); }
+  .grupo-correo select.sufijo { width: auto; min-height: 0; cursor: pointer; padding-right: 8px; appearance: auto; }
+  #correo-aviso, #e-correo-aviso { margin: 6px 0 0; font-size: .88rem; }
+  #acceso label.campo { margin-top: 16px; }
+  #acceso .dos label.campo, #form-login > label.campo:first-child { margin-top: 0; }
+  #acceso .error { margin: 10px 0 0; }
+  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--brand-soft); border-radius: 12px; margin-bottom: 16px; }
+  .tab { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
+  .tab.activa { background: var(--brand); color: #fff; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dos > div { min-width: 0; }
+  .grupo-clave { position: relative; }
+  .grupo-clave input { padding-right: 92px !important; }
+  .ojo { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--brand-soft); color: var(--brand-dark); font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
+  .reglas { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: .86rem; color: var(--muted); }
+  .reglas li::before { content: "○ "; }
+  .reglas li.ok { color: #1E9E57; font-weight: 700; }
+  .reglas li.ok::before { content: "✓ "; }
+  #correo-paso label.campo { margin-top: 0; }
+  #bloque-nombre .dos label.campo { margin-top: 0; }
+  #correo-paso .error { margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<header class="banda">
+  <div class="marca">
+    <div class="marca-icono" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
+    </div>
+    <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
+  </div>
+</header>
+<main>
+  <!-- Cargando -->
+  <section id="cargando" class="bloque carga" aria-live="polite">
+    <div class="giro" aria-hidden="true"></div>
+    <p id="msg-cargando" class="aviso">Conectando con el sistema…</p>
+  </section>
+
+  <!-- Error -->
+  <section id="error" class="bloque oculto">
+    <h2>No se pudo continuar</h2>
+    <p id="msg-error" class="error"></p>
+    <p class="aviso">Si el problema continúa, avisa directamente al área de Soporte.</p>
+  </section>
+
+  <!-- Inicio: registrarse o iniciar sesión -->
+  <section id="inicio" class="bloque oculto">
+    <button id="i-volver" class="enlace oculto" type="button" style="margin-bottom:10px">← Volver al formulario</button>
+    <h2>Bienvenido</h2>
+    <p class="aviso" style="margin:0 0 16px">Para reportar un problema, primero identifícate.</p>
+    <button id="i-registro" class="principal" type="button">Registrarme</button>
+    <button id="i-login" class="secundario espacio-sup" type="button">Iniciar sesión</button>
+    <p class="aviso" style="margin:14px 0 0">¿Primera vez? Regístrate. ¿Ya tienes cuenta? Inicia sesión solo con tu correo.</p>
+  </section>
+
+  <!-- Registro: nombres, apellidos, correo y contraseña -->
+  <section id="registro-paso" class="oculto">
+    <form id="form-registro" class="bloque" novalidate autocomplete="on">
+      <button id="r-volver" class="enlace" type="button" style="margin-bottom:10px">← Volver</button>
+      <h2>Crea tu cuenta</h2>
+      <div class="dos">
+        <div><label class="campo" for="g-nombre">Nombres</label>
+          <input id="g-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60"></div>
+        <div><label class="campo" for="g-apellido">Apellidos</label>
+          <input id="g-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
+      </div>
+      <label class="campo" for="g-usuario" style="margin-top:12px">Correo</label>
+      <input id="g-usuario" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="80" placeholder="tucorreo@gmail.com">
+      <p id="g-correo-aviso" class="error oculto" role="alert"></p>
+      <p id="g-error" class="error oculto" role="alert"></p>
+      <button id="g-boton" class="principal espacio-sup" type="submit">Crear cuenta</button>
+    </form>
+  </section>
+
+  <!-- Iniciar sesión: solo el correo de Gmail -->
+  <section id="correo-paso" class="oculto">
+    <form id="form-correo" class="bloque" novalidate autocomplete="on">
+      <button id="c-volver" class="enlace" type="button" style="margin-bottom:10px">← Volver</button>
+      <h2>Iniciar sesión</h2>
+      <p class="aviso" style="margin:0 0 14px">Escribe tu correo. Así te avisamos por correo cómo va tu reporte.</p>
+      <label class="campo" for="c-usuario">Correo</label>
+      <input id="c-usuario" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="80" placeholder="tucorreo@gmail.com" aria-describedby="c-correo-aviso">
+      <p id="c-correo-aviso" class="error oculto" role="alert"></p>
+      <p id="c-error" class="error oculto" role="alert"></p>
+      <button id="c-boton" class="principal espacio-sup" type="submit">Iniciar sesión</button>
+    </form>
+  </section>
+
+  <!-- Formulario por pasos -->
+  <form id="formulario" class="oculto" novalidate autocomplete="off">
+    <div class="barra-sesion">
+      <div><small>Reportando como</small><b id="bd-correo"></b></div>
+      <button id="bd-salir" class="enlace" type="button">← Cambiar correo</button>
+    </div>
+    <section id="bloque-nombre" class="bloque oculto">
+      <h2>Primera vez: ¿cómo te llamas?</h2>
+      <p class="aviso" style="margin:0 0 10px">Máximo 2 nombres y 2 apellidos, solo letras.</p>
+      <div class="dos">
+        <div><label class="campo" for="r-nombre">Nombres</label>
+          <input id="r-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60"></div>
+        <div><label class="campo" for="r-apellido">Apellidos</label>
+          <input id="r-apellido" type="text" autocomplete="family-name" autocapitalize="words" maxlength="60"></div>
+      </div>
+    </section>
+    <div class="pasos" aria-hidden="true"><span id="pc"></span><span id="p0"></span><span id="p1"></span><span id="p2"></span><span id="p3"></span></div>
+
+    <section id="paso-clase" class="bloque">
+      <button class="enlace atras" type="button" data-atras="paso-clase">← Atrás</button>
+      <h2>¿Estás actualmente en clase?</h2>
+      <div class="opciones" id="clase" role="radiogroup" aria-label="¿Estás en clase?">
+        <label class="opcion"><input type="radio" name="clase" value="si"><span class="punto"></span>Sí, estoy en clase</label>
+        <label class="opcion"><input type="radio" name="clase" value="no"><span class="punto"></span>No, no estoy en clase</label>
+      </div>
+    </section>
+
+    <section id="paso-sede" class="bloque oculto">
+      <button class="enlace atras" type="button" data-atras="paso-sede">← Atrás</button>
+      <h2>¿En qué sede estás?</h2>
+      <div class="opciones" id="sedes" role="radiogroup" aria-label="Sede"></div>
+    </section>
+
+    <section id="paso-lugar" class="bloque oculto">
+      <button class="enlace atras" type="button" data-atras="paso-lugar">← Atrás</button>
+      <h2>¿Dónde está el problema?</h2>
+      <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-piso">Piso</p>
+      <div class="pisos" role="radiogroup" aria-labelledby="et-piso" id="pisos"></div>
+      <div id="bloque-aula" class="oculto espacio-sup">
+        <p class="campo" style="font-size:.9rem;font-weight:700;margin:0 0 8px" id="et-aula">Aula</p>
+        <div class="pisos aulas" role="radiogroup" aria-labelledby="et-aula" id="aulas"></div>
+      </div>
+    </section>
+
+    <section id="paso-equipo" class="bloque oculto">
+      <button class="enlace atras" type="button" data-atras="paso-equipo">← Atrás</button>
+      <h2>Selecciona el equipo</h2>
+      <div class="equipos" id="equipos" role="radiogroup" aria-label="Equipo"></div>
+    </section>
+
+    <section id="paso-falla" class="bloque oculto">
+      <button class="enlace atras" type="button" data-atras="paso-falla">← Atrás</button>
+      <h2 id="titulo-falla">¿Qué le pasa al equipo?</h2>
+      <div class="opciones" id="fallas" role="radiogroup" aria-labelledby="titulo-falla"></div>
+      <div id="bloque-otro" class="oculto espacio-sup">
+        <label class="campo" for="descripcion">Cuéntanos brevemente qué pasa</label>
+        <textarea id="descripcion" rows="3" maxlength="300"></textarea>
+      </div>
+    </section>
+
+    <div id="barra-envio" class="barra-envio oculto">
+      <div>
+        <p id="error-form" class="error oculto" role="alert"></p>
+        <button id="enviar" class="principal" type="submit">Registrar problema</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Reporte enviado: el estado se ve solo en el correo -->
+  <section id="enviado" class="oculto" aria-live="polite">
+    <div class="nota-final" style="text-align:center;padding:28px 20px">
+      <h2 style="margin:0 0 10px">Recibimos tu reporte</h2>
+      <p style="margin:0 0 6px;font-weight:600">Aquí abajo ves el estado de tu reporte.</p>
+      <p id="enviado-correo" style="margin:0;font-weight:400;color:var(--muted,#5b6670)"></p>
+    </div>
+    <div class="bloque" id="estado-vivo" style="margin-top:14px">
+      <h2 id="ev-titulo" style="margin:0 0 4px;font-size:1.05rem"></h2>
+      <p id="ev-texto" class="aviso" style="margin:0 0 14px"></p>
+      <ol id="ev-pasos" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ol>
+    </div>
+    <div class="acciones-fila"><button id="enviado-otro" class="principal" type="button">Reportar otro problema</button></div>
+  </section>
+
+</main>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN: cambia esta URL si tu API cambia de dirección
+// ============================================================
+const API = "https://soporte-trilce.onrender.com";
+const CADA_MS = 4000;                 // cada cuánto se consulta el estado de los reportes
+
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const tokenQR = params.get("t");      // ?t=...  (viene en el QR)
+
+const PANTALLAS = ["cargando", "error", "inicio", "registro-paso", "correo-paso", "formulario", "enviado"];
+function mostrar(id) {
+  for (const s of PANTALLAS) $(s).classList.toggle("oculto", s !== id);
+}
+function fallo(texto) { $("msg-error").textContent = texto; mostrar("error"); }
+
+// Llamada a la API con reintentos: el servidor gratuito puede tardar ~1 min en despertar.
+async function llamar(ruta, opciones = {}, intentos = 4) {
+  let ultimo;
+  for (let i = 0; i < intentos; i++) {
+    try {
+      const r = await fetch(API + ruta, { cache: "no-store", ...opciones });
+      if ([400, 401, 404, 409, 422].includes(r.status)) return r;
+      if (r.ok) return r;
+      ultimo = new Error("HTTP " + r.status);
+    } catch (e) { ultimo = e; }
+    if (i === 0) $("msg-cargando").textContent = "Despertando el sistema, puede tardar hasta 1 minuto…";
+    await new Promise((res) => setTimeout(res, 8000));
+  }
+  throw ultimo;
+}
+
+// ---------- correo de Gmail: el docente solo escribe su usuario ----------
+function limpiarCorreo(texto) { return texto.toLowerCase().replace(/\s+/g, ""); }
+const REGEX_CORREO = /^[a-z0-9]+([._-][a-z0-9]+)*@[a-z0-9]+([.-][a-z0-9]+)*\.(com|pe)$/;
+const MSG_CORREO = "Escribe un correo válido que termine en .com o .pe (por ejemplo nombre@gmail.com).";
+function prepararCampoCorreo(idInput, idAviso) {
+  const input = $(idInput), aviso = $(idAviso);
+  input.addEventListener("input", () => { const l = limpiarCorreo(input.value); if (l !== input.value) input.value = l; aviso.classList.add("oculto"); });
+  input.addEventListener("blur", () => { input.value = limpiarCorreo(input.value); });
+}
+// Devuelve el correo escrito (en minúsculas y sin espacios)
+function correoCompleto(idInput) { return limpiarCorreo($(idInput).value); }
+
+const json = (o) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) });
+
+function fechaLocal(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
+}
+
+// ------------------------------------------------------------
+// Iconos de los equipos
+// ------------------------------------------------------------
+const SVG = (d) => '<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
+const ICONOS = {
+  PC: SVG('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+  Impresora: SVG('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><rect x="7" y="14" width="10" height="7" rx="1"/>'),
+  Proyector: SVG('<rect x="2" y="7" width="20" height="9" rx="2"/><circle cx="15" cy="11.5" r="2.5"/><path d="M6 11.5h3M6 19v-3M18 19v-3"/>'),
+};
+const ICONO_OTRO = SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>');
+
+// ------------------------------------------------------------
+// Sesión del docente (se recuerda en este navegador)
+// ------------------------------------------------------------
+// El docente se identifica por su correo; se recuerda en este celular para no pedirlo otra vez
+let identidad = null;
+function leerIdentidad() {
+  if (identidad) return identidad;
+  try {
+    const c = localStorage.getItem("docente_correo");
+    if (c) return { correo: c, listo: localStorage.getItem("docente_listo") === "1" || !!localStorage.getItem("docente_nombre") };
+  } catch (_) {}
+  return null;
+}
+// Sesión de esta pestaña: al abrir la página siempre se empieza por Registrarme / Iniciar sesión
+function haySesion() { try { return sessionStorage.getItem("docente_sesion") === "1"; } catch (_) { return false; } }
+function guardarIdentidad(correo, listo) {
+  identidad = correo ? { correo, listo } : null;
+  try {
+    if (correo) sessionStorage.setItem("docente_sesion", "1"); else sessionStorage.removeItem("docente_sesion");
+    ["docente_token", "docente_nombre", "docente_visto"].forEach((k) => localStorage.removeItem(k));
+    if (correo) { localStorage.setItem("docente_correo", correo); localStorage.setItem("docente_listo", listo ? "1" : "0"); }
+    else { localStorage.removeItem("docente_correo"); localStorage.removeItem("docente_listo"); }
+  } catch (_) {}
+}
+const TECLADO = ["qwe","wer","ert","rty","tyu","yui","uio","iop","asdf","sdf","dfg","fgh","ghj","hjk","jkl","zxc","xcv","cvb","vbn","bnm"];
+function plausible(p, racha = 5, razon = 0.2) {
+  const t = p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const v = (t.match(/[aeiou]/g) || []).length;
+  if (v === 0 || v / t.length < razon) return false;
+  if (/(.)\1\1/.test(t) || new RegExp("[^aeiou]{" + racha + ",}").test(t) || /[aeiou]{4,}/.test(t) || /(..+)\1\1/.test(t)) return false;
+  return !TECLADO.some((k) => t.includes(k));
+}
+const DOMINIOS_CONOCIDOS = ["gmail", "hotmail", "yahoo", "outlook", "live", "icloud", "ucss", "msn", "protonmail"];
+function validarCorreoNuevo(correo) {
+  const [u, dom] = correo.split("@");
+  const malo = "Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido@gmail.com.";
+  if (u.length < 3 || u.length > 30 || !/^[a-z0-9]+([._-][a-z0-9]+)*$/.test(u)) return malo;
+  for (const seg of u.match(/[a-z]+/g) || []) if (seg.length >= 3 && !plausible(seg, 6, 0.14)) return malo;
+  if (u.replace(/\D/g, "").length > 8) return malo;
+  for (const parte of dom.split(".").slice(0, -1)) {
+    if (DOMINIOS_CONOCIDOS.includes(parte)) continue;
+    if (parte.length < 2 || (parte.length >= 3 && !plausible(parte.replace(/[^a-z]/g, "") || "a", 6, 0.14))) return malo;
+  }
+  return null;
+}
+function validarNombres(nombre, apellido) {
+  for (const [txt, et] of [[nombre, "tus nombres"], [apellido, "tus apellidos"]]) {
+    const pal = txt.split(" ").filter(Boolean);
+    if (pal.length < 1 || pal.length > 2) return "Escribe " + et + " (máximo 2).";
+    for (const w of pal) if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$/.test(w) || !plausible(w)) return "«" + w + "» no parece un nombre válido. Usa solo letras y tu nombre real.";
+  }
+  return null;
+}
+const visible = (m) => Object.assign(new Error(m), { visible: true });
+async function detalle(r, porDefecto) {
+  try { const d = await r.json(); return typeof d.detail === "string" ? d.detail : porDefecto; } catch (_) { return porDefecto; }
+}
+
+// ------------------------------------------------------------
+// Formulario por pasos: cada respuesta abre el siguiente paso y baja sola
+// ------------------------------------------------------------
+let catalogo = [];
+let sedeId = null;        // sede elegida (o la del QR)
+let qrValido = false;     // true si el docente entró por un QR que existe
+
+function revelar(seccion) {
+  const nuevo = seccion.classList.contains("oculto");
+  seccion.classList.remove("oculto");
+  if (nuevo) { seccion.classList.remove("entra"); void seccion.offsetWidth; seccion.classList.add("entra"); }
+  // esperamos un instante para que el navegador ya haya calculado el nuevo alto de la página
+  setTimeout(() => seccion.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+}
+
+function pintarPasos() {
+  $("pc").classList.toggle("listo", !!document.querySelector('input[name="clase"]:checked'));
+  $("p0").classList.toggle("listo", sedeId !== null);
+  const equipo = document.querySelector('input[name="equipo"]:checked');
+  const falla = document.querySelector('input[name="falla"]:checked');
+  $("p1").classList.toggle("listo", !!aulaElegida);
+  $("p2").classList.toggle("listo", !!equipo);
+  $("p3").classList.toggle("listo", !!falla);
+}
+let aulaElegida = null;   // p. ej. "505": el primer número es el piso
+let aulaQR = false;       // true si el QR ya trae el aula
+
+function siguienteDesdeLugar() {
+  if (!aulaElegida) return;
+  const eq = $("paso-equipo");
+  if (eq.classList.contains("oculto")) revelar(eq);
+}
+
+function pintarAulas(piso) {
+  const cont = $("aulas"); cont.replaceChildren();
+  for (let n = 1; n <= 6; n++) {
+    const cod = piso + "0" + n;
+    const l = document.createElement("label"); l.className = "piso";
+    const i = document.createElement("input"); i.type = "radio"; i.name = "aula"; i.value = cod;
+    const sp = document.createElement("span"); sp.textContent = cod;
+    l.append(i, sp); cont.append(l);
+  }
+  $("bloque-aula").classList.remove("oculto");
+}
+
+// ---------- botón "← Atrás" ----------
+const ORDEN = ["paso-clase", "paso-sede", "paso-lugar", "paso-equipo", "paso-falla"];
+function saltado(id) { return (id === "paso-sede" && qrValido) || (id === "paso-lugar" && aulaQR); }
+function limpiarPaso(id) {
+  const q = (sel) => document.querySelectorAll(sel).forEach((x) => { x.checked = false; });
+  if (id === "paso-clase") q('input[name="clase"]');
+  if (id === "paso-sede") { q('input[name="sede"]'); if (!qrValido) { sedeId = null; $("sub-marca").textContent = "Trilce"; } }
+  if (id === "paso-lugar" && !aulaQR) { q('input[name="piso"]'); aulaElegida = null; $("aulas").replaceChildren(); $("bloque-aula").classList.add("oculto"); }
+  if (id === "paso-equipo") q('input[name="equipo"]');
+  if (id === "paso-falla") { q('input[name="falla"]'); $("bloque-otro").classList.add("oculto"); $("descripcion").value = ""; }
+}
+function atras(id) {
+  const i = ORDEN.indexOf(id);
+  for (let k = ORDEN.length - 1; k >= i; k--) { limpiarPaso(ORDEN[k]); if (k > 0) $(ORDEN[k]).classList.add("oculto"); }
+  $("barra-envio").classList.add("oculto");
+  let previo = null;
+  for (let k = i - 1; k >= 0; k--) if (!saltado(ORDEN[k])) { previo = ORDEN[k]; break; }
+  if (previo) limpiarPaso(previo);   // el paso anterior vuelve a quedar sin responder
+  pintarPasos();
+  if (!previo) { $("paso-clase").classList.remove("oculto"); return mostrarInicio(); }
+  $(previo).scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("button.atras");
+  if (b) atras(b.dataset.atras);
+});
+
+function elegirSede(id, nombre) {
+  sedeId = id;
+  $("sub-marca").textContent = "Trilce · " + nombre;
+  pintarPasos();
+}
+
+async function _cargarFormulario() {
+  let datos = null, sedes = null, porQR = false;
+  try {
+    if (tokenQR) {
+      const r = await llamar("/qr/" + encodeURIComponent(tokenQR));
+      if (r.ok) { datos = await r.json(); porQR = true; }
+      else if (r.status !== 404) return { ok: false, msg: "Ocurrió un problema al leer el código QR." };
+      // si el QR no es válido, se sigue como si no hubiera QR: el docente elige su sede
+    }
+    if (!datos) {
+      const r = await llamar("/catalogo");
+      if (!r.ok) return { ok: false, msg: "No se pudo cargar el formulario. Inténtalo de nuevo en un momento." };
+      datos = await r.json();
+      sedes = datos.sedes;
+    }
+  } catch (e) {
+    return { ok: false, msg: "No se pudo conectar con el sistema. Inténtalo de nuevo en un momento." };
+  }
+  catalogo = datos.tipos;
+
+  // Pisos
+  const pisos = $("pisos");
+  for (let n = 1; n <= 6; n++) {
+    const l = document.createElement("label"); l.className = "piso";
+    const i = document.createElement("input"); i.type = "radio"; i.name = "piso"; i.value = String(n);
+    const s = document.createElement("span"); s.textContent = n;
+    l.append(i, s); pisos.append(l);
+  }
+  // Equipos
+  const cont = $("equipos");
+  for (const t of catalogo) {
+    const l = document.createElement("label"); l.className = "equipo";
+    const i = document.createElement("input"); i.type = "radio"; i.name = "equipo"; i.value = t.id;
+    const s = document.createElement("span");
+    s.innerHTML = ICONOS[t.nombre] || ICONO_OTRO;
+    s.append(document.createTextNode(t.nombre));
+    l.append(i, s); cont.append(l);
+  }
+
+  if (porQR) {
+    // el QR ya dice la sede: se salta ese paso
+    qrValido = true;
+    elegirSede(datos.sede_id, datos.sede);
+    const aq = (params.get("aula") || "").trim();
+    if (/^[1-6]0[1-6]$/.test(aq)) {   // el QR también dice el aula (y por tanto el piso)
+      aulaQR = true; aulaElegida = aq;
+      const pi = document.querySelector('input[name="piso"][value="' + aq[0] + '"]'); if (pi) pi.checked = true;
+      pintarAulas(aq[0]);
+      const au = document.querySelector('input[name="aula"][value="' + aq + '"]'); if (au) au.checked = true;
+    }
+  } else {
+    const lista = $("sedes");
+    for (const sd of sedes) {
+      const l = document.createElement("label"); l.className = "opcion";
+      const i = document.createElement("input"); i.type = "radio"; i.name = "sede"; i.value = sd.id; i.dataset.nombre = sd.nombre;
+      const p = document.createElement("span"); p.className = "punto";
+      l.append(i, p, document.createTextNode(sd.nombre));
+      lista.append(l);
+    }
+    if (!sedes.length) return { ok: false, msg: "Todavía no hay sedes registradas. Avisa al área de Soporte." };
+  }
+  return { ok: true };
+}
+
+// El formulario se prepara en segundo plano mientras el docente inicia sesión
+let cargaForm = null;
+function cargarFormulario() {
+  if (!cargaForm) cargaForm = _cargarFormulario().then((r) => { if (!r.ok) cargaForm = null; return r; });
+  return cargaForm;
+}
+
+async function irAlFormulario() {
+  mostrar("cargando");
+  $("msg-cargando").textContent = "Conectando con el sistema…";
+  const r = await cargarFormulario();
+  if (!r.ok) return fallo(r.msg);
+  const ident = leerIdentidad();
+  if (!ident) return mostrarCorreo();
+  $("bd-correo").textContent = ident.correo;
+  $("bloque-nombre").classList.toggle("oculto", ident.listo);
+  mostrar("formulario");
+  pintarPasos();
+}
+
+
+$("sedes").addEventListener("change", (e) => {
+  elegirSede(Number(e.target.value), e.target.dataset.nombre);
+  revelar($("paso-lugar"));
+});
+
+$("clase").addEventListener("change", () => {
+  pintarPasos();
+  revelar(qrValido ? (aulaQR ? $("paso-equipo") : $("paso-lugar")) : $("paso-sede"));
+});
+$("pisos").addEventListener("change", (e) => {
+  aulaElegida = null; pintarPasos();
+  pintarAulas(e.target.value);
+  setTimeout(() => $("bloque-aula").scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+});
+$("aulas").addEventListener("change", (e) => {
+  aulaElegida = e.target.value; pintarPasos(); siguienteDesdeLugar();
+});
+
+$("equipos").addEventListener("change", (e) => {
+  const tipo = catalogo.find((t) => String(t.id) === e.target.value);
+  if (!tipo) return;
+  $("titulo-falla").textContent = "¿Qué le pasa a " + (tipo.nombre === "PC" ? "la PC" : "la " + tipo.nombre.toLowerCase()) + "?";
+  const cont = $("fallas");
+  cont.replaceChildren();
+  $("bloque-otro").classList.add("oculto");
+  $("descripcion").value = "";
+  for (const f of tipo.fallas) {
+    const l = document.createElement("label"); l.className = "opcion";
+    const i = document.createElement("input"); i.type = "radio"; i.name = "falla"; i.value = f.id; i.dataset.otro = f.es_otro ? "1" : "0";
+    const p = document.createElement("span"); p.className = "punto";
+    l.append(i, p, document.createTextNode(f.descripcion));
+    cont.append(l);
+  }
+  // al cambiar de equipo se vuelve a pedir la falla
+  $("barra-envio").classList.add("oculto");
+  pintarPasos();
+  revelar($("paso-falla"));
+});
+
+$("fallas").addEventListener("change", (e) => {
+  const esOtro = e.target.dataset.otro === "1";
+  $("bloque-otro").classList.toggle("oculto", !esOtro);
+  pintarPasos();
+  $("barra-envio").classList.remove("oculto");
+  if (esOtro) {
+    setTimeout(() => $("bloque-otro").scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    setTimeout(() => $("descripcion").focus({ preventScroll: true }), 450);
+  } else {
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 80);
+  }
+});
+
+["r-nombre", "r-apellido"].forEach((id) => $(id).addEventListener("input", () => $("error-form").classList.add("oculto")));
+$("bd-salir").addEventListener("click", () => {
+  mostrarInicio();
+});
+
+function mensajeForm(texto) {
+  const err = $("error-form");
+  err.textContent = texto;
+  err.classList.remove("oculto");
+}
+
+$("formulario").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("error-form").classList.add("oculto");
+
+  const aula = aulaElegida;
+  const clase = document.querySelector('input[name="clase"]:checked');
+  const falla = document.querySelector('input[name="falla"]:checked');
+  if (!clase) { $("paso-clase").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Indica si estás en clase."); }
+  if (sedeId === null) { $("paso-sede").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige tu sede."); }
+  if (!aula) { $("paso-lugar").scrollIntoView({ behavior: "smooth" }); return mensajeForm("Elige el piso y el aula."); }
+  if (!falla) return mensajeForm("Elige qué le pasa al equipo.");
+  const esOtro = falla.dataset.otro === "1";
+  const descripcion = $("descripcion").value.trim();
+  if (esOtro && !descripcion) { $("descripcion").focus(); return mensajeForm("Cuéntanos brevemente qué pasa."); }
+
+  const ident = leerIdentidad();
+  if (!ident) return mostrarCorreo();
+  let nombre = null, apellido = null;
+  if (!ident.listo) {
+    nombre = $("r-nombre").value.trim().replace(/\s+/g, " "); apellido = $("r-apellido").value.trim().replace(/\s+/g, " ");
+    const mal = validarNombres(nombre, apellido);
+    if (mal) { $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" }); return mensajeForm(mal); }
+  }
+
+  const boton = $("enviar");
+  boton.disabled = true;
+  boton.textContent = "Enviando…";
+  try {
+    const r = await llamar("/tickets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token_qr: qrValido ? tokenQR : null,
+        sede_id: sedeId,
+        tipo_falla_id: Number(falla.value),
+        aula, piso: aula[0], en_clase: clase.value === "si",
+        descripcion: esOtro ? descripcion : null,
+        correo: ident.correo, nombre, apellido,
+      }),
+    }, 2);
+    if (r.status === 422) {   // nombres faltantes o no válidos: se piden ahora
+      const det = await detalle(r, "Escribe tus nombres y apellidos.");
+      guardarIdentidad(ident.correo, false); boton.disabled = false; actualizarBoton();
+      $("bloque-nombre").classList.remove("oculto"); $("bloque-nombre").scrollIntoView({ behavior: "smooth", block: "center" });
+      return mensajeForm(det);
+    }
+    if (!r.ok) throw visible(await detalle(r, "No se pudo registrar el problema. Inténtalo otra vez."));
+    let creado = null; try { creado = await r.json(); } catch (_) {}
+    window.scrollTo({ top: 0 });
+    guardarIdentidad(ident.correo, true);
+    seguirEstado(creado && creado.token_seguimiento);
+    $("enviado-correo").textContent = "Le avisaremos a " + ident.correo + " cada vez que cambie.";
+    mostrar("enviado");
+  } catch (err) {
+    mensajeForm(err && err.visible ? err.message : "No se pudo registrar el problema. Inténtalo otra vez.");
+    boton.disabled = false;
+    actualizarBoton();
+  }
+});
+
+
+// ---------- estado del reporte en vivo (pantalla "Recibimos tu reporte") ----------
+const ETAPAS = [["nuevo", "Pendiente"], ["proceso", "En proceso"], ["cerrado", "Cerrado"]];
+// estados internos -> los 3 que ve el docente
+const PASO_DOCENTE = { nuevo: 0, en_atencion: 1, en_camino: 1, solucionando: 1, resuelto: 2 };
+const TEXTO_ESTADO = {
+  nuevo: ["Recibimos tu reporte", "Está pendiente: el equipo de soporte lo atenderá en breve."],
+  en_atencion: ["Tu reporte está en proceso", "Nuestro equipo de soporte está trabajando en ello."],
+  en_camino: ["Tu reporte está en proceso", "Un técnico va en camino."],
+  solucionando: ["Tu reporte está en proceso", "Un técnico está trabajando en ello."],
+  resuelto: ["Reporte cerrado", "Tu problema fue resuelto. Revisa tu correo para responder la encuesta."],
+};
+let temporizadorEstado = null;
+function pintarEstado(estado) {
+  const idx = PASO_DOCENTE[estado] ?? 0;
+  const t = TEXTO_ESTADO[estado] || TEXTO_ESTADO.nuevo;
+  $("ev-titulo").textContent = t[0]; $("ev-texto").textContent = t[1];
+  $("ev-pasos").innerHTML = ETAPAS.map((e, i) => {
+    const hecho = i < idx || estado === "resuelto", actual = i === idx && estado !== "resuelto";
+    const col = hecho ? "var(--ok)" : actual ? "var(--brand)" : "#e6d9cf";
+    return '<li style="display:flex;gap:10px;align-items:center;font-weight:' + (actual ? 700 : 500) + ';color:' + (hecho || actual ? "inherit" : "#9a8c82") + '">' +
+      '<span style="width:18px;height:18px;border-radius:50%;background:' + col + ';flex:none;color:#fff;font-size:12px;display:grid;place-items:center">' + (hecho ? "✓" : "") + '</span>' + e[1] + '</li>';
+  }).join("");
+}
+function seguirEstado(token) {
+  clearInterval(temporizadorEstado);
+  pintarEstado("nuevo");
+  if (!token) return;
+  const consultar = async () => {
+    try {
+      const r = await fetch(API + "/seguimiento/" + encodeURIComponent(token));
+      if (!r.ok) return;
+      const d = await r.json();
+      pintarEstado(d.estado);
+      if (d.estado === "resuelto") clearInterval(temporizadorEstado);
+    } catch (_) {}
+  };
+  temporizadorEstado = setInterval(consultar, 5000);
+}
+
+function actualizarBoton() { $("enviar").textContent = "Registrar problema"; }
+
+// ------------------------------------------------------------
+// Paso 1: correo de Gmail
+// ------------------------------------------------------------
+function mostrarInicio() { $("i-volver").classList.toggle("oculto", !(haySesion() && leerIdentidad())); mostrar("inicio"); window.scrollTo({ top: 0 }); }
+function mostrarCorreo() { const id = leerIdentidad(); if (id && !$("c-usuario").value) { $("c-usuario").value = id.correo; } mostrar("correo-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("c-usuario").focus({ preventScroll: true }), 50); }
+function avisoCorreo(texto) { $("c-error").textContent = texto; $("c-error").classList.toggle("oculto", !texto); }
+$("form-correo").addEventListener("input", () => avisoCorreo(""));
+$("c-volver").addEventListener("click", mostrarInicio);
+$("i-volver").addEventListener("click", () => irAlFormulario());
+$("i-login").addEventListener("click", () => { avisoCorreo(""); mostrarCorreo(); });
+$("i-registro").addEventListener("click", () => { avisoRegistro(""); mostrar("registro-paso"); window.scrollTo({ top: 0 }); setTimeout(() => $("g-nombre").focus({ preventScroll: true }), 50); });
+$("r-volver").addEventListener("click", mostrarInicio);
+
+$("form-correo").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  avisoCorreo("");
+  const correo = correoCompleto("c-usuario");
+  if (!correo) return avisoCorreo("Escribe tu correo.");
+  if (!REGEX_CORREO.test(correo)) return avisoCorreo(MSG_CORREO);
+  const boton = $("c-boton"); boton.disabled = true; boton.textContent = "Verificando…";
+  try {
+    const r = await llamar("/docentes/verificar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ correo }) }, 2);
+    if (!r.ok) return avisoCorreo(await detalle(r, "No se pudo verificar tu correo. Inténtalo otra vez."));
+    const d = await r.json();
+    if (!d.existe) return avisoCorreo("Ese correo no está registrado. Vuelve y presiona «Registrarme».");
+    guardarIdentidad(correo, !d.pide_nombre);   // si pide nombre, se completa junto con el reporte
+    await irAlFormulario();
+  } catch (_) {
+    avisoCorreo("No se pudo conectar con el sistema. Inténtalo de nuevo.");
+  } finally { boton.disabled = false; boton.textContent = "Iniciar sesión"; }
+});
+
+// ---------- registro ----------
+function avisoRegistro(t) { $("g-error").textContent = t; $("g-error").classList.toggle("oculto", !t); }
+$("form-registro").addEventListener("input", () => avisoRegistro(""));
+$("form-registro").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  avisoRegistro("");
+  const nombre = $("g-nombre").value.trim().replace(/\s+/g, " "), apellido = $("g-apellido").value.trim().replace(/\s+/g, " ");
+  const correo = correoCompleto("g-usuario");
+  const malN = validarNombres(nombre, apellido);
+  if (malN) return avisoRegistro(malN);
+  if (!correo) return avisoRegistro("Escribe tu correo.");
+  if (!REGEX_CORREO.test(correo)) return avisoRegistro(MSG_CORREO);
+  const malC = validarCorreoNuevo(correo);
+  if (malC) return avisoRegistro(malC);
+  const boton = $("g-boton"); boton.disabled = true; boton.textContent = "Creando cuenta…";
+  try {
+    const r = await llamar("/docentes/registrar", json({ nombre, apellido, correo }), 2);
+    if (!r.ok) return avisoRegistro(await detalle(r, "No se pudo crear la cuenta. Inténtalo otra vez."));
+    guardarIdentidad(correo, true);
+    await irAlFormulario();
+  } catch (_) {
+    avisoRegistro("No se pudo conectar con el sistema. Inténtalo de nuevo.");
+  } finally { boton.disabled = false; boton.textContent = "Crear cuenta"; }
+});
+
+$("enviado-otro").addEventListener("click", () => { location.href = location.pathname + location.search; });
+
+// ------------------------------------------------------------
+// Arranque: con el correo ya recordado se entra directo al formulario
+// ------------------------------------------------------------
+prepararCampoCorreo("c-usuario", "c-correo-aviso");
+prepararCampoCorreo("g-usuario", "g-correo-aviso");
+
+(function arrancar() {
+  if (haySesion() && leerIdentidad()) return irAlFormulario();   // p. ej. "Reportar otro problema"
+  mostrarInicio();
+  cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
+})();
+</script>
+</body>
+</html>
