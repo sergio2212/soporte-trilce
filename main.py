@@ -254,7 +254,8 @@ class TicketNuevo(BaseModel):
     apellido: Optional[str] = Field(default=None, max_length=60)
 
 
-REGEX_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+REGEX_CORREO = re.compile(r"^[a-z0-9]+([._-][a-z0-9]+)*@[a-z0-9]+([.-][a-z0-9]+)*\.(com|pe)$")   # dominio terminado en .com o .pe
+DOMINIOS_CONOCIDOS = {"gmail", "hotmail", "yahoo", "outlook", "live", "icloud", "ucss", "msn", "protonmail"}
 REGEX_NOMBRE = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$")
 REGEX_AULA = re.compile(r"^[1-6]0[1-6]$")          # 101-106, 201-206 ... 601-606 (el 1.er número es el piso)
 REGEX_PALABRA = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$")
@@ -291,21 +292,25 @@ def validar_nombres(nombre: str, apellido: str):
 def validar_correo_nuevo(correo: str) -> None:
     """Solo para cuentas NUEVAS: rechaza correos tecleados al azar (fasfdgsfdhsfddasdawsfeddf312)."""
     usuario = correo.split("@")[0]
-    if not 4 <= len(usuario) <= 30 or not re.fullmatch(r"[a-z0-9]+([._-][a-z0-9]+)*", usuario):
+    if not 3 <= len(usuario) <= 30 or not re.fullmatch(r"[a-z0-9]+([._-][a-z0-9]+)*", usuario):
         raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad (4 a 30 caracteres, solo letras, números y puntos)")
     for seg in re.findall(r"[a-z]+", usuario):
         if len(seg) >= 3 and not _plausible(seg, racha=6, razon=0.14):
             raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido@gmail.com")
     if len(re.sub(r"[^0-9]", "", usuario)) > 8:
         raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad")
+    for parte in correo.split("@")[1].split(".")[:-1]:
+        if parte in DOMINIOS_CONOCIDOS:
+            continue
+        letras = re.sub(r"[^a-z]", "", parte) or "a"
+        if len(parte) < 2 or (len(parte) >= 3 and not _plausible(letras, racha=6, razon=0.14)):
+            raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido@gmail.com")
 
 
 def normalizar_correo(correo: str) -> str:
     correo = correo.strip().lower()
     if not REGEX_CORREO.match(correo):
-        raise HTTPException(status_code=400, detail="Escribe un correo válido")
-    if DOMINIOS_DOCENTES and correo.split("@")[1] not in DOMINIOS_DOCENTES:
-        raise HTTPException(status_code=400, detail="Usa un correo de Gmail, Hotmail, Yahoo, Outlook o UCSS")
+        raise HTTPException(status_code=400, detail="Escribe un correo válido que termine en .com o .pe")
     return correo
 
 
