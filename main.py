@@ -294,10 +294,13 @@ def validar_correo_nuevo(correo: str) -> None:
     usuario = correo.split("@")[0]
     if not 3 <= len(usuario) <= 30 or not re.fullmatch(r"[a-z0-9]+([._-][a-z0-9]+)*", usuario):
         raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad (4 a 30 caracteres, solo letras, números y puntos)")
-    for seg in re.findall(r"[a-z]+", usuario):
+    es_codigo = re.fullmatch(r"[a-z]?[0-9]{6,12}", usuario) is not None   # código de alumno/docente: 2021200739, u202120073
+    if re.fullmatch(r"[0-9]+", usuario) and not es_codigo:
+        raise HTTPException(status_code=422, detail="Ese correo no parece real. Si usas tu código, escríbelo completo (6 a 12 números)")
+    for seg in ([] if es_codigo else re.findall(r"[a-z]+", usuario)):
         if len(seg) >= 3 and not _plausible(seg, racha=6, razon=0.14):
             raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad, por ejemplo nombre.apellido@gmail.com")
-    if len(re.sub(r"[^0-9]", "", usuario)) > 8:
+    if len(re.sub(r"[^0-9]", "", usuario)) > 12:
         raise HTTPException(status_code=422, detail="Ese correo no parece real. Escribe tu correo de verdad")
     for parte in correo.split("@")[1].split(".")[:-1]:
         if parte in DOMINIOS_CONOCIDOS:
