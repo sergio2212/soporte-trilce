@@ -285,7 +285,7 @@
     </div>
     <section id="bloque-nombre" class="bloque oculto">
       <h2>Primera vez: ¿cómo te llamas?</h2>
-      <p class="aviso" style="margin:0 0 10px">Máximo 2 nombres y 2 apellidos, solo letras.</p>
+      <p class="aviso" style="margin:0 0 10px">Hasta 4 nombres y 3 apellidos, solo letras.</p>
       <div class="dos">
         <div><label class="campo" for="r-nombre">Nombres</label>
           <input id="r-nombre" type="text" autocomplete="given-name" autocapitalize="words" maxlength="60"></div>
@@ -473,11 +473,16 @@ function validarCorreoNuevo(correo) {
   }
   return null;
 }
+const PARTICULAS = ["de", "del", "la", "las", "los", "y", "san", "santa"];
 function validarNombres(nombre, apellido) {
-  for (const [txt, et] of [[nombre, "tus nombres"], [apellido, "tus apellidos"]]) {
+  for (const [txt, et, max] of [[nombre, "tus nombres", 4], [apellido, "tus apellidos", 3]]) {
     const pal = txt.split(" ").filter(Boolean);
-    if (pal.length < 1 || pal.length > 2) return "Escribe " + et + " (máximo 2).";
-    for (const w of pal) if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$/.test(w) || !plausible(w)) return "«" + w + "» no parece un nombre válido. Usa solo letras y tu nombre real.";
+    if (pal.length < 1 || pal.length > max) return "Escribe " + et + " (máximo " + max + ").";
+    for (let i = 0; i < pal.length; i++) {
+      const w = pal[i];
+      if (i > 0 && PARTICULAS.includes(w.toLowerCase())) continue;
+      if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,20}$/.test(w) || !plausible(w)) return "«" + w + "» no parece un nombre válido. Usa solo letras y tu nombre real.";
+    }
   }
   return null;
 }
