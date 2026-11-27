@@ -276,17 +276,24 @@ def _plausible(palabra: str, racha: int = 5, razon: float = 0.2) -> bool:
     return not any(k in t for k in TECLADO)
 
 
+PARTICULAS = {"de", "del", "la", "las", "los", "y", "san", "santa"}
+
+
 def validar_nombres(nombre: str, apellido: str):
-    """Hasta 2 nombres y 2 apellidos, solo letras y con aspecto de nombre real."""
-    def revisar(texto, etiqueta):
+    """Hasta 4 nombres y 3 apellidos (cuentan 'de', 'la'...), solo letras y con aspecto de nombre real."""
+    def revisar(texto, etiqueta, maximo):
         palabras = texto.split()
-        if not 1 <= len(palabras) <= 2:
-            raise HTTPException(status_code=422, detail=f"Escribe {etiqueta} (máximo 2)")
-        for p in palabras:
+        if not 1 <= len(palabras) <= maximo:
+            raise HTTPException(status_code=422, detail=f"Escribe {etiqueta} (máximo {maximo})")
+        salida = []
+        for i, p in enumerate(palabras):
+            if p.lower() in PARTICULAS and i > 0:
+                salida.append(p.lower()); continue
             if not REGEX_PALABRA.match(p) or not _plausible(p):
                 raise HTTPException(status_code=422, detail=f"«{p}» no parece un nombre válido. Usa solo letras y tu nombre real")
-        return " ".join(p[:1].upper() + p[1:].lower() for p in palabras)
-    return revisar(" ".join(nombre.split()), "tus nombres"), revisar(" ".join(apellido.split()), "tus apellidos")
+            salida.append(p[:1].upper() + p[1:].lower())
+        return " ".join(salida)
+    return revisar(" ".join(nombre.split()), "tus nombres", 4), revisar(" ".join(apellido.split()), "tus apellidos", 3)
 
 
 def validar_correo_nuevo(correo: str) -> None:
