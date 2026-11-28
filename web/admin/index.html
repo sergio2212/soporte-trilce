@@ -7,7 +7,7 @@
 <title>Administrador · Soporte Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>const PAGINA = "admin";
 try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro"); } catch (_) {}</script>
 <style>
@@ -359,16 +359,16 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
   .solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   main.cargando-mod > section { visibility: hidden; }
   .cargador .loader { --dur: 2s; display: block; margin: auto; width: 56px; height: auto; padding: 12px; box-sizing: content-box; border-radius: 50%; background: var(--card); border: 1px solid var(--line); box-shadow: var(--sombra-alta); }
-  .cargador .loader_glare-top, .cargador .loaderglare-bottom, .cargador .loader_model,
-  .cargador .loader_motion-thick, .cargador .loadermotion-medium, .cargador .loader_motion-thin,
-  .cargador .loader_sand-drop, .cargador .loadersand-fill, .cargador .loadersand-grain-left, .cargador .loader_sand-grain-right,
-  .cargador .loader_sand-line-left, .cargador .loadersand-line-right, .cargador .loadersand-mound-top, .cargador .loader_sand-mound-bottom {
+  .cargador .loader__glare-top, .cargador .loader__glare-bottom, .cargador .loader__model,
+  .cargador .loader__motion-thick, .cargador .loader__motion-medium, .cargador .loader__motion-thin,
+  .cargador .loader__sand-drop, .cargador .loader__sand-fill, .cargador .loader__sand-grain-left, .cargador .loader__sand-grain-right,
+  .cargador .loader__sand-line-left, .cargador .loader__sand-line-right, .cargador .loader__sand-mound-top, .cargador .loader__sand-mound-bottom {
     animation-duration: var(--dur); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); animation-iteration-count: infinite;
   }
   .cargador .loader__glare-top { animation-name: glare-top; }
   .cargador .loader__glare-bottom { animation-name: glare-bottom; }
   .cargador .loader__model { animation-name: loader-flip; transform-origin: 12.25px 16.75px; }
-  .cargador .loader_motion-thick, .cargador .loadermotion-medium, .cargador .loader_motion-thin { transform-origin: 26px 26px; }
+  .cargador .loader__motion-thick, .cargador .loader__motion-medium, .cargador .loader__motion-thin { transform-origin: 26px 26px; }
   .cargador .loader__motion-thick { animation-name: motion-thick; }
   .cargador .loader__motion-medium { animation-name: motion-medium; }
   .cargador .loader__motion-thin { animation-name: motion-thin; }
@@ -457,43 +457,217 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
     main { padding: 0; max-width: none; }
     .caja { break-inside: avoid; box-shadow: none; }
   }
-
-    #vista-login .marca > div:last-child b { display: inline; margin-right: 10px; }
-  .login-marca .logo-t { font-family: var(--f-display); font-size: 1.9rem; color: var(--brand-txt, #C2410C); line-height: 1; }
-  /* ---------- Botón luna / sol junto al perfil ---------- */
-  #tema { border: 1px solid var(--line-2); background: var(--card); border-radius: 50%; width: 42px; height: 42px; padding: 0; font-size: 1.15rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: pointer; transition: background-color .2s, border-color .2s, transform .2s; }
-  #tema:hover { border-color: var(--ink-strong); background: var(--hover); transform: rotate(-12deg); }
 </style>
+<style id="login-refinado">
+  :root {
+    --f-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  body { font-family: var(--f-body); }
+
+  /* Acceso: una sola columna, centrado y sin panel promocional lateral */
+  #vista-login {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(24px, 5vh, 56px) 20px;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: linear-gradient(145deg, #f7f8fa 0%, #f1f3f6 100%);
+  }
+  #vista-login::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: min(640px, 90vw);
+    height: min(640px, 90vw);
+    border-radius: 50%;
+    right: -360px;
+    top: -390px;
+    border: 1px solid rgba(232, 93, 53, .10);
+    box-shadow: 0 0 0 44px rgba(232, 93, 53, .025), 0 0 0 88px rgba(232, 93, 53, .018);
+  }
+  #vista-login::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    height: 4px;
+    width: 100%;
+    background: #e85d35;
+  }
+  #vista-login > .login-caja {
+    display: block;
+    width: min(100%, 438px);
+    max-width: 438px;
+    margin: 0;
+    padding: 0;
+    animation: loginEntrada .45s ease-out both;
+  }
+  @keyframes loginEntrada {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  #vista-login .marca {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 32px;
+  }
+  #vista-login .marca .marca-icono {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 132px;
+    width: 132px;
+    height: 54px;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #e85d35;
+  }
+  .logo-foto { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .marca-icono.logo-sin-imagen::after { content: "TRILCE"; color: #e85d35; font-size: 1.15rem; font-weight: 800; letter-spacing: -.06em; }
+  #vista-login .marca b {
+    display: block;
+    color: #252a31;
+    font-family: var(--f-body);
+    font-size: .9rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -.02em;
+  }
+  #vista-login .marca span { display: block; margin-top: 3px; color: #77808b; font-size: .78rem; }
+  #vista-login .login-eyebrow {
+    margin: 0 0 10px;
+    color: #bf4d2e;
+    font-family: var(--f-mono);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-align: left;
+  }
+  #vista-login h1 {
+    margin: 0 0 8px;
+    color: #20252b;
+    font-family: var(--f-body);
+    font-size: clamp(1.85rem, 4vw, 2.15rem);
+    font-weight: 700;
+    letter-spacing: -.055em;
+    line-height: 1.14;
+    text-align: left;
+  }
+  #vista-login p.sub {
+    margin: 0 0 24px;
+    color: #68727d;
+    font-size: .93rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+  #vista-login #form-login.panel {
+    padding: 28px;
+    border: 1px solid #e4e8ed;
+    border-radius: 17px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(31, 43, 56, .075);
+  }
+  #vista-login label.campo {
+    margin: 17px 0 7px;
+    color: #343b44;
+    font-size: .8rem;
+    font-weight: 600;
+  }
+  #vista-login #form-login > label:first-child { margin-top: 0 !important; }
+  #vista-login input {
+    min-height: 48px;
+    padding: 11px 13px;
+    border: 1px solid #dce1e7;
+    border-radius: 10px;
+    background: #fff;
+    color: #252a31;
+    font-size: .92rem;
+  }
+  #vista-login input:focus {
+    border-color: #e85d35;
+    box-shadow: 0 0 0 3px rgba(232, 93, 53, .12);
+  }
+  #vista-login .campo-clave input { padding-right: 48px; }
+  #vista-login .ojo { right: 5px; width: 38px; height: 38px; color: #7c8792; }
+  #vista-login #login-boton {
+    min-height: 48px;
+    margin-top: 21px !important;
+    border: 1px solid #e85d35;
+    border-radius: 10px;
+    background: #e85d35;
+    color: #fff;
+    font-size: .92rem;
+    font-weight: 650;
+    letter-spacing: .005em;
+    box-shadow: none;
+  }
+  #vista-login #login-boton:hover:not(:disabled) {
+    background: #d94f2b;
+    border-color: #d94f2b;
+    box-shadow: 0 7px 18px rgba(232, 93, 53, .18);
+    transform: translateY(-1px);
+  }
+  #vista-login .error { font-size: .84rem; }
+  #vista-login .aviso { font-size: .8rem; line-height: 1.45; }
+
+  /* Marca de la navegación: logo horizontal legible, sin recuadro con letra T */
+  #menu .logo { gap: 10px; }
+  #menu .logo .marca-icono {
+    display: flex;
+    width: 88px;
+    height: 42px;
+    flex: 0 0 88px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  #menu .logo .logo-foto { object-fit: contain; }
+  #menu .logo > div > b { font-family: var(--f-body); font-size: 1rem; font-weight: 700; }
+  #menu .logo > div > span { font-family: var(--f-body); font-size: .7rem; }
+
+  @media (max-width: 520px) {
+    #vista-login { padding: 34px 18px; }
+    #vista-login > .login-caja { width: 100%; }
+    #vista-login .marca { margin-bottom: 26px; }
+    #vista-login .marca .marca-icono { flex-basis: 116px; width: 116px; height: 48px; }
+    #vista-login #form-login.panel { padding: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #vista-login > .login-caja { animation: none; }
+  }
+</style>
+
 </head>
 <body>
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
-  <div class="login-lado">
-    <span class="blob b1" aria-hidden="true"></span><span class="blob b2" aria-hidden="true"></span><span class="blob b3" aria-hidden="true"></span>
-    <div class="login-marca"><div class="marca-icono sin-foto" aria-hidden="true"><span class="logo-t">T</span></div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
-    <div class="login-msg">
-      <div class="kicker">Mesa de ayuda</div>
-      <h2>Tecnología que acompaña <em>cada aula</em></h2>
-      <p>Reportes de incidencias, atención y seguimiento de todas las sedes Trilce, en un solo lugar.</p>
-      <ul class="login-puntos"><li>Tickets en vivo</li><li>Encuestas</li><li>Activos</li></ul>
-    </div>
-    <div class="login-pie">Estudiar en Trilce SE NOTA</div>
-  </div>
-  <div class="login-form-lado"><div class="login-caja">
-    <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
-    <h1 id="login-titulo">Ingresa a la mesa de ayuda</h1>
-    <p class="sub" id="login-sub">Usa tu cuenta.</p>
-    <form id="form-login" class="panel" novalidate>
-      <label class="campo" for="correo" style="margin-top:0">Correo</label>
-      <input id="correo" type="email" autocomplete="username" inputmode="email" required>
-      <label class="campo" for="clave">Contraseña</label>
-      <input id="clave" type="password" autocomplete="current-password" required>
-      <p id="login-error" class="error oculto"></p>
-      <p id="login-espera" class="aviso oculto">Conectando… si el sistema estaba dormido puede tardar hasta 1 minuto.</p>
-      <button id="login-boton" class="btn primario" type="submit" style="width:100%;margin-top:16px">Ingresar</button>
-    </form>
-  </div></div>
+  <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
+  <h1 id="login-titulo">Ingresa a la mesa de ayuda</h1>
+  <p class="sub" id="login-sub">Usa tu cuenta.</p>
+  <form id="form-login" class="panel" novalidate>
+    <label class="campo" for="correo" style="margin-top:0">Correo</label>
+    <input id="correo" type="email" autocomplete="username" inputmode="email" required>
+    <label class="campo" for="clave">Contraseña</label>
+    <input id="clave" type="password" autocomplete="current-password" required>
+    <p id="login-error" class="error oculto"></p>
+    <p id="login-espera" class="aviso oculto">Conectando… si el sistema estaba dormido puede tardar hasta 1 minuto.</p>
+    <button id="login-boton" class="btn primario" type="submit" style="width:100%;margin-top:16px">Ingresar</button>
+  </form>
 </section>
 
 <!-- ===================== APLICACIÓN ===================== -->
@@ -1830,69 +2004,198 @@ setInterval(() => {
   } catch (_) { cerrarSesion(""); }
 })();
 </script>
+
+
 <script>
 (function () {
   "use strict";
-  const seguro = (f) => { try { f(); } catch (e) {} };
+  const $ = (id) => document.getElementById(id);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const seguro = (f) => { try { f(); } catch (e) { /* un detalle visual nunca debe romper el panel */ } };
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const LOGO = "https://www.trilce.edu.pe/storage/static/upload/96224e20-aae8-11f1-9f67-cdabd7137ee0.svg";
+  const ICONO = '<img class="logo-foto" src="' + LOGO + '" alt="Logotipo oficial de Trilce" referrerpolicy="no-referrer" decoding="async">';
+  const iniciales = (n) => { const p = String(n || "").trim().split(/\s+/).filter(Boolean); return ((p[0] || "")[0] || "") + ((p[1] || "")[0] || ""); };
+  const tono = (n) => { let h = 0; for (const ch of String(n)) h = (h * 31 + ch.charCodeAt(0)) % 360; return [14, 190, 215, 35, 150, 265][h % 6]; };
+  const avatar = (nombre) => { const s = document.createElement("span"); s.className = "av"; s.textContent = iniciales(nombre).toUpperCase() || "?"; s.style.setProperty("--h", tono(nombre)); s.setAttribute("aria-hidden", "true"); return s; };
+  const SW = '<svg viewBox="0 0 69.667 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g transform="translate(3.5 3.5)"><g transform="matrix(1,0,0,1,-3.5,-3.5)"><rect class="tm-container" fill="#83cbd8" transform="translate(3.5 3.5)" rx="17.5" height="35" width="60.667"></rect></g><g class="tm-button" transform="translate(2.333 2.333)"><g class="tm-sun"><g transform="matrix(1,0,0,1,-5.83,-5.83)"><circle fill="#f8e664" transform="translate(5.83 5.83)" r="15.167" cy="15.167" cx="15.167"></circle></g><g transform="matrix(1,0,0,1,-5.83,-5.83)"><path fill="rgba(246,254,247,0.29)" transform="translate(9.33 9.33)" d="M11.667,0A11.667,11.667,0,1,1,0,11.667,11.667,11.667,0,0,1,11.667,0Z"></path></g><circle fill="#fcf4b9" transform="translate(8.167 8.167)" r="7" cy="7" cx="7"></circle></g><g class="tm-moon"><g transform="matrix(1,0,0,1,-31.5,-5.83)"><circle fill="#cce6ee" transform="translate(31.5 5.83)" r="15.167" cy="15.167" cx="15.167"></circle></g><g class="tm-patches" fill="#a6cad0" transform="translate(-24.415 -1.009)"><circle transform="translate(43.009 4.496)" r="2" cy="2" cx="2"></circle><circle transform="translate(39.366 17.952)" r="2" cy="2" cx="2"></circle><circle transform="translate(33.016 8.044)" r="1" cy="1" cx="1"></circle><circle transform="translate(51.081 18.888)" r="1" cy="1" cx="1"></circle><circle transform="translate(33.016 22.503)" r="1" cy="1" cx="1"></circle><circle transform="translate(50.081 10.53)" r="1.5" cy="1.5" cx="1.5"></circle></g></g></g><g transform="matrix(1,0,0,1,-3.5,-3.5)"><path class="tm-cloud" fill="#fff" transform="translate(-3466.47 -160.94)" d="M3512.81,173.815a4.463,4.463,0,0,1,2.243.62.95.95,0,0,1,.72-1.281,4.852,4.852,0,0,1,2.623.519c.034.02-.5-1.968.281-2.716a2.117,2.117,0,0,1,2.829-.274,1.821,1.821,0,0,1,.854,1.858c.063.037,2.594-.049,3.285,1.273s-.865,2.544-.807,2.626a12.192,12.192,0,0,1,2.278.892c.553.448,1.106,1.992-1.62,2.927a7.742,7.742,0,0,1-3.762-.3c-1.28-.49-1.181-2.65-1.137-2.624s-1.417,2.2-2.623,2.2a4.172,4.172,0,0,1-2.394-1.206,3.825,3.825,0,0,1-2.771.774c-3.429-.46-2.333-3.267-2.2-3.55A3.721,3.721,0,0,1,3512.81,173.815Z"></path></g><g class="tm-stars" fill="#def8ff" transform="translate(3.585 1.325)"><path transform="matrix(-1,0.017,-0.017,-1,24.231,3.055)" d="M.774,0,.566.559,0,.539.458.933.25,1.492l.485-.361.458.394L1.024.953,1.509.592.943.572Z"></path><path transform="matrix(-0.777,0.629,-0.629,-0.777,23.185,12.358)" d="M1.341.529.836.472.736,0,.505.46,0,.4.4.729l-.231.46L.605.932l.4.326L.9.786Z"></path><path transform="matrix(0.438,0.899,-0.899,0.438,23.177,29.735)" d="M.015,1.065.475.9l.285.365L.766.772l.46-.164L.745.494.751,0,.481.407,0,.293.285.658Z"></path><path transform="translate(12.677 0.388) rotate(104)" d="M1.161,1.6,1.059,1,1.574.722.962.607.86,0,.613.572,0,.457.446.881.2,1.454l.516-.274Z"></path><path transform="matrix(-0.07,0.998,-0.998,-0.07,11.066,15.457)" d="M.873,1.648l.114-.62L1.579.945,1.03.62,1.144,0,.706.464.157.139.438.7,0,1.167l.592-.083Z"></path><path transform="translate(8.326 28.061) rotate(11)" d="M.593,0,.638.724,0,.982l.7.211.045.724.36-.64.7.211L1.342.935,1.7.294,1.063.552Z"></path></g></g></svg>';
+  const OJO = '<svg class="abierto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="cerrado" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.2-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
 
-  // Tarjeta animada del login
+  // 1) Login sencillo en una sola columna + ver/ocultar contraseña
   seguro(() => {
-    const msg = document.querySelector(".login-msg");
-    if (msg && !msg.querySelector(".login-demo")) msg.insertAdjacentHTML("beforeend", '<div class="login-demo" aria-hidden="true"><div class="ld-fila"><span class="ld-cod">INC-0124</span><span class="ld-chip">En camino</span></div><div class="ld-tit">Proyector · Aula 305</div><div class="ld-barra"><i></i></div><div class="ld-pie">Técnico asignado · llega en minutos</div></div>');
-    const h2 = document.querySelector(".login-msg h2");
-    if (h2 && !h2.querySelector("em")) h2.innerHTML = "Tecnología que acompaña <em>cada aula</em>";
+    const L = $("vista-login"); if (!L || L.querySelector(".login-caja")) return;
+    const caja = document.createElement("div"); caja.className = "login-caja login-caja-unico";
+    while (L.firstChild) caja.append(L.firstChild);
+    L.append(caja);
+
+    $$(".marca-icono", caja).forEach((i) => {
+      i.innerHTML = ICONO;
+      i.classList.add("logo-institucional");
+      const img = i.querySelector(".logo-foto");
+      if (img) img.addEventListener("error", () => { i.classList.add("logo-sin-imagen"); img.remove(); }, { once: true });
+    });
+
+    const marca = caja.querySelector(".marca");
+    if (marca) {
+      const b = marca.querySelector("b"), span = marca.querySelector("span");
+      if (b) b.textContent = "Soporte TI";
+      if (span) span.textContent = "Administración";
+    }
+    const titulo = $("login-titulo"), sub = $("login-sub");
+    if (titulo) titulo.textContent = "Ingresa a tu cuenta";
+    if (sub) sub.textContent = "Accede al panel de administración de Trilce.";
+    if (titulo && !caja.querySelector(".login-eyebrow")) {
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "login-eyebrow";
+      eyebrow.textContent = "TRILCE · ADMINISTRACIÓN";
+      titulo.before(eyebrow);
+    }
+
+    const c = $("clave");
+    if (c && !$("ver-clave")) {
+      const w = document.createElement("div"); w.className = "campo-clave";
+      c.before(w); w.append(c);
+      w.insertAdjacentHTML("beforeend", '<button id="ver-clave" class="ojo" type="button" aria-label="Mostrar contraseña" aria-pressed="false">' + OJO + "</button>");
+      const b = $("ver-clave");
+      b.addEventListener("click", () => {
+        const ver = c.type === "password";
+        c.type = ver ? "text" : "password";
+        b.classList.toggle("viendo", ver);
+        b.setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
+        b.setAttribute("aria-pressed", String(ver));
+        c.focus();
+      });
+      new MutationObserver(() => {
+        if (!L.classList.contains("oculto")) {
+          c.type = "password"; b.classList.remove("viendo"); b.setAttribute("aria-pressed", "false");
+        }
+      }).observe(L, { attributes: true, attributeFilter: ["class"] });
+    }
+    const e = $("login-error"); if (e) e.setAttribute("role", "alert");
   });
 
-  // Pie del menú lateral
+  // 2) Menú: logo, pie y ayudas (title) · barra superior: interruptor sol/luna y avatar
   seguro(() => {
-    const menu = document.getElementById("menu");
-    if (menu && !menu.querySelector(".rail-pie")) menu.insertAdjacentHTML("beforeend", '<div class="rail-pie"><b>Estudiar en Trilce SE NOTA</b>Colegios Trilce · Desde 1979</div>');
+    $$("#menu .marca-icono").forEach((i) => { i.innerHTML = ICONO; });
+    const menu = $("menu"); if (menu && !menu.querySelector(".rail-pie")) menu.insertAdjacentHTML("beforeend", '<div class="rail-pie"><b>Estudiar en Trilce SE NOTA</b>Colegios Trilce · Desde 1979</div>');
+    $$(".nav-item").forEach((b) => { b.title = b.textContent.trim(); });
+    $$(".logo-foto").forEach((img) => {
+      const falla = () => { const c = img.closest(".marca-icono"); if (c) c.classList.add("logo-sin-imagen"); img.remove(); };
+      img.addEventListener("error", falla, { once: true });
+      if (img.complete && img.naturalWidth === 0) falla();
+    });
+  });
+  seguro(() => {
+    const b = $("tema"); if (!b || b.tagName === "INPUT") return;
+    const lab = document.createElement("label"); lab.className = "uv-tema"; lab.title = "Cambiar entre modo claro y oscuro";
+    lab.innerHTML = '<input type="checkbox" id="tema" class="uv-tema-input" role="switch" aria-label="Cambiar a modo oscuro" autocomplete="off">' + SW;
+    b.replaceWith(lab);
+    const sw = $("tema"), raiz = document.documentElement;
+    const sync = () => { const o = raiz.getAttribute("data-tema") === "oscuro"; sw.checked = o; };
+    sync();
+    sw.addEventListener("change", () => aplicarTema(sw.checked, true));
+    new MutationObserver(sync).observe(raiz, { attributes: true, attributeFilter: ["data-tema"] });
+  });
+  seguro(() => {
+    const u = document.querySelector(".usuario"); if (u && !$("u-avatar")) u.insertAdjacentHTML("beforebegin", '<span id="u-avatar" class="av" aria-hidden="true"></span>');
+    const nom = $("u-nombre");
+    const pintar = () => { const n = nom.textContent.trim(); ["u-avatar", "cfg-avatar"].forEach((id) => { const x = $(id); if (x) { x.textContent = iniciales(n).toUpperCase() || "?"; x.style.setProperty("--h", tono(n || "x")); } }); const cn = $("cfg-nombre"); if (cn) cn.textContent = n; };
+    new MutationObserver(pintar).observe(nom, { childList: true, characterData: true, subtree: true }); pintar();
   });
 
-  // Reloj de arena (Uiverse · nima-mollazadeh)
+  // 3) Configuración: tarjeta de cuenta con avatar + cuadrícula
   seguro(() => {
-    const cont = document.getElementById("contenido");
-    if (!cont || document.getElementById("cargador")) return;
-    cont.insertAdjacentHTML("beforeend", '<div id="cargador" class="cargador" role="status" aria-live="polite" aria-hidden="true"><svg aria-hidden="true" focusable="false" height="56px" width="56px" viewBox="0 0 56 56" class="loader"><clipPath id="rl-arena-arriba"><path d="M 14.613 13.087 C 15.814 12.059 19.3 8.039 20.3 6.539 C 21.5 4.789 21.5 2.039 21.5 2.039 L 3 2.039 C 3 2.039 3 4.789 4.2 6.539 C 5.2 8.039 8.686 12.059 9.887 13.087 C 11 14.039 12.25 14.039 12.25 14.039 C 12.25 14.039 13.5 14.039 14.613 13.087 Z" class="loader_sand-mound-top"></path></clipPath><clipPath id="rl-arena-abajo"><path d="M 14.613 20.452 C 15.814 21.48 19.3 25.5 20.3 27 C 21.5 28.75 21.5 31.5 21.5 31.5 L 3 31.5 C 3 31.5 3 28.75 4.2 27 C 5.2 25.5 8.686 21.48 9.887 20.452 C 11 19.5 12.25 19.5 12.25 19.5 C 12.25 19.5 13.5 19.5 14.613 20.452 Z" class="loadersand-mound-bottom"></path></clipPath><g transform="translate(2,2)"><g transform="rotate(-90,26,26)" stroke-linecap="round" stroke-dashoffset="153.94" stroke-dasharray="153.94 153.94" stroke="hsl(0,0%,100%)" fill="none"><circle transform="rotate(0,26,26)" r="24.5" cy="26" cx="26" stroke-width="2.5" class="loadermotion-thick"></circle><circle transform="rotate(90,26,26)" r="24.5" cy="26" cx="26" stroke-width="1.75" class="loadermotion-medium"></circle><circle transform="rotate(180,26,26)" r="24.5" cy="26" cx="26" stroke-width="1" class="loadermotion-thin"></circle></g><g transform="translate(13.75,9.25)" class="loadermodel"><path d="M 1.5 2 L 23 2 C 23 2 22.5 8.5 19 12 C 16 15.5 13.5 13.5 13.5 16.75 C 13.5 20 16 18 19 21.5 C 22.5 25 23 31.5 23 31.5 L 1.5 31.5 C 1.5 31.5 2 25 5.5 21.5 C 8.5 18 11 20 11 16.75 C 11 13.5 8.5 15.5 5.5 12 C 2 8.5 1.5 2 1.5 2 Z" fill="hsl(var(--hue),90%,85%)"></path><g stroke-linecap="round" stroke="hsl(35,90%,90%)"><line y2="20.75" x2="12" y1="15.75" x1="12" stroke-dasharray="0.25 33.75" stroke-width="1" class="loadersand-grain-left"></line><line y2="21.75" x2="12.5" y1="16.75" x1="12.5" stroke-dasharray="0.25 33.75" stroke-width="1" class="loadersand-grain-right"></line><line y2="31.5" x2="12.25" y1="18" x1="12.25" stroke-dasharray="0.5 107.5" stroke-width="1" class="loadersand-drop"></line><line y2="31.5" x2="12.25" y1="14.75" x1="12.25" stroke-dasharray="54 54" stroke-width="1.5" class="loadersand-fill"></line><line y2="31.5" x2="12" y1="16" x1="12" stroke-dasharray="1 107" stroke-width="1" stroke="hsl(35,90%,83%)" class="loadersand-line-left"></line><line y2="31.5" x2="12.5" y1="16" x1="12.5" stroke-dasharray="12 96" stroke-width="1" stroke="hsl(35,90%,83%)" class="loadersand-line-right"></line><g stroke-width="0" fill="hsl(35,90%,90%)"><path d="M 12.25 15 L 15.392 13.486 C 21.737 11.168 22.5 2 22.5 2 L 2 2.013 C 2 2.013 2.753 11.046 9.009 13.438 L 12.25 15 Z" clip-path="url(#rl-arena-arriba)"></path><path d="M 12.25 18.5 L 15.392 20.014 C 21.737 22.332 22.5 31.5 22.5 31.5 L 2 31.487 C 2 31.487 2.753 22.454 9.009 20.062 Z" clip-path="url(#rl-arena-abajo)"></path></g></g><g stroke-width="2" stroke-linecap="round" opacity="0.7" fill="none"><path d="M 19.437 3.421 C 19.437 3.421 19.671 6.454 17.914 8.846 C 16.157 11.238 14.5 11.5 14.5 11.5" stroke="hsl(0,0%,100%)" class="loaderglare-top"></path><path transform="rotate(180,12.25,16.75)" d="M 19.437 3.421 C 19.437 3.421 19.671 6.454 17.914 8.846 C 16.157 11.238 14.5 11.5 14.5 11.5" stroke="hsla(0,0%,100%,0)" class="loader_glare-bottom"></path></g><rect height="2" width="24.5" fill="hsl(var(--hue),90%,50%)"></rect><rect height="1" width="19.5" y="0.5" x="2.5" ry="0.5" rx="0.5" fill="hsl(var(--hue),90%,57.5%)"></rect><rect height="2" width="24.5" y="31.5" fill="hsl(var(--hue),90%,50%)"></rect><rect height="1" width="19.5" y="32" x="2.5" ry="0.5" rx="0.5" fill="hsl(var(--hue),90%,57.5%)"></rect></g></g></svg><span class="rotulo" aria-hidden="true">Cargando</span><span class="solo-lectores">Cargando módulo…</span></div>');
+    const sec = $("v-config"), usr = $("c-usuarios"); if (!sec || sec.querySelector(".config-grid")) return;
+    const c1 = sec.querySelector(".caja"), h2 = c1.querySelector("h2"); c1.removeAttribute("style");
+    const cab = document.createElement("div"); cab.className = "cuenta-cab";
+    cab.innerHTML = '<span id="cfg-avatar" class="av grande" aria-hidden="true"></span>'; const d = document.createElement("div"); h2.textContent = "Mi cuenta"; d.append(h2); d.insertAdjacentHTML("beforeend", '<p id="cfg-nombre"></p>'); cab.append(d); c1.prepend(cab);
+    const g = document.createElement("div"); g.className = "config-grid"; sec.append(g); g.append(c1, usr);
+    const n = $("u-nombre"); if (n) { $("cfg-nombre").textContent = n.textContent.trim(); $("cfg-avatar").textContent = iniciales(n.textContent).toUpperCase(); }
   });
 
-  // El reloj se queda mientras haya peticiones en curso (solo las cuenta, no las modifica)
-  let pendientes = 0;
-  seguro(() => {
-    const f0 = window.fetch; if (!f0) return;
-    window.fetch = function () {
-      pendientes++;
-      const p = f0.apply(this, arguments);
-      const fin = () => { pendientes = Math.max(0, pendientes - 1); };
-      p.then(fin, fin);
-      return p;
-    };
-  });
-  const MIN_MS = 700, MAX_MS = 5000;
-  let actual = null;
-  function mostrarReloj(sec) {
-    const main = document.querySelector("main"), car = document.getElementById("cargador");
-    if (!main || !car) return;
-    actual = sec;
-    main.classList.add("cargando-mod"); car.classList.add("on"); car.setAttribute("aria-hidden", "false");
-    const t0 = performance.now();
-    const revisar = () => {
-      if (actual !== sec) return;
-      const t = performance.now() - t0;
-      if (t < MIN_MS || (pendientes > 0 && t < MAX_MS)) { setTimeout(revisar, 120); return; }
-      main.classList.remove("cargando-mod"); car.classList.remove("on"); car.setAttribute("aria-hidden", "true");
-    };
-    setTimeout(revisar, MIN_MS);
+  // 4) Tablas: etiquetas móviles, avatares de docentes y jerarquía de botones
+  function decorarTabla(tb) {
+    const tabla = tb.closest("table"); if (!tabla) return;
+    const ths = $$("thead th", tabla).map((t) => t.textContent.trim());
+    Array.from(tb.children).forEach((tr) => Array.from(tr.children).forEach((td, i) => {
+      if (td.colSpan > 1) return;
+      if (ths[i]) td.dataset.label = ths[i];
+      if (ths[i] === "Docente" && !td.querySelector(".av") && td.firstChild && td.firstChild.nodeType === 3) { const nm = td.firstChild.textContent.trim(); if (nm && nm !== "—") { td.classList.add("con-av"); td.prepend(avatar(nm)); } }
+      td.querySelectorAll("button.btn").forEach((b) => { const t = b.textContent.trim(); if (t === "Gestionar") b.classList.add("primario"); else if (t === "Ver" || t === "Ver reportes") b.classList.add("fantasma"); });
+    }));
   }
-  seguro(() => $$("main > section").forEach((sec) => {
-    let visible = !sec.classList.contains("oculto");
-    new MutationObserver(() => {
-      const ahora = !sec.classList.contains("oculto");
-      if (ahora && !visible) seguro(() => mostrarReloj(sec));
-      visible = ahora;
-    }).observe(sec, { attributes: true, attributeFilter: ["class"] });
-  }));
+  seguro(() => $$("tbody").forEach((tb) => { decorarTabla(tb); new MutationObserver(() => seguro(() => decorarTabla(tb))).observe(tb, { childList: true }); }));
+
+  // 5) Indicadores: anillo + conteo ascendente
+  const C = 113.1, frac = (a, b) => (b > 0 ? Math.max(0, Math.min(1, (a || 0) / b)) : 0), TK = () => S.tickets || [], abierto = (t) => t.estado !== "resuelto";
+  const RATIOS = {
+    "k-total": [() => frac(TK().filter((t) => t.estado === "resuelto").length, TK().length), "resueltas"],
+    "k-pend": [() => frac(TK().filter((t) => t.estado === "nuevo").length, TK().length), "del total"],
+    "k-proc": [() => frac(TK().filter((t) => ["en_atencion", "en_camino", "solucionando"].includes(t.estado)).length, TK().length), "del total"],
+    "k-sat": [() => (S.enc && S.enc.promedio != null ? S.enc.promedio / 5 : 0), "de la nota máxima"],
+    "k-tarde": [() => frac(S.ind && S.ind.atendidos_tarde, TK().length), "del total"],
+    "k-act": [() => frac((S.activos || []).filter((a) => a.estado === "operativo").length, (S.activos || []).length), "operativos"],
+    "kd-docentes": [() => { const D = S.docentes; return D ? frac(new Set(TK().filter((t) => t.docente && abierto(t)).map((t) => t.docente)).size, D.total_docentes) : 0; }, "con reportes abiertos"],
+    "kd-incid": [() => { const d = TK().filter((t) => t.docente); return frac(d.filter((t) => t.estado === "resuelto").length, d.length); }, "resueltas"],
+    "kd-reinc": [() => { const D = S.docentes; return D ? frac(D.docentes.filter((x) => Number(x.total) >= 3).length, D.total_docentes) : 0; }, "de los docentes"],
+    "kd-ahora": [() => { const d = TK().filter((t) => t.docente); return frac(d.filter(abierto).length, d.length); }, "de sus reportes"],
+    "ke-prom": [() => (S.enc && S.enc.promedio != null ? S.enc.promedio / 5 : 0), "de la nota máxima"],
+    "ke-sat": [() => (S.enc && S.enc.satisfechos_pct != null ? S.enc.satisfechos_pct / 100 : 0), "satisfechos"],
+    "ke-total": [() => (S.enc && S.enc.tasa_respuesta_pct != null ? S.enc.tasa_respuesta_pct / 100 : 0), "de los resueltos"],
+    "ke-res": [() => (S.enc && S.enc.total ? S.enc.resolucion.si / S.enc.total : 0), "solucionados"],
+  };
+  function pintarAnillo(card) {
+    const def = RATIOS[card.id], w = card.querySelector(".anillo-wrap"); if (!def || !w) return;
+    let r = 0; try { r = def[0](); } catch (_) {}
+    w.querySelector(".prog").style.strokeDashoffset = String(C * (1 - r));
+    w.querySelector(".pct").textContent = Math.round(r * 100) + "%"; w.title = Math.round(r * 100) + " % " + def[1];
+  }
+  const raf = new WeakMap();
+  function contar(n, desdeCero) {
+    const card = n.closest(".kpi"), txt = n.textContent;
+    cancelAnimationFrame(raf.get(n)); n.dataset.final = txt; n.dataset.esperado = txt;
+    if (card) { if (desdeCero) { const p = card.querySelector(".prog"); if (p) { p.style.transition = "none"; p.style.strokeDashoffset = String(C); void p.getBoundingClientRect(); p.style.transition = ""; } } pintarAnillo(card); }
+    const m = /^(\d+(?:\.\d+)?)(.*)$/.exec(txt); if (!m || reduce) return;
+    const fin = parseFloat(m[1]), dec = (m[1].split(".")[1] || "").length, suf = m[2], t0 = performance.now();
+    const paso = (t) => { const p = Math.min(1, (t - t0) / 1000), e = 1 - Math.pow(1 - p, 3), v = p < 1 ? (fin * e).toFixed(dec) + suf : txt; n.dataset.esperado = v; n.textContent = v; if (p < 1) raf.set(n, requestAnimationFrame(paso)); };
+    raf.set(n, requestAnimationFrame(paso));
+  }
+  function alCambiar(n) { if (n.textContent === n.dataset.esperado) return; const card = n.closest(".kpi"); if (n.textContent === n.dataset.final) { if (card) pintarAnillo(card); return; } contar(n, false); }
+  seguro(() => {
+    $$(".kpi").forEach((card) => { if (!RATIOS[card.id] || card.querySelector(".anillo-wrap")) return; const w = document.createElement("div"); w.className = "anillo-wrap"; w.setAttribute("aria-hidden", "true"); w.innerHTML = '<svg class="anillo" viewBox="0 0 44 44"><circle class="pista" cx="22" cy="22" r="18"/><circle class="prog" cx="22" cy="22" r="18"/></svg><span class="pct">0%</span>'; card.append(w); });
+    $$(".kpi .valor").forEach((n) => new MutationObserver(() => seguro(() => alCambiar(n))).observe(n, { childList: true, characterData: true, subtree: true }));
+    const nm = document.querySelector("#kd-ahora .nombre"); if (nm && !nm.querySelector(".vivo")) { const d = document.createElement("span"); d.className = "vivo"; d.setAttribute("aria-hidden", "true"); nm.prepend(d); }
+  });
+
+  // 6) Cambio de módulo: reloj de arena y, al terminar, entrada escalonada
+  let pendientes = 0, actual = null;
+  seguro(() => { const f0 = window.fetch; if (!f0) return; window.fetch = function () { pendientes++; const p = f0.apply(this, arguments); const fin = () => { pendientes = Math.max(0, pendientes - 1); }; p.then(fin, fin); return p; }; });
+  seguro(() => { const cont = $("contenido"); if (cont && !$("cargador")) cont.insertAdjacentHTML("beforeend", '<div id="cargador" class="cargador" role="status" aria-live="polite" aria-hidden="true"><svg aria-hidden="true" focusable="false" height="56px" width="56px" viewBox="0 0 56 56" class="loader"><clipPath id="rl-arena-arriba"><path d="M 14.613 13.087 C 15.814 12.059 19.3 8.039 20.3 6.539 C 21.5 4.789 21.5 2.039 21.5 2.039 L 3 2.039 C 3 2.039 3 4.789 4.2 6.539 C 5.2 8.039 8.686 12.059 9.887 13.087 C 11 14.039 12.25 14.039 12.25 14.039 C 12.25 14.039 13.5 14.039 14.613 13.087 Z" class="loader__sand-mound-top"></path></clipPath><clipPath id="rl-arena-abajo"><path d="M 14.613 20.452 C 15.814 21.48 19.3 25.5 20.3 27 C 21.5 28.75 21.5 31.5 21.5 31.5 L 3 31.5 C 3 31.5 3 28.75 4.2 27 C 5.2 25.5 8.686 21.48 9.887 20.452 C 11 19.5 12.25 19.5 12.25 19.5 C 12.25 19.5 13.5 19.5 14.613 20.452 Z" class="loader__sand-mound-bottom"></path></clipPath><g transform="translate(2,2)"><g transform="rotate(-90,26,26)" stroke-linecap="round" stroke-dashoffset="153.94" stroke-dasharray="153.94 153.94" stroke="hsl(0,0%,100%)" fill="none"><circle transform="rotate(0,26,26)" r="24.5" cy="26" cx="26" stroke-width="2.5" class="loader__motion-thick"></circle><circle transform="rotate(90,26,26)" r="24.5" cy="26" cx="26" stroke-width="1.75" class="loader__motion-medium"></circle><circle transform="rotate(180,26,26)" r="24.5" cy="26" cx="26" stroke-width="1" class="loader__motion-thin"></circle></g><g transform="translate(13.75,9.25)" class="loader__model"><path d="M 1.5 2 L 23 2 C 23 2 22.5 8.5 19 12 C 16 15.5 13.5 13.5 13.5 16.75 C 13.5 20 16 18 19 21.5 C 22.5 25 23 31.5 23 31.5 L 1.5 31.5 C 1.5 31.5 2 25 5.5 21.5 C 8.5 18 11 20 11 16.75 C 11 13.5 8.5 15.5 5.5 12 C 2 8.5 1.5 2 1.5 2 Z" fill="hsl(var(--hue),90%,85%)"></path><g stroke-linecap="round" stroke="hsl(35,90%,90%)"><line y2="20.75" x2="12" y1="15.75" x1="12" stroke-dasharray="0.25 33.75" stroke-width="1" class="loader__sand-grain-left"></line><line y2="21.75" x2="12.5" y1="16.75" x1="12.5" stroke-dasharray="0.25 33.75" stroke-width="1" class="loader__sand-grain-right"></line><line y2="31.5" x2="12.25" y1="18" x1="12.25" stroke-dasharray="0.5 107.5" stroke-width="1" class="loader__sand-drop"></line><line y2="31.5" x2="12.25" y1="14.75" x1="12.25" stroke-dasharray="54 54" stroke-width="1.5" class="loader__sand-fill"></line><line y2="31.5" x2="12" y1="16" x1="12" stroke-dasharray="1 107" stroke-width="1" stroke="hsl(35,90%,83%)" class="loader__sand-line-left"></line><line y2="31.5" x2="12.5" y1="16" x1="12.5" stroke-dasharray="12 96" stroke-width="1" stroke="hsl(35,90%,83%)" class="loader__sand-line-right"></line><g stroke-width="0" fill="hsl(35,90%,90%)"><path d="M 12.25 15 L 15.392 13.486 C 21.737 11.168 22.5 2 22.5 2 L 2 2.013 C 2 2.013 2.753 11.046 9.009 13.438 L 12.25 15 Z" clip-path="url(#rl-arena-arriba)"></path><path d="M 12.25 18.5 L 15.392 20.014 C 21.737 22.332 22.5 31.5 22.5 31.5 L 2 31.487 C 2 31.487 2.753 22.454 9.009 20.062 Z" clip-path="url(#rl-arena-abajo)"></path></g></g><g stroke-width="2" stroke-linecap="round" opacity="0.7" fill="none"><path d="M 19.437 3.421 C 19.437 3.421 19.671 6.454 17.914 8.846 C 16.157 11.238 14.5 11.5 14.5 11.5" stroke="hsl(0,0%,100%)" class="loader__glare-top"></path><path transform="rotate(180,12.25,16.75)" d="M 19.437 3.421 C 19.437 3.421 19.671 6.454 17.914 8.846 C 16.157 11.238 14.5 11.5 14.5 11.5" stroke="hsla(0,0%,100%,0)" class="loader__glare-bottom"></path></g><rect height="2" width="24.5" fill="hsl(var(--hue),90%,50%)"></rect><rect height="1" width="19.5" y="0.5" x="2.5" ry="0.5" rx="0.5" fill="hsl(var(--hue),90%,57.5%)"></rect><rect height="2" width="24.5" y="31.5" fill="hsl(var(--hue),90%,50%)"></rect><rect height="1" width="19.5" y="32" x="2.5" ry="0.5" rx="0.5" fill="hsl(var(--hue),90%,57.5%)"></rect></g></g></svg><span class="rotulo" aria-hidden="true">Cargando</span><span class="solo-lectores">Cargando módulo…</span></div>'); });
+  function entrar(sec) {
+    if (sec.classList.contains("entrando")) return;
+    let i = 0;
+    $$(":scope > .cabecera, :scope > .tarjetas > .caja, :scope > .caja, :scope > .dos > .caja, :scope > .iguales > .caja, :scope > .sedes > .caja, :scope > .config-grid > .caja, :scope > #l-mensajes > .mensaje-item", sec).forEach((e) => { e.classList.add("sube"); e.style.setProperty("--i", i++); });
+    $$("tbody tr", sec).forEach((tr, f) => { tr.classList.add("sube"); tr.style.setProperty("--i", Math.min(f, 12) + i); });
+    sec.classList.add("entrando");
+    $$(".kpi .valor", sec).forEach((n) => contar(n, true));
+    setTimeout(() => { sec.classList.remove("entrando"); $$(".sube", sec).forEach((e) => { e.classList.remove("sube"); e.style.removeProperty("--i"); }); }, 1700);
+  }
+  function cambiarModulo(sec) {
+    const main = document.querySelector("main"), car = $("cargador"); if (!main || !car) return entrar(sec);
+    actual = sec; main.classList.add("cargando-mod"); car.classList.add("on"); car.setAttribute("aria-hidden", "false");
+    const t0 = performance.now();
+    const revisar = () => { if (actual !== sec) return; const t = performance.now() - t0; if (t < 700 || (pendientes > 0 && t < 5000)) { setTimeout(revisar, 120); return; } main.classList.remove("cargando-mod"); car.classList.remove("on"); car.setAttribute("aria-hidden", "true"); seguro(() => entrar(sec)); };
+    setTimeout(revisar, 700);
+  }
+  seguro(() => $$("main > section").forEach((sec) => { let visible = !sec.classList.contains("oculto"); new MutationObserver(() => { const ahora = !sec.classList.contains("oculto"); if (ahora && !visible) seguro(() => cambiarModulo(sec)); visible = ahora; }).observe(sec, { attributes: true, attributeFilter: ["class"] }); }));
+
+  // 7) Atajos: Esc cierra el menú móvil · «/» enfoca el buscador visible
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { const a = $("app"); if (a) a.classList.remove("menu-abierto"); }
+    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "") && !document.querySelector("dialog[open]")) {
+      const b = $$('main input[type="search"]').find((x) => x.offsetParent !== null); if (b) { e.preventDefault(); b.focus(); }
+    }
+  });
 })();
 </script>
 </body>
