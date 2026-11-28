@@ -649,6 +649,63 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
   @media (prefers-reduced-motion: reduce) {
     #vista-login > .login-caja { animation: none; }
   }
+  /* ===== Fondo Vanta Birds ===== */
+  #vista-login { background: transparent !important; z-index: 1; }
+  #fondo-aves {
+    position: fixed !important;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    transform: none !important;
+    animation: none !important;
+    pointer-events: none;
+    background: #ffffff;
+  }
+  #fondo-aves canvas {
+    display: block;
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ===== Panel de vidrio naranja superior (mas grueso) ===== */
+  #vista-login::after {
+    z-index: 2;
+    height: 14px;
+    background: linear-gradient(90deg, rgba(232, 93, 53, .78), rgba(244, 132, 82, .62) 50%, rgba(232, 93, 53, .78));
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, .55);
+    box-shadow: 0 4px 22px rgba(232, 93, 53, .35), inset 0 1px 0 rgba(255, 255, 255, .45);
+  }
+
+  /* ===== Aura naranja alrededor de la tarjeta del formulario ===== */
+  #vista-login #form-login.panel {
+    position: relative;
+    border-color: rgba(232, 93, 53, .35);
+    background: rgba(255, 255, 255, .94);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow:
+      0 0 0 1px rgba(232, 93, 53, .12),
+      0 0 28px rgba(232, 93, 53, .28),
+      0 0 70px rgba(232, 93, 53, .18),
+      0 18px 50px rgba(31, 43, 56, .08);
+    animation: auraNaranja 3.2s ease-in-out infinite alternate;
+  }
+  @keyframes auraNaranja {
+    from {
+      box-shadow: 0 0 0 1px rgba(232,93,53,.12), 0 0 22px rgba(232,93,53,.22), 0 0 55px rgba(232,93,53,.12), 0 18px 50px rgba(31,43,56,.08);
+    }
+    to {
+      box-shadow: 0 0 0 1px rgba(232,93,53,.2), 0 0 34px rgba(232,93,53,.36), 0 0 90px rgba(232,93,53,.22), 0 18px 50px rgba(31,43,56,.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #vista-login #form-login.panel { animation: none; }
+  }
 </style>
 
 </head>
@@ -656,6 +713,7 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
+  <div id="fondo-aves" aria-hidden="true"></div>
   <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
   <h1 id="login-titulo">Ingresa a la mesa de ayuda</h1>
   <p class="sub" id="login-sub">Usa tu cuenta.</p>
@@ -2196,6 +2254,63 @@ setInterval(() => {
       const b = $$('main input[type="search"]').find((x) => x.offsetParent !== null); if (b) { e.preventDefault(); b.focus(); }
     }
   });
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.birds.min.js"></script>
+<script>
+(function () {
+  var login = document.getElementById("vista-login");
+  var fondo = document.getElementById("fondo-aves");
+  var efecto = null;
+
+  // El fondo debe vivir directo en <body>: si queda dentro de un contenedor con
+  // transform/animacion, position:fixed deja de cubrir la pantalla completa.
+  document.body.insertBefore(fondo, document.body.firstChild);
+
+  function sincronizarFondo() {
+    fondo.style.display = login.classList.contains("oculto") ? "none" : "block";
+  }
+
+  function iniciarAves() {
+    sincronizarFondo();
+    if (efecto || !window.VANTA || login.classList.contains("oculto")) return;
+    // Espera a que el login sea visible para que Vanta mida la pantalla completa
+    requestAnimationFrame(function () {
+      if (efecto || login.classList.contains("oculto")) return;
+      efecto = VANTA.BIRDS({
+        el: "#fondo-aves",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: window.innerHeight,
+        minWidth: window.innerWidth,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        backgroundColor: 0xffffff
+      });
+      efecto.resize();
+    });
+  }
+
+  window.addEventListener("resize", function () {
+    if (!efecto) return;
+    efecto.options.minHeight = window.innerHeight;
+    efecto.options.minWidth = window.innerWidth;
+    efecto.resize();
+  });
+
+  function detenerAves() {
+    if (efecto && login.classList.contains("oculto")) {
+      efecto.destroy();
+      efecto = null;
+    }
+  }
+
+  new MutationObserver(function () { iniciarAves(); detenerAves(); })
+    .observe(login, { attributes: true, attributeFilter: ["class"] });
+
+  iniciarAves();
 })();
 </script>
 </body>
