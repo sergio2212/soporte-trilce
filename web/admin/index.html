@@ -2616,5 +2616,173 @@ setInterval(() => {
   iniciarAves();
 })();
 </script>
+  <!-- ===== SEDES Y AULAS DINÁMICO + MENSAJES (pegar justo ANTES de </body>, después del último </script>) ===== -->
+<style>
+  .sedes-din .tarjetas { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important; margin-bottom: 12px; }
+  .sedes-din .herramientas { grid-template-columns: 1.6fr 1fr 1fr; }
+  .sedes-din .kpi { min-height: 0; }
+  #c-sedes { display: none !important; }
+  #v-sedes .cabecera > .acciones::before { content: none !important; display: none !important; }
+  .piso-detectado { margin: 8px 0 0; min-height: 1.3em; font-size: .85rem; font-weight: 600; color: var(--brand-txt); }
+  .contador-msg { margin: 6px 0 0; text-align: right; font-size: .76rem; color: var(--muted); }
+  @media (max-width: 900px) { .sedes-din .herramientas { grid-template-columns: 1fr 1fr; } .sedes-din .herramientas > :first-child { grid-column: 1 / -1; } }
+  @media (max-width: 520px) { .sedes-din .herramientas { grid-template-columns: 1fr; } }
+</style>
+<script>
+(function () {
+  "use strict";
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const norm = (x) => String(x || "").replace(/^aula\s*/i, "").trim().toLowerCase();
+
+  // ---------- Sedes y aulas ----------
+  function armar() {
+    const sec = $("v-sedes");
+    if (!sec || $("sedes-din")) return;
+    const acc = el("div", "acciones");
+    const nb = el("button", "btn primario", "+ Añadir aula"); nb.type = "button"; nb.id = "nueva-aula";
+    acc.append(nb);
+    sec.querySelector(".cabecera").append(acc);
+    const cont = el("div", "sedes-din"); cont.id = "sedes-din";
+    cont.innerHTML =
+      '<div class="tarjetas" id="sd-kpis"></div>' +
+      '<div class="caja">' +
+        '<div class="herramientas">' +
+          '<input id="sd-buscar" type="search" placeholder="Buscar aula" aria-label="Buscar aula">' +
+          '<select id="sd-sede" aria-label="Sede"><option value="todas">Todas las sedes</option></select>' +
+          '<select id="sd-piso" aria-label="Piso"><option value="todos">Todos los pisos</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>' +
+        '</div>' +
+        '<div class="tabla-wrap"><table><thead><tr><th>Aula</th><th>Sede</th><th>Piso</th><th>Activos</th><th>Tickets abiertos</th></tr></thead><tbody id="t-aulas"></tbody></table></div>' +
+        '<p id="pie-aulas" class="pie-tabla"></p>' +
+      '</div>';
+    sec.append(cont);
+    ["sd-buscar", "sd-sede", "sd-piso"].forEach((id) => $(id).addEventListener("input", pintarSedes));
+    nb.addEventListener("click", abrirAula);
+
+    document.body.insertAdjacentHTML("beforeend",
+      '<dialog id="dlg-aula" aria-labelledby="dau-titulo"><form class="dlg-int form-dlg" id="form-aula" novalidate autocomplete="off">' +
+        '<div class="dlg-cab"><h2 id="dau-titulo">Añadir aula</h2><button class="cerrar" type="button" data-x aria-label="Cerrar">×</button></div>' +
+        '<label class="campo" for="dau-aula">Aula</label>' +
+        '<input id="dau-aula" type="text" inputmode="numeric" maxlength="8" placeholder="Ej. 305">' +
+        '<p id="dau-piso" class="piso-detectado" aria-live="polite"></p>' +
+        '<label class="campo" for="dau-sede">Sede del aula</label><select id="dau-sede"></select>' +
+        '<p id="dau-error" class="error oculto"></p>' +
+        '<div class="dlg-pie"><button class="btn" type="button" data-x>Cancelar</button><button class="btn primario" type="submit" id="dau-guardar">Guardar aula</button></div>' +
+      '</form></dialog>');
+    $$("#dlg-aula [data-x]").forEach((b) => b.addEventListener("click", () => $("dlg-aula").close()));
+    $("dau-aula").addEventListener("input", () => {
+      const i = $("dau-aula"); i.value = i.value.replace(/\D/g, "").slice(0, 8);
+      const ok = /^[1-9]\d{2}$/.test(i.value);
+      $("dau-piso").textContent = ok ? "Piso detectado: " + i.value[0] : "";
+      const er = $("dau-error");
+      if (i.value.length > 3) { er.textContent = "El aula debe tener 3 cifras, del 100 al 999."; er.classList.remove("oculto"); } else er.classList.add("oculto");
+    });
+    $("form-aula").addEventListener("submit", guardarAula);
+  }
+
+  function abrirAula() {
+    armar();
+    const sedes = (S.sedes || []);
+    $("dau-sede").replaceChildren(...sedes.map((s) => new Option(s.nombre, s.id)));
+    $("form-aula").reset(); $("dau-piso").textContent = ""; $("dau-error").classList.add("oculto");
+    $("dlg-aula").showModal();
+    setTimeout(() => $("dau-aula").focus(), 50);
+  }
+
+  async function guardarAula(e) {
+    e.preventDefault();
+    const err = $("dau-error"); err.classList.add("oculto");
+    const aula = $("dau-aula").value.trim();
+    if (!/^[1-9]\d{2}$/.test(aula)) { err.textContent = "El aula debe tener 3 cifras, del 100 al 999 (por ejemplo 305)."; err.classList.remove("oculto"); return; }
+    if (!$("dau-sede").value) { err.textContent = "Elige la sede del aula."; err.classList.remove("oculto"); return; }
+    const b = $("dau-guardar"); b.disabled = true;
+    try {
+      const r = await api("/admin/ambientes", json({ sede_id: Number($("dau-sede").value), aula }));
+      if (!r.ok) { let m = "No se pudo guardar el aula. Inténtalo otra vez."; try { m = (await r.json()).detail || m; } catch (_) {} throw new Error(m); }
+      $("dlg-aula").close(); toast("Aula agregada."); cargarSedes();
+    } catch (ex) {
+      if (ex instanceof SesionVencida) return cerrarSesion("Tu sesión venció. Inicia sesión de nuevo.");
+      err.textContent = /fetch|Failed|HTTP/i.test(ex.message) ? "No se pudo conectar. Inténtalo otra vez." : ex.message; err.classList.remove("oculto");
+    } finally { b.disabled = false; }
+  }
+
+  window.pintarSedes = pintarSedes;
+  function pintarSedes() {
+    armar();
+    const kp = $("sd-kpis"), cuerpo = $("t-aulas");
+    if (!S.sedes) { cuerpo.replaceChildren(Object.assign(el("tr"), {})); const tr = el("tr"), td = el("td", "vacio", "Cargando sedes…"); td.colSpan = 5; tr.append(td); cuerpo.replaceChildren(tr); return; }
+
+    kp.replaceChildren(...S.sedes.map((s) => {
+      const c = el("div", "caja kpi");
+      c.append(el("div", "nombre", "Sede " + s.nombre), el("div", "valor", String(s.tickets_abiertos)), el("div", "nota", "tickets abiertos · " + s.tickets_total + " incidencias en total"));
+      return c;
+    }));
+
+    const selS = $("sd-sede"), actual = selS.value;
+    if (selS.options.length !== S.sedes.length + 1) {
+      selS.replaceChildren(new Option("Todas las sedes", "todas"), ...S.sedes.map((s) => new Option(s.nombre, s.id)));
+      selS.value = actual && [...selS.options].some((o) => o.value === actual) ? actual : "todas";
+    }
+    const q = norm($("sd-buscar").value), fs = selS.value, fp = $("sd-piso").value;
+    let filas = [];
+    for (const s of S.sedes) for (const a of s.ambientes) {
+      const abiertos = S.tickets.filter((t) => t.estado !== "resuelto" && t.sede === s.nombre && norm(t.ambiente) === norm(a.nombre)).length;
+      filas.push({ sede: s.nombre, sede_id: s.id, nombre: a.nombre, piso: a.piso, activos: a.activos, abiertos });
+    }
+    filas = filas.filter((f) => (fs === "todas" || String(f.sede_id) === fs) && (fp === "todos" || String(f.piso) === fp) && (!q || norm(f.nombre).includes(q)));
+    filas.sort((x, y) => x.sede.localeCompare(y.sede) || (x.piso || 99) - (y.piso || 99) || x.nombre.localeCompare(y.nombre, "es", { numeric: true }));
+
+    cuerpo.replaceChildren();
+    if (!filas.length) { const tr = el("tr"), td = el("td", "vacio", "Ningún aula coincide con los filtros."); td.colSpan = 5; tr.append(td); cuerpo.append(tr); }
+    for (const f of filas) {
+      const tr = el("tr");
+      const ab = el("td"); ab.dataset.label = "Tickets abiertos";
+      ab.append(f.abiertos ? chip("nuevo", f.abiertos + (f.abiertos === 1 ? " abierto" : " abiertos")) : el("span", "sub", "—"));
+      const cel = (txt, label) => { const td = el("td", null, txt); td.dataset.label = label; return td; };
+      tr.append(cel(f.nombre, "Aula"), cel(f.sede, "Sede"), cel(f.piso ? "Piso " + f.piso : "—", "Piso"), cel(String(f.activos), "Activos"), ab);
+      cuerpo.append(tr);
+    }
+    $("pie-aulas").textContent = filas.length + (filas.length === 1 ? " aula" : " aulas");
+  }
+
+  // ---------- Mensajes: máximo 200 caracteres y que tenga sentido ----------
+  function mensajeConSentido(texto) {
+    const t = texto.trim().replace(/\s+/g, " ");
+    if (t.length < 5 || t.length > 200) return false;
+    const palabras = t.split(" ");
+    if (palabras.filter((p) => /[a-záéíóúüñ]/i.test(p)).length < 2) return false;
+    for (const p of palabras) {
+      const l = p.toLowerCase().replace(/[^a-záéíóúüñ]/g, "");
+      if (l.length < 4) continue;
+      if (!/[aeiouáéíóú]/.test(l)) return false;                 // sin vocales
+      if (/(.)\1{3,}/.test(l)) return false;                     // aaaa
+      if (/(.{2,3})\1{2,}/.test(l)) return false;               // jdjdjd, asdasdasd
+      if (/[^aeiouáéíóúüñ]{6,}/.test(l)) return false;          // demasiadas consonantes seguidas
+      if (l.length >= 6 && (l.match(/[aeiouáéíóú]/g) || []).length / l.length < 0.22) return false;
+      if (l.length > 22) return false;
+      if (/asdf|qwer|zxcv|sdfg|dfgh|fghj|ghjk|hjkl|wert|erty|rtyu/.test(l)) return false;
+    }
+    return true;
+  }
+  seguro2(() => {
+    const ta = $("dm-texto"), dlg = $("dlg-mensaje"), err = $("dm-error");
+    ta.maxLength = 200;
+    ta.placeholder = "Escribe tu observación para Soporte (máximo 200 caracteres)";
+    const cnt = el("p", "contador-msg", "0 / 200"); cnt.id = "dm-cuenta"; ta.after(cnt);
+    ta.addEventListener("input", () => { cnt.textContent = ta.value.length + " / 200"; err.classList.add("oculto"); });
+    new MutationObserver(() => { if (dlg.open) { cnt.textContent = ta.value.length + " / 200"; } }).observe(dlg, { attributes: true, attributeFilter: ["open"] });
+    // en captura, antes del envío original: si no tiene sentido, no se envía
+    dlg.addEventListener("submit", (e) => {
+      if (!mensajeConSentido(ta.value)) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        err.textContent = "Escriba correctamente su observación";
+        err.classList.remove("oculto");
+        ta.focus();
+      }
+    }, true);
+  });
+  function seguro2(f) { try { f(); } catch (e) {} }
+  seguro2(armar);
+})();
+</script>
 </body>
 </html>
