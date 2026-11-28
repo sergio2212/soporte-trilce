@@ -2395,5 +2395,12 @@ setInterval(() => {
   } catch (e) {}
 })();
 </script>
+<style>
+  /* Textos muy largos (nombres o correos sin espacios) no deben ensanchar la página en el celular */
+  html, body { max-width: 100%; overflow-x: hidden; }
+  #app { grid-template-columns: minmax(0, 252px) minmax(0, 1fr); }
+  @media (max-width: 900px) { #app { grid-template-columns: minmax(0, 1fr) !important; } }
+  main, #contenido, #contenido > section, .panel, .tabla-wrap, td, th, .sub, h1, h2, h3, p, dd, dt, label { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+</style>
 </body>
 </html>
