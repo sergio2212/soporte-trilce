@@ -1,28 +1,34 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f26b1d">
+<meta name="theme-color" content="#FFFFFF">
+<script>try { var _t = localStorage.getItem("tema_visual"); if (_t === "dark" || _t === "light") document.documentElement.setAttribute("data-theme", _t); } catch (e) {}</script>
 <title>Reportar un problema · Soporte Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fff8f2;
-    --surface: #ffffff;
-    --ink: #2a1a10;
-    --muted: #7a6657;
-    --brand: #f26b1d;
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --ink: #373B3F;
+    --muted: #6B7178;
+    --brand: #E85D35;
     --brand-ink: #ffffff;
-    --brand-dark: #c4510e;
-    --brand-soft: #ffeadb;
-    --line: #f0dfd2;
+    --brand-dark: #C14622;
+    --brand-strong: #C94420;
+    --brand-soft: #FDEEE8;
+    --aqua: #82B8C2;
+    --aqua-soft: #EAF4F6;
+    --aqua-ink: #2F6A77;
+    --line: #E3E7EB;
     --warn: #b45309;
     --err: #c0392b;
     --ok: #1d8a4a;
-    --radius: 16px;
+    --radius: 20px;
+    --sombra: 0 6px 22px rgba(55,59,63,.07), 0 1px 3px rgba(55,59,63,.05);
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
@@ -207,17 +213,319 @@
   #correo-paso label.campo { margin-top: 0; }
   #bloque-nombre .dos label.campo { margin-top: 0; }
   #correo-paso .error { margin: 10px 0 0; }
+  /* ---------- Ayudas visuales (heurísticas 1, 5, 6, 10) ---------- */
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .hero { display: none; }
+  .paso-etiqueta { margin: 0 0 8px; font-size: .88rem; font-weight: 800; color: var(--aqua-ink); }
+  .pista { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+  .ayuda { max-width: 480px; margin: 6px auto 0; text-align: center; font-size: .88rem; color: var(--muted); }
+
+  /* ---------- Fondo blanco animado (Vanta DOTS) + halo de luz detrás del formulario ---------- */
+  html { background: var(--bg); }
+  #fondo-vanta { position: fixed; inset: 0; z-index: 0; background: var(--bg); }
+  .halo {
+    position: fixed; z-index: 1; left: 50%; top: 52%; width: min(1000px, 140vw); height: min(760px, 100vh);
+    transform: translate(-50%, -50%); pointer-events: none; filter: blur(34px);
+    background:
+      radial-gradient(ellipse 46% 46% at 50% 50%, rgba(232,93,53,.10), rgba(232,93,53,0) 72%),
+      radial-gradient(ellipse 28% 30% at 66% 38%, rgba(130,184,194,.14), rgba(130,184,194,0) 70%);
+  }
+  .banda { z-index: 3; }
+
+  /* Foto de la marca (reemplaza el icono de la llave) */
+  .marca-icono { width: 54px; height: 54px; border-radius: 16px; overflow: hidden; border: 2px solid rgba(255,255,255,.9); background: #fff; }
+  .marca-icono img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ---------- Formulario al centro de la pantalla ---------- */
+  main { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: calc(100vh - 70px); min-height: calc(100svh - 70px); }
+  main::before, main::after { content: ""; flex: 1 0 0; }
+  main > * { flex: none; }
+  /* cuando ya hay varios pasos, el formulario fluye desde arriba para que nada salte al avanzar */
+  main:has(#paso-lugar:not(.oculto))::before { flex: 0 0 0; }
+
+  /* ---------- Tema claro: tarjetas de cristal esmerilado, minimalistas ---------- */
+  .bloque {
+    position: relative; padding: clamp(20px, 4vw, 34px); color: var(--ink);
+    background: rgba(255,255,255,.78); border: 1px solid rgba(232,93,53,.30); border-radius: 24px;
+    -webkit-backdrop-filter: blur(16px) saturate(130%); backdrop-filter: blur(16px) saturate(130%);
+    box-shadow: 0 20px 50px rgba(55,59,63,.10), 0 0 36px rgba(232,93,53,.06), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .bloque::before { display: none; }
+  /* leve subrayado naranja */
+  .bloque::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: -1px; height: 2px; border-radius: 2px; pointer-events: none;
+    background: linear-gradient(90deg, rgba(232,93,53,0), #E85D35, rgba(232,93,53,0)); }
+  h2 { color: var(--ink); font-weight: 700; }
+  .equipo svg { color: #4F8F9C; }
+  .piso input:checked + span, .equipo input:checked + span { box-shadow: none; }
+
+  /* Botones: uno principal sólido, el resto discreto */
+  button.principal { background: var(--brand-strong); box-shadow: none; border-radius: 14px; min-height: 52px; font-size: 1.05rem; letter-spacing: .01em; }
+  button.principal:hover:not(:disabled) { background: #D44A24; filter: none; }
+  button.secundario { background: #fff; border: 1.5px solid #D5DBE0; color: var(--ink); border-radius: 14px; }
+  button.secundario:hover { background: #F6F7F9; }
+
+  /* Textos que quedan sobre el fondo de puntos (se les da un halo blanco para que se lean) */
+  .paso-etiqueta, .ayuda { text-shadow: 0 0 8px #fff, 0 0 3px #fff; }
+  .barra-envio { z-index: 20; background: rgba(255,255,255,.86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-top: 1px solid rgba(232,93,53,.25); }
+
+  /* ---------- Cabecera de borde a borde: naranja suave y minimalista ---------- */
+  .banda {
+    position: relative; z-index: 3; overflow: hidden; color: var(--ink);
+    width: 100%; max-width: none; margin: 0;
+    background: linear-gradient(120deg, rgba(232,93,53,.26) 0%, rgba(232,93,53,.09) 100%);
+    border: 0; border-bottom: 1px solid rgba(232,93,53,.5); border-radius: 0 0 20px 20px;
+    box-shadow: 0 10px 30px rgba(232,93,53,.12);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .banda::before, .banda::after { display: none; }
+  .marca { max-width: 1120px; margin: 0 auto; gap: 12px; padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .marca > div:nth-child(2) { min-width: 0; }
+  .marca-icono { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(232,93,53,.35); box-shadow: none; }
+  .marca b { font-size: 1rem; font-weight: 700; letter-spacing: 0; color: var(--ink); }
+  .marca span { font-size: .85rem; font-weight: 500; color: #4B5157; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 380px) {
+    .dos { grid-template-columns: 1fr; }
+    .marca b { font-size: .95rem; }
+  }
+  @media (min-width: 600px) and (max-width: 959px) {
+    main, .barra-envio > div, .ayuda { max-width: 560px; }
+  }
+  @media (min-width: 960px) {
+    .banda { position: absolute; top: 0; left: 0; right: 0; }
+    .marca { padding: 16px 32px; }
+    .marca-icono { width: 48px; height: 48px; border-radius: 14px; }
+    .hero { display: block; position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); right: calc(max(32px, (100vw - 1120px) / 2 + 32px) + 88px); }
+    .hero h1, .hero p { display: none; }
+    .hero ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+    .hero li { background: rgba(255,255,255,.75); border: 1px solid rgba(232,93,53,.3); color: var(--ink); font-weight: 600; font-size: .82rem; padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+    main { max-width: 600px; min-height: 100vh; padding: clamp(96px, 14vh, 120px) 24px; }
+    .barra-envio > div { max-width: 552px; }
+    .bloque h2 { font-size: 1.35rem; }
+  }
+  @media (min-width: 1500px) {
+    main { max-width: 660px; }
+    .barra-envio > div { max-width: 612px; }
+  }
+
+  /* ---------- Interruptor claro / oscuro ----------
+     From Uiverse.io by rishichawda - https://uiverse.io/rishichawda/fluffy-robin-48
+     MIT License, Copyright (c) I had seen the design concept somewhere and Implemented it on my website (converted the image to svg, added transitions). this was a couple of years ago so i'm not able to find the dribbble or figma link (or wherever i found it). , rishichawda (Rishi Kumar Chawda)
+  */
+  .uv-tema { font-size: 10px; position: relative; display: block; flex: none; width: 7em; margin-left: auto; cursor: pointer; }
+  .uv-tema-input { position: absolute; margin: 0; opacity: 0; width: 0; height: 0; }
+  .uv-tema svg { display: block; width: 100%; height: auto; }
+  .uv-tema .tm-container, .uv-tema .tm-patches, .uv-tema .tm-stars, .uv-tema .tm-button,
+  .uv-tema .tm-sun, .uv-tema .tm-moon, .uv-tema .tm-cloud {
+    transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 0.25s;
+  }
+  .uv-tema-input:checked + svg .tm-container { fill: #2b4360; }
+  .uv-tema-input:checked + svg .tm-button { transform: translate(28px, 2.333px); }
+  .uv-tema .tm-sun { opacity: 1; }
+  .uv-tema-input:checked + svg .tm-sun { opacity: 0; }
+  .uv-tema .tm-moon { opacity: 0; }
+  .uv-tema-input:checked + svg .tm-moon { opacity: 1; }
+  .uv-tema .tm-cloud { opacity: 1; }
+  .uv-tema-input:checked + svg .tm-cloud { opacity: 0; }
+  .uv-tema .tm-stars { opacity: 0; }
+  .uv-tema-input:checked + svg .tm-stars { opacity: 1; }
+  /* anillo de foco para quien navega con teclado (el checkbox está oculto) */
+  .uv-tema-input:focus-visible + svg { outline: 3px solid var(--brand); outline-offset: 3px; border-radius: 22px; }
+  .bloque, .banda, .barra-envio { transition: background-color .3s ease, border-color .3s ease, color .3s ease; }
+  @media (min-width: 960px) and (max-width: 1099px) { .hero { display: none; } }
+
+  /* ---------- Modo oscuro (se activa con el botón sol / luna) ---------- */
+  html[data-theme="dark"]{ --bg: #000000; --ink: #F4F6F8; --muted: #A9B3BA; --line: rgba(255,255,255,.16); color-scheme: dark; }
+  html[data-theme="dark"] .halo { background:
+      radial-gradient(ellipse 46% 46% at 50% 50%, rgba(232,93,53,.16), rgba(232,93,53,0) 72%),
+      radial-gradient(ellipse 28% 30% at 66% 38%, rgba(130,184,194,.12), rgba(130,184,194,0) 70%); }
+  html[data-theme="dark"] .bloque { background: rgba(255,255,255,.06); border-color: rgba(232,93,53,.34);
+    -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 24px 70px rgba(0,0,0,.45), 0 0 44px rgba(232,93,53,.07), inset 0 1px 0 rgba(255,255,255,.08); }
+  html[data-theme="dark"] label.campo { color: #E6EBEE; }
+  html[data-theme="dark"] textarea, html[data-theme="dark"] input[type="email"], html[data-theme="dark"] input[type="text"], html[data-theme="dark"] input[type="password"] { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); color: #fff; }
+  html[data-theme="dark"] textarea::placeholder, html[data-theme="dark"] input::placeholder { color: rgba(255,255,255,.55); }
+  html[data-theme="dark"] textarea:focus, html[data-theme="dark"] input[type="email"]:focus, html[data-theme="dark"] input[type="text"]:focus, html[data-theme="dark"] input[type="password"]:focus { background: rgba(255,255,255,.1); border-color: var(--brand); outline: 3px solid rgba(232,93,53,.3); }
+  html[data-theme="dark"] input:-webkit-autofill { -webkit-text-fill-color: #fff; caret-color: #fff; box-shadow: 0 0 0 1000px #1b1d20 inset; }
+  html[data-theme="dark"] .grupo-correo .sufijo { background: rgba(130,184,194,.14); color: #BFE3EA; border-color: rgba(255,255,255,.2); }
+  html[data-theme="dark"] select.sufijo option { background: #17191c; color: #fff; }
+  html[data-theme="dark"] .piso span, html[data-theme="dark"] .equipo span, html[data-theme="dark"] .opcion { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.16); color: #fff; }
+  html[data-theme="dark"] .piso input:not(:checked):hover + span, html[data-theme="dark"] .equipo input:not(:checked):hover + span, html[data-theme="dark"] .opcion:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.09); }
+  html[data-theme="dark"] .piso input:checked + span, html[data-theme="dark"] .equipo input:checked + span { background: var(--brand-strong); border-color: var(--brand-strong); }
+  html[data-theme="dark"] .equipo svg { color: #82B8C2; }
+  html[data-theme="dark"] .equipo input:checked + span svg { color: #fff; }
+  html[data-theme="dark"] .opcion:has(input:checked) { border-color: var(--brand); background: rgba(232,93,53,.16); }
+  html[data-theme="dark"] .punto { border-color: rgba(255,255,255,.4); }
+  html[data-theme="dark"] .opcion:has(input:checked) .punto { border-color: var(--brand); background: var(--brand); }
+  html[data-theme="dark"] button.principal:focus-visible { outline-color: #fff; }
+  html[data-theme="dark"] button.secundario { background: transparent; border-color: rgba(255,255,255,.28); color: #fff; }
+  html[data-theme="dark"] button.secundario:hover { background: rgba(255,255,255,.08); }
+  html[data-theme="dark"] button.enlace { color: #9ED0DA; }
+  html[data-theme="dark"] .barra-sesion { background: rgba(130,184,194,.10); border: 1px solid rgba(130,184,194,.22); }
+  html[data-theme="dark"] .barra-sesion small { color: #9ED0DA; }
+  html[data-theme="dark"] .barra-sesion b { color: #fff; }
+  html[data-theme="dark"] .error { color: #FFB4A8; background: rgba(255,107,87,.12); border-left-color: #FF6B57; }
+  html[data-theme="dark"] .nota-final { background: rgba(130,184,194,.10); border-color: rgba(130,184,194,.25); color: #fff; }
+  html[data-theme="dark"] .giro { border-color: rgba(255,255,255,.2); border-top-color: var(--brand); }
+  html[data-theme="dark"] #ev-pasos span[style*="e6d9cf"] { background: rgba(255,255,255,.22) !important; }
+  html[data-theme="dark"] .paso-etiqueta { color: #82B8C2; }
+  html[data-theme="dark"] .pasos span { background: rgba(255,255,255,.22); }
+  html[data-theme="dark"] .pasos span.listo { background: var(--brand); }
+  html[data-theme="dark"] .paso-etiqueta, html[data-theme="dark"] .ayuda { text-shadow: none; }
+  html[data-theme="dark"] .ayuda { color: #C5CDD2; }
+  html[data-theme="dark"] .barra-envio { background: rgba(8,8,10,.86); border-top-color: rgba(255,255,255,.14); }
+  html[data-theme="dark"] .banda { background: linear-gradient(120deg, rgba(232,93,53,.34) 0%, rgba(232,93,53,.13) 100%); border-bottom-color: rgba(232,93,53,.5);
+    box-shadow: 0 10px 34px rgba(232,93,53,.12), inset 0 1px 0 rgba(255,255,255,.08); }
+  html[data-theme="dark"] .marca-icono { border-color: rgba(255,255,255,.3); }
+  html[data-theme="dark"] .marca span { color: #D0D6DB; }
+  html[data-theme="dark"] .hero li { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.2); color: #E9EDF0; }
+
+  /* ---------- Splash (gota de pintura) ---------- */
+  .splash { position: fixed; inset: 0; z-index: 9999; background: #000; display: grid; place-items: center; overflow: hidden; transition: opacity .6s ease; }
+  .splash.fuera { opacity: 0; pointer-events: none; }
+  .sp-saltar { position: absolute; z-index: 3; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: #fff; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+  .sp-saltar:hover { background: rgba(0,0,0,.55); }
+  .sp-saltar:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .pintura { position: absolute; inset: -25%; z-index: 2; pointer-events: none; filter: url(#goo); }
+  .pintura .gota { position: absolute; left: 50%; top: 50%; width: 52px; height: 66px; margin: -33px 0 0 -26px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: linear-gradient(120deg, #fff 50%, #E85D35 50%); transform: translateY(-120vh); }
+  .pintura .mancha { position: absolute; left: 50%; top: 50%; border-radius: 50%; transform: scale(0); }
+  .pintura .salpica { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; transform: scale(0); }
+
+  .ayuda-pie { position: relative; z-index: 2; max-width: 480px; margin: 6px auto 0; padding: 0 20px 36px; text-align: center; font-size: .88rem; color: var(--muted); }
+
 </style>
 </head>
 <body>
-<video id="fondo-video" src="intro.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
-<div id="fondo-velo" aria-hidden="true"></div>
+<!-- Splash: se ve solo si no hay sesión activa -->
+<div id="splash" class="splash">
+  <button id="sp-saltar" class="sp-saltar" type="button" aria-label="Saltar introducción">Saltar</button>
+  <div id="pintura" class="pintura">
+    <i class="gota" id="gota"></i>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
+</div>
+<script>
+(function () {
+  var sp = document.getElementById("splash");
+  try { if (sessionStorage.getItem("docente_sesion") === "1") { sp.remove(); return; } } catch (_) {}
+  var pint = document.getElementById("pintura");
+  var done = false, pintando = false;
+  document.body.style.overflow = "hidden";
+
+  function salir() {
+    if (done) return; done = true;
+    sp.classList.add("fuera");
+    setTimeout(function () { sp.remove(); document.body.style.overflow = ""; }, 650);
+  }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // una mancha circular que crece desde el punto de impacto (tamaño en vmax: cubre cualquier pantalla)
+  function mancha(color, size, dx, dy, delay, dur) {
+    var m = document.createElement("i"); m.className = "mancha";
+    m.style.background = color;
+    m.style.width = m.style.height = size + "vmax";
+    m.style.margin = (dy - size / 2) + "vmax 0 0 " + (dx - size / 2) + "vmax";
+    pint.appendChild(m);
+    m.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }],
+      { duration: dur, delay: delay, easing: "cubic-bezier(.22,.7,.2,1)", fill: "forwards" });
+  }
+  // una capa de color = una mancha grande + varias que brotan alrededor (el filtro "goo" las une como líquido)
+  function capa(color, retraso) {
+    mancha(color, 200, 0, 0, retraso, 1000);
+    for (var i = 0; i < 6; i++) mancha(color, rnd(110, 160), rnd(-22, 22), rnd(-22, 22), retraso + rnd(0, 220), rnd(800, 1000));
+  }
+  function pintura() {
+    if (pintando || done) return; pintando = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !sp.animate) return salir();
+    var gota = document.getElementById("gota");
+    var caida = gota.animate(
+      [{ transform: "translateY(-120vh) scaleY(1.25)" }, { transform: "translateY(0) scaleY(1.1)" }],
+      { duration: 650, easing: "cubic-bezier(.55,.05,.9,.5)", fill: "forwards" }
+    );
+    caida.onfinish = function () {
+      gota.style.display = "none";
+      // salpicaduras
+      for (var i = 0; i < 7; i++) {
+        var s = document.createElement("i"); s.className = "salpica";
+        s.style.background = i % 2 ? "#fff" : "#E85D35";
+        pint.appendChild(s);
+        var a = (Math.PI * 2 * i) / 7, d = 14 + Math.random() * 14;
+        s.animate(
+          [{ transform: "translate(0,0) scale(0)" }, { transform: "translate(" + Math.cos(a) * d + "vmin," + Math.sin(a) * d + "vmin) scale(" + (.5 + Math.random() * .8) + ")" }],
+          { duration: 800, easing: "cubic-bezier(.2,.75,.2,1)", fill: "forwards" }
+        );
+      }
+      capa("#ffffff", 0);          // primero la pintura blanca...
+      capa("#E85D35", 180);        // ...y justo detrás la naranja, que termina cubriendo todo
+      setTimeout(salir, 1600);     // pantalla toda naranja → se desvanece y aparece la interfaz
+    };
+  }
+  setTimeout(pintura, 400);        // pantalla negra un instante y cae la gota
+  document.getElementById("sp-saltar").addEventListener("click", salir);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") salir(); });   // salir con el teclado
+})();
+</script>
+<div id="fondo-vanta" aria-hidden="true"></div>
+<div class="halo" aria-hidden="true"></div>
 <header class="banda">
   <div class="marca">
     <div class="marca-icono" aria-hidden="true">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
     </div>
     <div><b>Soporte técnico</b><span id="sub-marca">Trilce · Reporta un problema</span></div>
+    <label class="uv-tema" title="Cambiar entre modo claro y oscuro">
+      <input type="checkbox" id="tema" class="uv-tema-input" role="switch" aria-label="Modo oscuro" autocomplete="off">
+      <svg viewBox="0 0 69.667 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <g transform="translate(3.5 3.5)">
+
+          <g transform="matrix(1, 0, 0, 1, -3.5, -3.5)">
+            <rect class="tm-container" fill="#83cbd8" transform="translate(3.5 3.5)" rx="17.5" height="35" width="60.667"></rect>
+          </g>
+
+          <g class="tm-button" transform="translate(2.333 2.333)">
+
+            <g class="tm-sun">
+              <g transform="matrix(1, 0, 0, 1, -5.83, -5.83)">
+                <circle fill="#f8e664" transform="translate(5.83 5.83)" r="15.167" cy="15.167" cx="15.167"></circle>
+              </g>
+              <g transform="matrix(1, 0, 0, 1, -5.83, -5.83)">
+                <path fill="rgba(246,254,247,0.29)" transform="translate(9.33 9.33)" d="M11.667,0A11.667,11.667,0,1,1,0,11.667,11.667,11.667,0,0,1,11.667,0Z"></path>
+              </g>
+              <circle fill="#fcf4b9" transform="translate(8.167 8.167)" r="7" cy="7" cx="7"></circle>
+            </g>
+
+            <g class="tm-moon">
+              <g transform="matrix(1, 0, 0, 1, -31.5, -5.83)">
+                <circle fill="#cce6ee" transform="translate(31.5 5.83)" r="15.167" cy="15.167" cx="15.167"></circle>
+              </g>
+              <g class="tm-patches" fill="#a6cad0" transform="translate(-24.415 -1.009)">
+                <circle transform="translate(43.009 4.496)" r="2" cy="2" cx="2"></circle>
+                <circle transform="translate(39.366 17.952)" r="2" cy="2" cx="2"></circle>
+                <circle transform="translate(33.016 8.044)" r="1" cy="1" cx="1"></circle>
+                <circle transform="translate(51.081 18.888)" r="1" cy="1" cx="1"></circle>
+                <circle transform="translate(33.016 22.503)" r="1" cy="1" cx="1"></circle>
+                <circle transform="translate(50.081 10.53)" r="1.5" cy="1.5" cx="1.5"></circle>
+              </g>
+            </g>
+          </g>
+
+          <g transform="matrix(1, 0, 0, 1, -3.5, -3.5)">
+            <path class="tm-cloud" fill="#fff" transform="translate(-3466.47 -160.94)" d="M3512.81,173.815a4.463,4.463,0,0,1,2.243.62.95.95,0,0,1,.72-1.281,4.852,4.852,0,0,1,2.623.519c.034.02-.5-1.968.281-2.716a2.117,2.117,0,0,1,2.829-.274,1.821,1.821,0,0,1,.854,1.858c.063.037,2.594-.049,3.285,1.273s-.865,2.544-.807,2.626a12.192,12.192,0,0,1,2.278.892c.553.448,1.106,1.992-1.62,2.927a7.742,7.742,0,0,1-3.762-.3c-1.28-.49-1.181-2.65-1.137-2.624s-1.417,2.2-2.623,2.2a4.172,4.172,0,0,1-2.394-1.206,3.825,3.825,0,0,1-2.771.774c-3.429-.46-2.333-3.267-2.2-3.55A3.721,3.721,0,0,1,3512.81,173.815Z"></path>
+          </g>
+
+          <g class="tm-stars" fill="#def8ff" transform="translate(3.585 1.325)">
+            <path transform="matrix(-1, 0.017, -0.017, -1, 24.231, 3.055)" d="M.774,0,.566.559,0,.539.458.933.25,1.492l.485-.361.458.394L1.024.953,1.509.592.943.572Z"></path>
+            <path transform="matrix(-0.777, 0.629, -0.629, -0.777, 23.185, 12.358)" d="M1.341.529.836.472.736,0,.505.46,0,.4.4.729l-.231.46L.605.932l.4.326L.9.786Z"></path>
+            <path transform="matrix(0.438, 0.899, -0.899, 0.438, 23.177, 29.735)" d="M.015,1.065.475.9l.285.365L.766.772l.46-.164L.745.494.751,0,.481.407,0,.293.285.658Z"></path>
+            <path transform="translate(12.677 0.388) rotate(104)" d="M1.161,1.6,1.059,1,1.574.722.962.607.86,0,.613.572,0,.457.446.881.2,1.454l.516-.274Z"></path>
+            <path transform="matrix(-0.07, 0.998, -0.998, -0.07, 11.066, 15.457)" d="M.873,1.648l.114-.62L1.579.945,1.03.62,1.144,0,.706.464.157.139.438.7,0,1.167l.592-.083Z"></path>
+            <path transform="translate(8.326 28.061) rotate(11)" d="M.593,0,.638.724,0,.982l.7.211.045.724.36-.64.7.211L1.342.935,1.7.294,1.063.552Z"></path>
+            <path transform="translate(5.012 5.962) rotate(172)" d="M.816,0,.5.455,0,.311.323.767l-.312.455.516-.215.323.456L.827.911,1.343.7.839.552Z"></path>
+            <path transform="translate(2.218 14.616) rotate(169)" d="M1.261,0,.774.571.114.3.487.967,0,1.538.728,1.32l.372.662.047-.749.728-.218L1.215.749Z"></path>
+          </g>
+        </g>
+      </svg>
+    </label>
   </div>
 </header>
 <main>
@@ -890,12 +1198,54 @@ prepararCampoCorreo("g-usuario", "g-correo-aviso");
   cargarFormulario();            // se prepara en segundo plano (también despierta el servidor)
 })();
 
-// ---------- video de fondo ----------
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js"></script>
+<script>
+// Fondo animado. Si las librerías no cargan o la persona prefiere menos movimiento, queda un fondo liso (la página funciona igual).
 (function () {
-  const v = document.getElementById("fondo-video"); if (!v) return;
-  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { v.removeAttribute("autoplay"); v.pause(); return; }
-  const p = v.play(); if (p && p.catch) p.catch(() => {});
-  document.addEventListener("visibilitychange", () => { if (document.hidden) v.pause(); else v.play().catch(() => {}); });
+  try {
+    if (!window.VANTA || !window.THREE) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var movil = window.innerWidth < 700;
+    var oscuro = document.documentElement.getAttribute("data-theme") === "dark";
+    window.__vanta = VANTA.DOTS({
+      el: "#fondo-vanta",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0xe85d35,            // naranja Trilce
+      color2: 0x82b8c2,           // celeste agua
+      backgroundColor: oscuro ? 0x000000 : 0xffffff,  // blanco (claro) o negro (oscuro)
+      size: movil ? 3.4 : 3.8,
+      spacing: movil ? 38 : 34,
+      showLines: false            // sin líneas: menos ruido visual detrás del formulario
+    });
+  } catch (e) { /* sin fondo animado, todo sigue funcionando */ }
+})();
+</script>
+<script>
+// Modo claro / oscuro: se recuerda la elección en este navegador (casilla marcada = modo oscuro)
+(function () {
+  var raiz = document.documentElement, sw = document.getElementById("tema");
+  function aplicar(t) {
+    raiz.setAttribute("data-theme", t);
+    if (sw) sw.checked = (t === "dark");
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", t === "dark" ? "#000000" : "#FFFFFF");
+    try { if (window.__vanta) window.__vanta.setOptions({ backgroundColor: t === "dark" ? 0x000000 : 0xffffff }); } catch (_) {}
+  }
+  aplicar(raiz.getAttribute("data-theme") === "dark" ? "dark" : "light");
+  if (sw) sw.addEventListener("change", function () {
+    var nuevo = sw.checked ? "dark" : "light";
+    aplicar(nuevo);
+    try { localStorage.setItem("tema_visual", nuevo); } catch (_) {}
+  });
 })();
 </script>
 </body>
