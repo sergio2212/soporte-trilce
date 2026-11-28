@@ -859,6 +859,123 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
   @media (max-width: 520px) { #app .tarjetas:has(#k-pend) { grid-template-columns: 1fr !important; } #app .tarjetas > #k-pend { grid-column: auto; } }
   @media (prefers-reduced-motion: reduce) { #app::before, #contenido::before, .kpi.destacado::before { animation: none; } }
 </style>
+<style id="dashboard-reference-polish">
+  /* Solo afecta al panel autenticado: el login original queda intacto. */
+  #app {
+    --brand: #e85d35;
+    --brand-dark: #c94420;
+    --brand-soft: #fff0e9;
+  }
+
+  #app, #app button, #app input, #app select, #app textarea {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  #menu {
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  #menu::after {
+    content: "e^(iπ) + 1 = 0\A Σ 1/n² = π²/6\A sin² θ + cos² θ = 1\A x = (−b ± √Δ) / 2a\A E = mc²\A ∫ e^(−x²) dx = √π";
+    position: absolute;
+    z-index: 0;
+    inset: auto 0 0;
+    height: 330px;
+    padding: 22px 18px 100px;
+    overflow: hidden;
+    white-space: pre;
+    color: rgba(255, 255, 255, .35);
+    background: linear-gradient(180deg, transparent 0%, rgba(232, 93, 53, .08) 20%, rgba(232, 93, 53, .88) 68%, #c94420 100%);
+    font: 10px/3 "IBM Plex Mono", ui-monospace, monospace;
+    letter-spacing: .015em;
+    pointer-events: none;
+  }
+
+  #menu > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  #menu .rail-pie {
+    border-color: rgba(255, 255, 255, .35);
+    color: rgba(255, 255, 255, .92);
+  }
+
+  #menu .rail-pie b {
+    color: #fff;
+  }
+
+  #app #k-pend {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(125deg, #17191d 0%, #101114 100%);
+    border-color: rgba(232, 93, 53, .3);
+  }
+
+  #app #k-pend::after {
+    content: "e^(iπ) + 1 = 0\A ∑ 1/n² = π²/6\A ∫ e^(−x²) dx = √π\A sin² θ + cos² θ = 1";
+    position: absolute;
+    z-index: 0;
+    top: 10px;
+    right: 18px;
+    bottom: 8px;
+    width: 68%;
+    display: grid;
+    align-content: center;
+    overflow: hidden;
+    color: rgba(255, 255, 255, .09);
+    font: 11px/2.7 "IBM Plex Mono", ui-monospace, monospace;
+    white-space: pre;
+    text-align: right;
+    pointer-events: none;
+  }
+
+  #app #k-pend .nombre,
+  #app #k-pend .valor,
+  #app #k-pend .nota,
+  #app #k-pend .anillo-wrap {
+    color: #fff;
+  }
+
+  #app #k-pend .anillo .pista {
+    stroke: rgba(255, 255, 255, .24);
+  }
+
+  #app #k-pend .anillo .prog {
+    stroke: #ff875b;
+  }
+
+  :root[data-tema="oscuro"] #app {
+    --brand: #f0784c;
+    --brand-dark: #d45a2e;
+    --brand-soft: rgba(240, 120, 76, .14);
+  }
+
+  :root[data-tema="oscuro"] #menu::after {
+    color: rgba(255, 220, 204, .24);
+    background: linear-gradient(180deg, transparent 0%, rgba(132, 45, 12, .18) 18%, rgba(132, 45, 12, .88) 68%, #682309 100%);
+  }
+
+  :root[data-tema="oscuro"] #app #k-pend {
+    background: linear-gradient(125deg, #96370f 0%, #7c2d0d 100%);
+    border-color: rgba(255, 151, 103, .3);
+  }
+
+  :root[data-tema="oscuro"] #app #k-pend::after {
+    color: rgba(255, 239, 229, .13);
+  }
+
+  :root[data-tema="oscuro"] #menu .rail-pie {
+    border-color: rgba(255, 255, 255, .2);
+  }
+
+  @media (max-width: 520px) {
+    #menu::after { height: 285px; }
+  }
+</style>
 
 </head>
 <body>
