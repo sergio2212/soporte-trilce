@@ -7,7 +7,7 @@
 <title>Soporte técnico · Trilce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>const PAGINA = "soporte";
 try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro"); } catch (_) {}</script>
 <style>
@@ -464,36 +464,248 @@ try { if (localStorage.getItem("soporte_tema") === "oscuro") document.documentEl
   #tema { border: 1px solid var(--line-2); background: var(--card); border-radius: 50%; width: 42px; height: 42px; padding: 0; font-size: 1.15rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: pointer; transition: background-color .2s, border-color .2s, transform .2s; }
   #tema:hover { border-color: var(--ink-strong); background: var(--hover); transform: rotate(-12deg); }
 </style>
+<style id="soporte-minimalista">
+  :root {
+    --f-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --bg: #F5F6F7;
+    --card: #FFFFFF;
+    --text: #343A40;
+    --ink-strong: #20262D;
+    --muted: #727B85;
+    --brand: #D96643;
+    --brand-2: #E38A6D;
+    --brand-dark: #BD5233;
+    --brand-soft: #F8ECE7;
+    --brand-txt: #A94C32;
+    --line: #E5E8EB;
+    --line-2: #D8DDE2;
+    --input: #FFFFFF;
+    --side: #FFFFFF;
+    --hover: rgba(32,38,45,.045);
+    --aqua: #8AAEB4;
+    --aqua-soft: #EEF3F4;
+    --aqua-ink: #55777E;
+    --err: #B95C55;
+    --on-err: #FFFFFF;
+    --ok: #54836D;
+    --info: #5C7892;
+    --warn: #967A48;
+    --radius: 14px;
+    --sombra: 0 1px 2px rgba(25,34,43,.035);
+    --sombra-alta: 0 14px 34px rgba(25,34,43,.08);
+  }
+  :root[data-tema="oscuro"] {
+    color-scheme: dark;
+    --bg: #15191E;
+    --card: #1D232A;
+    --text: #D9DEE3;
+    --ink-strong: #F2F4F6;
+    --muted: #9AA4AE;
+    --brand: #D97858;
+    --brand-2: #E49A7E;
+    --brand-dark: #C46445;
+    --brand-soft: rgba(217,120,88,.13);
+    --brand-txt: #E49A7E;
+    --line: rgba(255,255,255,.09);
+    --line-2: rgba(255,255,255,.15);
+    --input: #20272F;
+    --side: #191F25;
+    --hover: rgba(255,255,255,.045);
+    --aqua: #82AAB1;
+    --aqua-soft: rgba(130,170,177,.12);
+    --aqua-ink: #A5C5CA;
+    --err: #DE827B;
+    --on-err: #241313;
+    --ok: #83B89A;
+    --info: #8EACC9;
+    --warn: #D0B47A;
+    --sombra: none;
+    --sombra-alta: 0 16px 38px rgba(0,0,0,.25);
+  }
+  body { font-family: var(--f-body); background: var(--bg); color: var(--text); }
+  h1, h2, h3, .valor, .valor-grande, .sede .num b, .cita { font-family: var(--f-body) !important; }
+  .btn { border-radius: 10px; font-weight: 600; }
+  .btn.primario { background: var(--brand); border-color: var(--brand); box-shadow: none; }
+  .btn.primario:hover:not(:disabled) { background: var(--brand-dark); border-color: var(--brand-dark); box-shadow: 0 6px 16px rgba(189,82,51,.14); }
+  .btn.fantasma { border-color: var(--line); color: var(--muted); }
+  .panel, .caja, .mensaje-item { box-shadow: var(--sombra); }
+  .caja { border-radius: var(--radius); }
+  .caja h2 { font-weight: 650; letter-spacing: -.025em; }
+  .cabecera h1 { font-weight: 700; letter-spacing: -.045em; }
+  .kpi .valor { font-weight: 700; letter-spacing: -.045em; }
+  .kpi.destacado { background: var(--card); border-color: var(--line); color: var(--text); box-shadow: var(--sombra); }
+  .kpi.destacado::after { display: none; }
+  .kpi.destacado .valor, .kpi.destacado .nombre, .kpi.destacado .nota { color: var(--ink-strong); opacity: 1; }
+  .kpi.destacado { border-top: 2px solid var(--brand); }
+  .kpi.alerta { border-color: var(--line); }
+  .kpi.alerta .valor { color: var(--brand-txt); }
+  .nav-item[aria-current="page"] { background: var(--brand-soft); color: var(--brand-txt); }
+  .nav-item[aria-current="page"]::before { background: var(--brand); }
+  .nav-item .cuenta { background: var(--brand); color: #fff; }
+  .chip { border: 1px solid transparent; font-weight: 600; }
+  .chip.critica, .chip.tarde { background: #F7E8E6; color: #A84D47; }
+  .chip.alta { background: #F8ECE7; color: #A94C32; }
+  .chip.media, .chip.solucionando, .chip.en_mantenimiento { background: #F4F0E7; color: #887044; }
+  .chip.baja { background: #EFF1F3; color: #68727C; }
+  .chip.nuevo, .chip.contador { background: #F7EAE8; color: #A95750; }
+  .chip.en_atencion, .chip.en_camino, .chip.en_revision { background: #EAF0F5; color: #58758F; }
+  .chip.resuelto, .chip.operativo { background: #EAF1EC; color: #557A63; }
+  :root[data-tema="oscuro"] .chip.critica, :root[data-tema="oscuro"] .chip.tarde,
+  :root[data-tema="oscuro"] .chip.nuevo, :root[data-tema="oscuro"] .chip.contador { background: rgba(222,130,123,.14); color: #E49A94; }
+  :root[data-tema="oscuro"] .chip.alta { background: rgba(217,120,88,.14); color: #E49A7E; }
+  :root[data-tema="oscuro"] .chip.media, :root[data-tema="oscuro"] .chip.solucionando,
+  :root[data-tema="oscuro"] .chip.en_mantenimiento { background: rgba(208,180,122,.13); color: #D0B47A; }
+  :root[data-tema="oscuro"] .chip.baja { background: rgba(255,255,255,.06); color: #AAB3BC; }
+  :root[data-tema="oscuro"] .chip.en_atencion, :root[data-tema="oscuro"] .chip.en_camino,
+  :root[data-tema="oscuro"] .chip.en_revision { background: rgba(142,172,201,.14); color: #A5BED8; }
+  :root[data-tema="oscuro"] .chip.resuelto, :root[data-tema="oscuro"] .chip.operativo { background: rgba(131,184,154,.14); color: #9BC9AC; }
+  .vivo { background: var(--brand); }
+  .vivo::after { border-color: var(--brand); }
+  .anillo .prog, .meter i { stroke: var(--brand); background: var(--brand); }
+  .valor-grande, .sede .num b { color: var(--ink-strong); }
+  .fila-barra .et b, .fila-barrah b, td.cod, .plazo-cel { font-family: var(--f-body); }
+  .td-comentario, .comentario-txt { overflow-wrap: anywhere; }
+  #aviso-toast { border-radius: 12px; background: #252B32; box-shadow: 0 10px 30px rgba(0,0,0,.16); }
+  #aviso-toast::before { background: var(--brand-2); }
+  dialog { border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
+  .dlg-cab h2 { font-family: var(--f-body); font-weight: 700; }
+  .cargador { --hue: 14; }
+
+  /* Acceso minimalista: una sola columna, sin bloque promocional lateral. */
+  #vista-login {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(28px, 6vh, 64px) 20px;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: linear-gradient(145deg, #F7F8F9 0%, #F0F2F4 100%);
+  }
+  #vista-login::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: min(620px, 90vw);
+    height: min(620px, 90vw);
+    border-radius: 50%;
+    right: -360px;
+    top: -390px;
+    border: 1px solid rgba(217,102,67,.09);
+    box-shadow: 0 0 0 42px rgba(217,102,67,.022), 0 0 0 84px rgba(217,102,67,.014);
+    pointer-events: none;
+  }
+  #vista-login::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--brand);
+  }
+  :root[data-tema="oscuro"] #vista-login {
+    background: linear-gradient(145deg, #171C22 0%, #13171C 100%);
+  }
+  #vista-login > .login-caja {
+    display: block;
+    width: min(100%, 438px);
+    max-width: 438px;
+    margin: 0;
+    padding: 0;
+    animation: soporteEntrada .45s ease-out both;
+  }
+  @keyframes soporteEntrada { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  #vista-login .marca {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 34px;
+  }
+  #vista-login .marca .marca-icono {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: var(--brand);
+  }
+  .logo-foto { display: block; width: 100%; height: 100%; object-fit: contain; }
+  #vista-login .marca b { display: block; color: var(--ink-strong); font-family: var(--f-body); font-size: 1rem; font-weight: 700; line-height: 1.3; letter-spacing: -.025em; }
+  #vista-login .marca span { display: block; margin-top: 3px; color: var(--muted); font-size: .8rem; }
+  #vista-login .login-eyebrow { margin: 0 0 10px; color: var(--brand-txt); font-size: .68rem; font-weight: 700; letter-spacing: .14em; }
+  #vista-login h1 { margin: 0 0 9px; color: var(--ink-strong); font-family: var(--f-body); font-size: clamp(1.85rem, 4vw, 2.15rem); font-weight: 700; letter-spacing: -.055em; line-height: 1.15; text-align: left; }
+  #vista-login p.sub { margin: 0 0 24px; color: var(--muted); font-size: .93rem; line-height: 1.55; text-align: left; }
+  #vista-login #form-login.panel { padding: 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: 0 16px 42px rgba(31,43,56,.055); }
+  :root[data-tema="oscuro"] #vista-login #form-login.panel { box-shadow: 0 16px 42px rgba(0,0,0,.18); }
+  #vista-login label.campo { margin: 17px 0 7px; color: var(--ink-strong); font-size: .8rem; font-weight: 600; }
+  #vista-login #form-login > label:first-child { margin-top: 0 !important; }
+  #vista-login input { min-height: 48px; padding: 11px 13px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--input); color: var(--text); font-size: .92rem; }
+  #vista-login input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(217,102,67,.12); }
+  #vista-login .campo-clave input { padding-right: 48px; }
+  #vista-login .ojo { right: 5px; width: 38px; height: 38px; color: var(--muted); }
+  #vista-login #login-boton { min-height: 48px; margin-top: 21px !important; border: 1px solid var(--brand); border-radius: 10px; background: var(--brand); color: #fff; font-size: .92rem; font-weight: 650; letter-spacing: .005em; box-shadow: none; }
+  #vista-login #login-boton:hover:not(:disabled) { background: var(--brand-dark); border-color: var(--brand-dark); box-shadow: 0 7px 18px rgba(189,82,51,.14); transform: translateY(-1px); }
+  #vista-login .error { font-size: .84rem; }
+  #vista-login .aviso { font-size: .8rem; line-height: 1.45; }
+  #vista-login .campo-clave { position: relative; }
+  #vista-login .campo-clave input { padding-right: 48px; }
+  #vista-login .ojo { position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+  #vista-login .ojo:hover { background: var(--hover); }
+  #vista-login .ojo svg { display: block; }
+  #vista-login .ojo .cerrado { display: none; }
+  #vista-login .ojo.viendo .abierto { display: none; }
+  #vista-login .ojo.viendo .cerrado { display: block; }
+  #menu .logo .marca-icono { background: #fff; }
+  @media (max-width: 520px) {
+    #vista-login { padding: 34px 18px; }
+    #vista-login > .login-caja { width: 100%; }
+    #vista-login .marca { margin-bottom: 28px; }
+    #vista-login #form-login.panel { padding: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) { #vista-login > .login-caja { animation: none; } }
+</style>
 </head>
 <body>
 
 <!-- ===================== LOGIN ===================== -->
 <section id="vista-login" class="oculto">
-  <div class="login-lado">
-    <span class="blob b1" aria-hidden="true"></span><span class="blob b2" aria-hidden="true"></span><span class="blob b3" aria-hidden="true"></span>
-    <div class="login-marca"><div class="marca-icono sin-foto" aria-hidden="true"><span class="logo-t">T</span></div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
-    <div class="login-msg">
-      <div class="kicker">Mesa de ayuda</div>
-      <h2>Tecnología que acompaña <em>cada aula</em></h2>
-      <p>Reportes de incidencias, atención y seguimiento de todas las sedes Trilce, en un solo lugar.</p>
-      <ul class="login-puntos"><li>Tickets en vivo</li><li>Encuestas</li><li>Activos</li></ul>
+  <div class="login-caja">
+    <div class="marca">
+      <div class="marca-icono logo-institucional" aria-hidden="true"><span class="logo-t">T</span></div>
+      <div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div>
     </div>
-    <div class="login-pie">Estudiar en Trilce SE NOTA</div>
-  </div>
-  <div class="login-form-lado"><div class="login-caja">
-    <div class="marca"><div class="marca-icono" aria-hidden="true">T</div><div><b>Trilce TI</b><span class="nom-pagina">Soporte técnico</span></div></div>
-    <h1 id="login-titulo">Ingresa a la mesa de ayuda</h1>
-    <p class="sub" id="login-sub">Usa tu cuenta.</p>
+    <div class="login-eyebrow">TRILCE · SOPORTE TÉCNICO</div>
+    <h1 id="login-titulo">Ingresa a tu cuenta</h1>
+    <p class="sub" id="login-sub">Accede a la mesa de ayuda y gestiona las incidencias de tu sede.</p>
     <form id="form-login" class="panel" novalidate>
       <label class="campo" for="correo" style="margin-top:0">Correo</label>
       <input id="correo" type="email" autocomplete="username" inputmode="email" required>
       <label class="campo" for="clave">Contraseña</label>
-      <input id="clave" type="password" autocomplete="current-password" required>
-      <p id="login-error" class="error oculto"></p>
-      <p id="login-espera" class="aviso oculto">Conectando… si el sistema estaba dormido puede tardar hasta 1 minuto.</p>
+      <div class="campo-clave">
+        <input id="clave" type="password" autocomplete="current-password" required>
+        <button id="ver-clave" class="ojo" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
+          <svg class="abierto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg class="cerrado" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.2-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+        </button>
+      </div>
+      <p id="login-error" class="error oculto" role="alert" aria-live="polite"></p>
+      <p id="login-espera" class="aviso oculto" role="status" aria-live="polite">Conectando… si el sistema estaba dormido puede tardar hasta 1 minuto.</p>
       <button id="login-boton" class="btn primario" type="submit" style="width:100%;margin-top:16px">Ingresar</button>
     </form>
-  </div></div>
+  </div>
 </section>
 
 <!-- ===================== APLICACIÓN ===================== -->
@@ -1893,6 +2105,45 @@ setInterval(() => {
       visible = ahora;
     }).observe(sec, { attributes: true, attributeFilter: ["class"] });
   }));
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  const LOGO_TRILCE = "https://www.trilce.edu.pe/storage/static/upload/96224e20-aae8-11f1-9f67-cdabd7137ee0.svg";
+
+  // Logo institucional: si la imagen no carga, conserva la T como alternativa.
+  document.querySelectorAll(".marca-icono").forEach((box) => {
+    if (box.querySelector("img")) return;
+    const img = document.createElement("img");
+    img.className = "logo-foto";
+    img.src = LOGO_TRILCE;
+    img.alt = "Logotipo de Trilce";
+    img.loading = "eager";
+    img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      img.remove();
+      box.classList.add("logo-sin-imagen");
+      if (!box.textContent.trim()) box.textContent = "T";
+    }, { once: true });
+    box.replaceChildren(img);
+  });
+
+  // Mostrar u ocultar contraseña; no modifica el valor ni el envío del formulario.
+  const clave = document.getElementById("clave");
+  const boton = document.getElementById("ver-clave");
+  if (clave && boton) {
+    boton.addEventListener("click", () => {
+      const mostrar = clave.type === "password";
+      clave.type = mostrar ? "text" : "password";
+      boton.classList.toggle("viendo", mostrar);
+      boton.setAttribute("aria-pressed", String(mostrar));
+      boton.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+      boton.title = mostrar ? "Ocultar contraseña" : "Mostrar contraseña";
+      clave.focus({ preventScroll: true });
+    });
+  }
 })();
 </script>
 </body>
