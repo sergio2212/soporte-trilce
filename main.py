@@ -859,7 +859,7 @@ def admin_habilitar_encuesta(encuesta_id: int, cred: Optional[HTTPAuthorizationC
 class MensajeNuevo(BaseModel):
     ticket_id: Optional[int] = None
     encuesta_id: Optional[int] = None
-    texto: str = Field(min_length=3, max_length=500)
+    texto: str = Field(min_length=3, max_length=200)
 
 
 @app.post("/admin/mensajes", status_code=201)
@@ -1200,6 +1200,38 @@ def actualizar_activo(
         if datos.mantenimiento_hoy:
             cur.execute("UPDATE equipos SET ultimo_mantenimiento = CURRENT_DATE WHERE id = %s", (activo_id,))
     return {"id": activo_id}
+
+
+class AulaNueva(BaseModel):
+    sede_id: int
+    aula: str = Field(min_length=1, max_length=20)
+
+
+@app.post("/admin/ambientes", status_code=201)
+def crear_aula(datos: AulaNueva, cred: Optional[HTTPAuthorizationCredentials] = Depends(bearer)):
+    """El administrador agrega un aula a una sede. El piso se detecta del número (305 -> piso 3)."""
+    texto = re.sub(r"^aula\s*", "", datos.aula.strip(), flags=re.IGNORECASE)
+    if not re.fullmatch(r"[1-9][0-9]{2}", texto):
+        raise HTTPException(status_code=400, detail="El aula debe tener 3 cifras, del 100 al 999 (por ejemplo 305)")
+    piso = int(texto[0])
+    nombre = "Aula " + texto
+    with conexion() as conn, conn.cursor() as cur:
+        autenticar(cur, cred, roles=ROLES_INVENTARIO)
+        cur.execute("SELECT 1 FROM sedes WHERE id = %s AND activa", (datos.sede_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=400, detail="Elige una sede válida")
+        cur.execute(
+            "SELECT 1 FROM ambientes WHERE sede_id = %s AND lower(nombre) = lower(%s)",
+            (datos.sede_id, nombre),
+        )
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="Esa aula ya existe en la sede")
+        cur.execute(
+            "INSERT INTO ambientes (sede_id, nombre, piso) VALUES (%s, %s, %s) RETURNING id",
+            (datos.sede_id, nombre, piso),
+        )
+        nuevo = cur.fetchone()
+    return {"id": nuevo["id"], "nombre": nombre, "piso": piso}
 
 
 @app.get("/soporte/sedes")
